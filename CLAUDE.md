@@ -82,7 +82,9 @@ assets/themes/<tema>/   # atlas, spritesheets e manifest.json
    - atualize o que a feature tornou desatualizado (GDD se a regra mudou, `DECISIONS.md`, README, "Fase atual" abaixo);
    - reescreva [`docs/STATUS.md`](docs/STATUS.md) para a próxima sessão começar sabendo onde parou.
    Vale também ao fechar uma fase.
-8. Commits pequenos, mensagem em português no imperativo (`Adiciona terreno de gelo`).
+8. Commits pequenos no formato [Conventional Commits](https://www.conventionalcommits.org/pt-br/), assunto em português no imperativo: `feat(terrenos): Adiciona gelo`. O escopo da feature é o nome da spec (`partida-e-rodadas`, `bots`…). Tipos: `feat` (feature), `fix` (correção), `docs(specs)` (spec nova ou mudada), `docs`, `test`, `refactor`, `chore`, `ci`. O hook `commit-msg` (commitlint) recusa mensagem fora do formato.
+9. **Versões são automáticas:** a cada push na `main`, o GitHub Actions roda testes, lint e build e o `semantic-release` lê os commits (`feat` → minor, `fix` → patch), atualiza o `CHANGELOG.md`, cria a tag `vX.Y.Z` e a GitHub Release. Não edite versão nem changelog à mão.
+10. **Ao fechar uma fase** (portão cumprido), crie a tag anotada `fase-N` no commit que fecha a fase e envie: `git tag -a fase-1 -m "Fase 1 — …" && git push origin fase-1`.
 
 Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 

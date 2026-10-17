@@ -50,6 +50,7 @@ bun run test && bun run lint && bun run build && bun run test:e2e
 docker build -t estouro-arena . && docker run --rm -p 8080:80 estouro-arena   # imagem de produção
 ```
 
+- Commits: `feat(<spec>): Assunto` (ver CLAUDE.md, passo 8); o push na `main` gera a versão e o `CHANGELOG.md` sozinho. Fase fechada = tag `fase-N`.
 - Regras de cada feature: [`docs/specs/`](specs/README.md). Decisões e motivos: [`DECISIONS.md`](DECISIONS.md).
 - Em dev, `window.__arena` expõe o mundo para inspeção no console (só leitura).
 - `?seed=N` fixa o mapa; `?touch=1` força os controles de toque; `?debug=1` liga o painel.
