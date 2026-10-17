@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.6.0...v0.7.0) (2026-10-17)
+
+### Funcionalidades
+
+* **mapas-fase-1:** Adiciona pantanal e tundra, validação de fase e ?map= ([df8a360](https://github.com/maykon-oliveira/estouro-arena/commit/df8a3608464867309377fd940a3ffd0a29cbe0e9))
+
 ## [0.6.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.5.0...v0.6.0) (2026-10-17)
 
 ### Funcionalidades
