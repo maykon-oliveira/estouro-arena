@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.11.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.10.0...v0.11.0) (2026-10-17)
+
+### Funcionalidades
+
+* **menus-e-hud:** Adiciona título, batalha, pausa, resultado e painel do jogador ([20f074c](https://github.com/maykon-oliveira/estouro-arena/commit/20f074cce4f849d83e744b87e33c698158710095))
+
 ## [0.10.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.9.0...v0.10.0) (2026-10-17)
 
 ### Funcionalidades
