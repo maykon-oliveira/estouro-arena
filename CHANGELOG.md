@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.8.0...v0.9.0) (2026-10-17)
+
+### Funcionalidades
+
+* **morte-subita:** Adiciona morte súbita em espiral nos últimos 30 s ([4c587a4](https://github.com/maykon-oliveira/estouro-arena/commit/4c587a41d0912846a20ba70c0c7c76df23b952eb))
+
 ## [0.8.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.7.0...v0.8.0) (2026-10-17)
 
 ### Funcionalidades
