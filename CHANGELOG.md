@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.3.0...v0.4.0) (2026-10-17)
+
+### Funcionalidades
+
+* **itens-e-power-ups:** Adiciona itens nos blocos e 6 power-ups ([a435b9b](https://github.com/maykon-oliveira/estouro-arena/commit/a435b9b9070edc38f01b345a7da5d591c90375df))
+
 ## [0.3.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.2.0...v0.3.0) (2026-10-17)
 
 ### Funcionalidades
