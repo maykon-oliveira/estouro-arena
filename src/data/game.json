@@ -1,0 +1,7 @@
+{
+  "tickRate": 60,
+  "grid": { "cols": 15, "rows": 13 },
+  "bomb": { "fuseMs": 2500, "explosionMs": 500 },
+  "player": { "speedTilesPerSecond": 4, "startBombs": 1, "startRange": 2 },
+  "render": { "tileSize": 32, "width": 854, "height": 480 }
+}

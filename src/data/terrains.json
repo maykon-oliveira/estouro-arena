@@ -1,0 +1,26 @@
+[
+  {
+    "id": "chao",
+    "walkable": true,
+    "blocksFire": false,
+    "destructible": false,
+    "allowsBomb": true,
+    "speedMultiplier": 1
+  },
+  {
+    "id": "parede",
+    "walkable": false,
+    "blocksFire": true,
+    "destructible": false,
+    "allowsBomb": false,
+    "speedMultiplier": 1
+  },
+  {
+    "id": "bloco",
+    "walkable": false,
+    "blocksFire": true,
+    "destructible": true,
+    "allowsBomb": false,
+    "speedMultiplier": 1
+  }
+]

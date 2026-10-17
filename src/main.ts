@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { gameConfig } from './data';
 import { ArenaScene } from './render/ArenaScene';
 
 const game = new Phaser.Game({
@@ -9,8 +10,8 @@ const game = new Phaser.Game({
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 854,
-    height: 480,
+    width: gameConfig.render.width,
+    height: gameConfig.render.height,
   },
   scene: [ArenaScene],
 });

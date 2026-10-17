@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
+import { gameConfig } from '../data';
 
-// Placeholder da Fase 0: desenha uma grade vazia 15 × 13 só para validar o pipeline.
+// Placeholder da Fase 0: desenha uma grade vazia só para validar o pipeline.
 // Será substituída pela renderização do estado do core.
-const COLS = 15;
-const ROWS = 13;
-const TILE = 32;
+const { cols: COLS, rows: ROWS } = gameConfig.grid;
+const TILE = gameConfig.render.tileSize;
 
 export class ArenaScene extends Phaser.Scene {
   constructor() {
