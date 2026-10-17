@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.11.0...v0.12.0) (2026-10-17)
+
+### Funcionalidades
+
+* **tema-dicebear:** Adiciona texturas de terreno geradas com DiceBear ([c3c8f22](https://github.com/maykon-oliveira/estouro-arena/commit/c3c8f2263069b58ecd942aa6a7a0ac1218ee3abe))
+
 ## [0.11.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.10.0...v0.11.0) (2026-10-17)
 
 ### Funcionalidades
