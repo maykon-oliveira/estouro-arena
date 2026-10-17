@@ -7,7 +7,11 @@ import type { Bomb, Player, World } from './world';
 const CROSS: readonly Direction[] = ['up', 'down', 'left', 'right'];
 
 export function bombAt(world: World, x: number, y: number): Bomb | undefined {
-  return world.bombs.find((b) => b.x === x && b.y === y);
+  return findBomb(world.bombs, x, y);
+}
+
+function findBomb(bombs: readonly Bomb[], x: number, y: number): Bomb | undefined {
+  return bombs.find((b) => b.x === x && b.y === y);
 }
 
 /** Solta uma bomba no tile do jogador, se ele tiver bomba livre e o terreno permitir. */
@@ -67,9 +71,14 @@ export function updateBombs(world: World, out: GameEvent[]): void {
 
 /**
  * Tiles que a explosão da bomba atingiria agora, e as bombas que ela detonaria.
- * Pura (não altera o mundo): usada pela explosão real e pela prévia do painel de debug.
+ * Pura (não altera o mundo): usada pela explosão real, pela prévia do painel de debug e pelo
+ * mapa de perigo dos bots, que passa `bombs` com uma bomba hipotética a mais.
  */
-export function explosionTiles(world: World, bomb: Bomb): { tiles: Point[]; hitBombs: Bomb[] } {
+export function explosionTiles(
+  world: World,
+  bomb: Bomb,
+  bombs: readonly Bomb[] = world.bombs,
+): { tiles: Point[]; hitBombs: Bomb[] } {
   const tiles: Point[] = [{ x: bomb.x, y: bomb.y }];
   const hitBombs: Bomb[] = [];
   for (const dir of CROSS) {
@@ -79,7 +88,7 @@ export function explosionTiles(world: World, bomb: Bomb): { tiles: Point[]; hitB
       const y = bomb.y + dy * d;
       if (!inBounds(world.grid, x, y)) break;
 
-      const hitBomb = bombAt(world, x, y);
+      const hitBomb = findBomb(bombs, x, y);
       if (hitBomb) {
         // O fogo para na bomba, que explode em cadeia.
         tiles.push({ x, y });

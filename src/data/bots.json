@@ -1,0 +1,8 @@
+{
+  "escapeMarginMs": 150,
+  "levels": {
+    "facil": { "reactionMs": 450, "mistakeChance": 0.15, "aggression": 0.3, "itemSearchTiles": 4 },
+    "medio": { "reactionMs": 250, "mistakeChance": 0.05, "aggression": 0.6, "itemSearchTiles": 8 },
+    "dificil": { "reactionMs": 100, "mistakeChance": 0, "aggression": 0.9, "itemSearchTiles": 15 }
+  }
+}

@@ -1,9 +1,13 @@
 // Ponto único de carga do conteúdo: todo JSON passa pelo schema Zod aqui.
+import botsJson from './bots.json';
 import gameJson from './game.json';
 import soundsJson from './sounds.json';
 import stringsJson from './strings.pt-BR.json';
 import terrainsJson from './terrains.json';
+import type { BotConfig } from '../core/bots/bot';
+import { botConfigsFromData } from './rules';
 import {
+  BotsSchema,
   GameConfigSchema,
   SoundsSchema,
   StringsSchema,
@@ -34,6 +38,12 @@ export const maps: ReadonlyMap<string, MapData> = new Map(
 if (!maps.has(gameConfig.map.default)) {
   throw new Error(`src/data/game.json: map.default '${gameConfig.map.default}' não existe`);
 }
+
+/** Níveis dos bots por id, já em ticks. */
+export const botConfigs: ReadonlyMap<string, BotConfig> = botConfigsFromData(
+  parseContent(BotsSchema, botsJson, 'src/data/bots.json'),
+  gameConfig.tickRate,
+);
 
 export const sounds = parseContent(SoundsSchema, soundsJson, 'src/data/sounds.json');
 

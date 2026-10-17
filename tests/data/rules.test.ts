@@ -18,3 +18,13 @@ describe('rulesFromConfig', () => {
     expect(rules.startRange).toBe(gameConfig.player.startRange);
   });
 });
+
+describe('botConfigs', () => {
+  it('carrega os 3 níveis de src/data/bots.json com durações em ticks', async () => {
+    const { botConfigs } = await import('../../src/data');
+    expect([...botConfigs.keys()]).toEqual(['facil', 'medio', 'dificil']);
+    expect(botConfigs.get('medio')?.level.reactionTicks).toBe(15);
+    expect(botConfigs.get('dificil')?.level.mistakeChance).toBe(0);
+    expect(botConfigs.get('facil')?.escapeMarginTicks).toBe(9);
+  });
+});

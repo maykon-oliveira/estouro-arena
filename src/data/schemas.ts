@@ -178,6 +178,29 @@ export type MapData = z.infer<ReturnType<typeof createMapSchema>>;
 /** Evento do jogo → id do som. Chave que não é evento conhecido é erro (digitação). */
 export const SoundsSchema = z.partialRecord(z.enum(GAME_EVENT_TYPES), z.string().min(1));
 
+const Chance = z.number().min(0).max(1);
+
+/** Níveis dos bots (src/data/bots.json). Ver docs/specs/bots.md. */
+export const BotsSchema = z.strictObject({
+  /** Folga, dos dois lados do perigo previsto, que as rotas dos bots respeitam. */
+  escapeMarginMs: z.number().min(0),
+  levels: z.record(
+    ContentId,
+    z.strictObject({
+      /** Intervalo entre decisões. */
+      reactionMs: z.number().positive(),
+      /** Chance, por bomba, de pular a checagem de fuga. */
+      mistakeChance: Chance,
+      /** Chance, por decisão, de caçar antes de abrir caminho. */
+      aggression: Chance,
+      /** Distância máxima até um item para ir buscá-lo. */
+      itemSearchTiles: z.number().int().min(0),
+    }),
+  ),
+});
+
+export type BotsData = z.infer<typeof BotsSchema>;
+
 /** Textos do jogo: chave → texto. */
 export const StringsSchema = z.record(z.string().min(1), z.string().min(1));
 

@@ -1,7 +1,8 @@
 import { msToTicks } from '../core/time';
+import type { BotConfig } from '../core/bots/bot';
 import type { MatchRules } from '../core/match';
 import type { Rules } from '../core/world';
-import type { GameConfig } from './schemas';
+import type { BotsData, GameConfig } from './schemas';
 
 /** Converte a config validada (game.json) nas regras da simulação, com durações em ticks. */
 export function rulesFromConfig(cfg: GameConfig): Rules {
@@ -25,4 +26,23 @@ export function matchRulesFromConfig(cfg: GameConfig): MatchRules {
     countdownTicks: msToTicks(cfg.match.countdownMs, cfg.tickRate),
     roundEndDelayTicks: msToTicks(cfg.match.roundEndDelayMs, cfg.tickRate),
   };
+}
+
+/** Nível de bot por id (`facil`, `medio`, `dificil`), com durações em ticks. */
+export function botConfigsFromData(data: BotsData, tickRate: number): Map<string, BotConfig> {
+  const escapeMarginTicks = msToTicks(data.escapeMarginMs, tickRate);
+  return new Map(
+    Object.entries(data.levels).map(([id, level]) => [
+      id,
+      {
+        escapeMarginTicks,
+        level: {
+          reactionTicks: Math.max(1, msToTicks(level.reactionMs, tickRate)),
+          mistakeChance: level.mistakeChance,
+          aggression: level.aggression,
+          itemSearchTiles: level.itemSearchTiles,
+        },
+      },
+    ]),
+  );
 }

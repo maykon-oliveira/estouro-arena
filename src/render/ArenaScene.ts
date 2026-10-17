@@ -2,12 +2,13 @@ import Phaser from 'phaser';
 import { SilentAudio } from '../audio/AudioService';
 import { EventSounds } from '../audio/EventSounds';
 import type { Command } from '../core/commands';
+import { createBot, runBots, type Bot } from '../core/bots/bot';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
 import { countSpawns } from '../core/grid';
 import { BLOCK } from '../core/terrainIds';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
-import { gameConfig, maps, sounds, terrains } from '../data';
+import { botConfigs, gameConfig, maps, sounds, terrains } from '../data';
 import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
@@ -47,6 +48,17 @@ function readBots(): number {
   return Number.isInteger(bots) ? Math.min(3, Math.max(1, bots)) : 3;
 }
 
+/** `?nivel=facil|medio|dificil` (padrão `medio`) até existir o menu de batalha. */
+function readBotLevel(): string {
+  const level = new URLSearchParams(window.location.search).get('nivel');
+  return level !== null && botConfigs.has(level) ? level : 'medio';
+}
+
+/** `?ia=0` deixa os adversários parados (para testes e depuração). */
+function botsEnabled(): boolean {
+  return new URLSearchParams(window.location.search).get('ia') !== '0';
+}
+
 interface ArenaSceneData {
   /** Seed da partida; ausente na primeira carga (vem da URL ou é sorteada). */
   seed?: number;
@@ -58,6 +70,9 @@ export class ArenaScene extends Phaser.Scene {
   private requestedSeed: number | undefined;
   private stepper!: FixedStep;
   private readonly commands: Command[] = [];
+  /** Comandos de um tick (jogador local + bots), reaproveitado para não alocar por tick. */
+  private readonly tickCommands: Command[] = [];
+  private bots: Bot[] = [];
   private readonly gameEvents: GameEvent[] = [];
   private readonly eventSounds = new EventSounds(new SilentAudio(), sounds);
   private gridLayer!: Phaser.GameObjects.Graphics;
@@ -110,6 +125,13 @@ export class ArenaScene extends Phaser.Scene {
     // Só em dev: inspeção pelo console e pelos testes e2e. Nunca escrever na partida por aqui.
     if (import.meta.env.DEV) Object.assign(window, { __arena: this.match });
 
+    const botConfig = botConfigs.get(readBotLevel());
+    if (!botConfig) throw new Error('nível de bot não encontrado');
+    // Jogador local = id 0; os demais são bots.
+    this.bots = botsEnabled()
+      ? this.world.players.slice(1).map((p) => createBot(p.id, botConfig, seed))
+      : [];
+
     this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
     this.hud = new MatchHud(document.body, this.world.players.length);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -143,8 +165,12 @@ export class ArenaScene extends Phaser.Scene {
     this.playerInput.poll(this.commands);
     const ticks = this.stepper.advance(deltaMs);
     for (let i = 0; i < ticks; i++) {
-      // Comandos entram no primeiro tick do quadro; os demais ticks seguem com a direção segurada.
-      stepMatch(this.match, i === 0 ? this.commands : [], this.gameEvents);
+      // Comandos do jogador entram no primeiro tick do quadro; os bots decidem a cada tick.
+      const cmds = this.tickCommands;
+      cmds.length = 0;
+      if (i === 0) cmds.push(...this.commands);
+      runBots(this.match, this.bots, cmds);
+      stepMatch(this.match, cmds, this.gameEvents);
     }
     if (ticks > 0) this.commands.length = 0;
 

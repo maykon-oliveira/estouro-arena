@@ -15,7 +15,7 @@ Projeto IA-first: o desenvolvimento é feito com agentes de IA seguindo [`CLAUDE
 
 ## Status
 
-Fase 0 — Fundação, concluída: grade, movimento com joystick, bomba e explosão em cruz e painel de debug, testados num celular real. Publicado em http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/ (Coolify). Em andamento: Fase 1 — MVP: Batalha (partida melhor de 3 com rodadas pronta). Detalhes em [docs/STATUS.md](docs/STATUS.md).
+Fase 0 — Fundação, concluída: grade, movimento com joystick, bomba e explosão em cruz e painel de debug, testados num celular real. Publicado em http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/ (Coolify). Em andamento: Fase 1 — MVP: Batalha (partida melhor de 3 contra bots pronta). Detalhes em [docs/STATUS.md](docs/STATUS.md).
 
 ```bash
 bun install

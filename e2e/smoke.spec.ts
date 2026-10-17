@@ -40,7 +40,8 @@ test('em retrato mostra o aviso de girar o aparelho', async ({ page }) => {
 
 test('portão da Fase 0: o jogador explode um bloco e sobrevive', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.goto('/?seed=0&debug=1');
+  // ?ia=0: adversários parados, para os blocos destruídos serem só os da bomba do jogador.
+  await page.goto('/?seed=0&debug=1&ia=0');
   // Espera o fim da contagem ("3, 2, 1, Já!") e a simulação começar a rodar.
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
     timeout: 6_000,
@@ -78,5 +79,18 @@ test('partida: contagem, "Já!" e relógio correndo', async ({ page }) => {
   await expect(hud).toHaveAttribute('data-phase', 'playing', { timeout: 6_000 });
   await expect(page.locator('.hud-banner-text')).toHaveText('Já!');
   await expect(page.locator('.hud-clock')).toHaveText('1:59', { timeout: 3_000 });
+  expect(errors).toEqual([]);
+});
+
+test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&debug=1&nivel=dificil');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  const blocksBefore = Number(await debugValue(page, 'blocks'));
+  await expect
+    .poll(async () => Number(await debugValue(page, 'blocks')), { timeout: 8_000 })
+    .toBeLessThan(blocksBefore);
   expect(errors).toEqual([]);
 });
