@@ -1,6 +1,6 @@
 # CLAUDE.md — Estouro Arena
 
-Instruções para agentes de IA (Claude Code e similares) que trabalham neste repositório. Leia este arquivo inteiro antes de qualquer tarefa.
+Instruções para agentes de IA (Claude Code e similares) que trabalham neste repositório. Leia este arquivo inteiro antes de qualquer tarefa e, em seguida, [`docs/STATUS.md`](docs/STATUS.md) para saber onde o trabalho parou.
 
 ## O projeto
 
@@ -11,6 +11,7 @@ Instruções para agentes de IA (Claude Code e similares) que trabalham neste re
 - Convenções de arte: [`docs/ASSETS.md`](docs/ASSETS.md).
 - Decisões tomadas: [`docs/DECISIONS.md`](docs/DECISIONS.md) — não desfaça uma decisão sem registrar a nova.
 - Specs por feature: [`docs/specs/`](docs/specs/) — como cada regra funciona de fato, com casos de borda.
+- Onde parei: [`docs/STATUS.md`](docs/STATUS.md) — fase, próximo passo e pendências.
 
 Se um pedido contradiz o GDD, pergunte antes de implementar e, se aprovado, atualize o GDD no mesmo commit.
 
@@ -55,7 +56,9 @@ src/
   audio/     # AudioService + implementações
   ui/        # menus, HUD
   events.ts  # tipos de todos os eventos do jogo
-tests/       # testes da simulação (espelham src/core)
+tests/       # Vitest: espelham src/ (core, data, input, ui, audio)
+e2e/         # Playwright: smoke contra o build de produção
+docs/specs/  # uma mini-spec por feature
 assets/themes/<tema>/   # atlas, spritesheets e manifest.json
 ```
 
@@ -73,8 +76,13 @@ assets/themes/<tema>/   # atlas, spritesheets e manifest.json
 3. Escreva os testes do core primeiro (Vitest).
 4. Implemente até passar.
 5. Conecte render/input e verifique no navegador (paisagem, viewport de celular).
-6. Rode `bun run test`, `bun run lint` e `bun run build` — tudo deve passar antes de concluir.
-7. Commits pequenos, mensagem em português no imperativo (`Adiciona terreno de gelo`).
+6. Rode `bun run test`, `bun run lint`, `bun run build` e `bun run test:e2e` — tudo deve passar antes de concluir.
+7. **Feche a documentação** no mesmo commit:
+   - marque a spec como feita (e o índice em `docs/specs/README.md`);
+   - atualize o que a feature tornou desatualizado (GDD se a regra mudou, `DECISIONS.md`, README, "Fase atual" abaixo);
+   - reescreva [`docs/STATUS.md`](docs/STATUS.md) para a próxima sessão começar sabendo onde parou.
+   Vale também ao fechar uma fase.
+8. Commits pequenos, mensagem em português no imperativo (`Adiciona terreno de gelo`).
 
 Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 
@@ -104,3 +112,4 @@ Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 
 **Fase 0 — Fundação** (ver GDD §9): projeto Vite + Phaser + TS, este CLAUDE.md, testes e deploy; grade, movimento com joystick, bomba e explosão em cruz; placeholders e painel de debug.
 Portão para a Fase 1: um jogador explode blocos rodando num celular real.
+Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md): tudo feito menos o deploy e o teste no celular real.

@@ -11,12 +11,13 @@ Projeto IA-first: o desenvolvimento é feito com agentes de IA seguindo [`CLAUDE
 - [Convenções de assets](docs/ASSETS.md)
 - [Decisões](docs/DECISIONS.md)
 - [Specs por feature](docs/specs/README.md)
+- [Onde parei (status)](docs/STATUS.md)
 
 ## Status
 
-Fase 0 — Fundação: projeto Vite + Phaser 3 + TypeScript + Vitest criado.
+Fase 0 — Fundação, quase concluída: grade, movimento com joystick, bomba e explosão em cruz e painel de debug funcionando. Falta validar num celular real. Detalhes em [docs/STATUS.md](docs/STATUS.md).
 
 ```bash
 bun install
-bun run dev
+bun run dev   # http://localhost:5173/?debug=1
 ```
