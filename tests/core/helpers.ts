@@ -20,7 +20,13 @@ export const testTerrains: ReadonlyMap<string, TerrainRules> = new Map([
   ['parede', { ...solid, destructible: false }],
   ['bloco', { ...solid, destructible: true }],
   ['lama', { ...floorLike, walkable: true, speedMultiplier: 0.5 }],
-  ['agua_rasa', { ...floorLike, walkable: true, speedMultiplier: 1, allowsBomb: false }],
+  ['agua_rasa', { ...floorLike, walkable: true, speedMultiplier: 0.5, allowsBomb: false }],
+  ['agua_funda', { ...floorLike, walkable: false, speedMultiplier: 1, allowsBomb: false }],
+  [
+    'mato_alto',
+    { ...floorLike, walkable: true, speedMultiplier: 1, destructible: true, hides: true },
+  ],
+  ['gelo', { ...floorLike, walkable: true, speedMultiplier: 1, slippery: true }],
 ]);
 
 /** 6 tiles/s a 60 ticks/s = 0,1 tile por tick, para contas fáceis. */
@@ -54,7 +60,7 @@ export const testItems: ReadonlyMap<string, ItemDef> = new Map<string, ItemDef>(
 
 /**
  * Mapa ASCII sem blocos sorteados: `#` parede, `.` chão, `B` bloco, `~` lama,
- * `w` água rasa, `P` spawn.
+ * `w` água rasa, `=` água funda, `"` mato alto, `*` gelo, `P` spawn.
  */
 export function worldFrom(
   mapa: string[],
@@ -64,7 +70,17 @@ export function worldFrom(
 ): World {
   const map: MapDefinition = {
     tamanho: [mapa[0]?.length ?? 0, mapa.length],
-    legenda: { '#': 'parede', '.': 'chao', B: 'bloco', '~': 'lama', w: 'agua_rasa', P: 'spawn' },
+    legenda: {
+      '#': 'parede',
+      '.': 'chao',
+      B: 'bloco',
+      '~': 'lama',
+      w: 'agua_rasa',
+      '=': 'agua_funda',
+      '"': 'mato_alto',
+      '*': 'gelo',
+      P: 'spawn',
+    },
     mapa,
     blocos: itens ? { densidade: 0, itens } : { densidade: 0 },
   };

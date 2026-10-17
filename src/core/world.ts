@@ -15,6 +15,10 @@ export interface TerrainRules {
   blocksFire: boolean;
   destructible: boolean;
   allowsBomb: boolean;
+  /** Esconde quem está dentro (só o render e a visão dos bots usam). */
+  hides?: boolean;
+  /** Quem se move sobre ele desliza até bater ou sair. */
+  slippery?: boolean;
 }
 
 /** Parâmetros de regra vindos de src/data/game.json (durações já em ticks). */
@@ -47,6 +51,8 @@ export interface Player {
   facing: Direction;
   /** Direção segurada no momento (último comando de movimento). */
   moveDir: Direction | null;
+  /** Deslizando no gelo nesta direção (ignora `moveDir` até bater ou sair do gelo). */
+  iceSlide: Direction | null;
   alive: boolean;
   /** Bombas simultâneas permitidas. */
   maxBombs: number;
@@ -119,6 +125,7 @@ export function createWorld(options: WorldOptions): World {
     y: s.y,
     facing: 'down',
     moveDir: null,
+    iceSlide: null,
     alive: true,
     maxBombs: rules.startBombs,
     range: rules.startRange,

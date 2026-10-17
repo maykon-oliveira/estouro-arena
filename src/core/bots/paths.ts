@@ -125,6 +125,17 @@ export function searchPaths(
     const leave = best + ticksPerTile(world, u, from);
     const ux = u % grid.cols;
     const uy = Math.floor(u / grid.cols);
+
+    // Gelo: quem entrou desliza reto; só vira se o tile à frente não for enterável.
+    const p = prev[u] ?? -1;
+    if (p !== -1 && isSlipperyTile(world, u)) {
+      const dx = ux - (p % grid.cols);
+      const dy = uy - Math.floor(p / grid.cols);
+      if (isEnterable(world, from, ux + dx, uy + dy)) {
+        relax(world, danger, search, from, u, ux + dx, uy + dy, leave, margin);
+        continue;
+      }
+    }
     for (const [dx, dy] of NEIGHBORS)
       relax(world, danger, search, from, u, ux + dx, uy + dy, leave, margin);
   }
@@ -142,17 +153,28 @@ function relax(
   at: number,
   margin: number,
 ): void {
-  const { grid, terrains } = world;
+  const { grid } = world;
   if (x < 0 || y < 0 || x >= grid.cols || y >= grid.rows) return;
   const v = y * grid.cols + x;
   if (search.done[v] || at >= (search.time[v] ?? UNREACHABLE)) return;
-  const id = grid.tiles[v];
-  if (id === undefined || bombAt(world, x, y)) return;
-  const walkable = terrains.get(id)?.walkable === true || (mover.passBlocks && id === BLOCK);
-  if (!walkable) return;
+  if (!isEnterable(world, mover, x, y)) return;
   if (!canOccupy(danger, v, at, at + ticksPerTile(world, v, mover), margin)) return;
   search.time[v] = at;
   search.prev[v] = from;
+}
+
+/** O tile está na grade, é andável para quem anda (atravessa blocos?) e não tem bomba. */
+function isEnterable(world: World, mover: Mover, x: number, y: number): boolean {
+  if (x < 0 || y < 0 || x >= world.grid.cols || y >= world.grid.rows) return false;
+  const id = world.grid.tiles[y * world.grid.cols + x];
+  if (id === undefined || bombAt(world, x, y)) return false;
+  return world.terrains.get(id)?.walkable === true || (mover.passBlocks && id === BLOCK);
+}
+
+/** Gelo (ou outro terreno escorregadio). */
+export function isSlipperyTile(world: World, i: number): boolean {
+  const id = world.grid.tiles[i];
+  return id !== undefined && world.terrains.get(id)?.slippery === true;
 }
 
 /** Rota até `goal` (do primeiro passo ao destino, sem a origem) em `out`; vazia se for a origem. */

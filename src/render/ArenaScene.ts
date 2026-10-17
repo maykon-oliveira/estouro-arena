@@ -24,6 +24,11 @@ const PLACEHOLDER_COLORS: Readonly<Record<string, number>> = {
   chao: 0x2e7d32,
   parede: 0x4a4a6a,
   bloco: 0xa1887f,
+  agua_rasa: 0x4fc3f7,
+  agua_funda: 0x1565c0,
+  mato_alto: 0x1b5e20,
+  gelo: 0xb3e5fc,
+  lama: 0x5d4037,
 };
 const UNKNOWN_COLOR = 0xff00ff;
 const SPAWN_COLOR = 0xffeb3b;
@@ -91,6 +96,8 @@ export class ArenaScene extends Phaser.Scene {
   private gridLayer!: Phaser.GameObjects.Graphics;
   private dynamicLayer!: Phaser.GameObjects.Graphics;
   private playerSprites: Phaser.GameObjects.Arc[] = [];
+  /** Posição de cada jogador no quadro anterior (x, y intercalados), para saber quem se mexeu. */
+  private lastPositions: number[] = [];
   private origin = { x: 0, y: 0 };
   private seed = 0;
   private mapId = '';
@@ -220,7 +227,13 @@ export class ArenaScene extends Phaser.Scene {
     let gridChanged = false;
     for (const e of this.gameEvents) {
       // Rodada nova = mundo novo: redesenha a grade e volta os jogadores ao spawn.
-      if (e.type === 'bloco.destruido' || e.type === 'rodada.contagem') gridChanged = true;
+      if (
+        e.type === 'bloco.destruido' ||
+        e.type === 'terreno.queimou' ||
+        e.type === 'rodada.contagem'
+      ) {
+        gridChanged = true;
+      }
       if (e.type === 'partida.terminou') this.waitRestart();
     }
     if (gridChanged) this.drawGrid();
@@ -257,7 +270,23 @@ export class ArenaScene extends Phaser.Scene {
       const sprite = this.playerSprites[i];
       if (!sprite) return;
       const pos = this.toScreen(p.x, p.y);
-      sprite.setPosition(pos.x, pos.y).setAlpha(p.alive ? 1 : 0.3);
+      const moved = this.lastPositions[i * 2] !== p.x || this.lastPositions[i * 2 + 1] !== p.y;
+      this.lastPositions[i * 2] = p.x;
+      this.lastPositions[i * 2 + 1] = p.y;
+
+      // Mato alto: o jogador local se vê meio transparente; os outros, só o contorno ao se mexer.
+      const id = this.world.grid.tiles[Math.round(p.y) * this.world.grid.cols + Math.round(p.x)];
+      const hidden = p.alive && id !== undefined && this.world.terrains.get(id)?.hides === true;
+      let fill = p.alive ? 1 : 0.3;
+      let stroke = fill;
+      if (hidden && p.id === 0) fill = stroke = 0.5;
+      else if (hidden) {
+        fill = 0;
+        stroke = moved ? 0.8 : 0;
+      }
+      sprite.setPosition(pos.x, pos.y).setAlpha(1);
+      sprite.setFillStyle(PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR, fill);
+      sprite.setStrokeStyle(2, 0xffffff, stroke);
     });
   }
 
@@ -273,6 +302,18 @@ export class ArenaScene extends Phaser.Scene {
       if (id === BLOCK) {
         g.lineStyle(2, 0x6d4c41);
         g.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
+      }
+      const terrain = this.world.terrains.get(id);
+      if (terrain?.hides) {
+        // Touceiras: traços verticais claros.
+        g.lineStyle(2, 0x66bb6a, 0.9);
+        for (let k = 1; k <= 3; k++) {
+          g.lineBetween(x + (k * TILE) / 4, y + TILE - 4, x + (k * TILE) / 4 - 2, y + 6);
+        }
+      } else if (terrain?.slippery) {
+        // Brilho diagonal do gelo.
+        g.lineStyle(2, 0xffffff, 0.8);
+        g.lineBetween(x + 6, y + TILE - 8, x + TILE - 8, y + 6);
       }
     });
 

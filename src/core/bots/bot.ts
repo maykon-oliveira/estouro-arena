@@ -10,6 +10,7 @@ import { computeDanger, createDangerMap, SAFE, type DangerMap } from './dangerMa
 import {
   createPathSearch,
   moverOf,
+  isSlipperyTile,
   pathTo,
   searchPaths,
   UNREACHABLE,
@@ -138,8 +139,8 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   if ((bot.danger.start[hi] ?? SAFE) !== SAFE) {
     const safe = (i: number): boolean => bot.danger.start[i] === SAFE;
     let goal = currentGoal(bot, (i) => safe(i));
-    if (goal === -1) goal = nearest(bot.search, safe);
-    if (goal === -1) goal = latestDanger(bot.search, bot.danger);
+    if (goal === -1) goal = nearest(world, bot.search, safe);
+    if (goal === -1) goal = latestDanger(world, bot.search, bot.danger);
     follow(bot, bot.search, goal);
     return;
   }
@@ -174,7 +175,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
     Math.abs((i % cols) - here.x) + Math.abs(Math.floor(i / cols) - here.y) <=
       bot.config.level.itemSearchTiles;
   let itemSpot = currentGoal(bot, isItemSpot);
-  if (itemSpot === -1) itemSpot = nearest(bot.search, isItemSpot);
+  if (itemSpot === -1) itemSpot = nearest(world, bot.search, isItemSpot);
   if (itemSpot !== -1) {
     follow(bot, bot.search, itemSpot);
     return;
@@ -186,7 +187,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   const isBlockSpot = (i: number): boolean =>
     i !== hi && bot.danger.start[i] === SAFE && nextToBreakable(world, i);
   let blockSpot = currentGoal(bot, isBlockSpot);
-  if (blockSpot === -1) blockSpot = nearest(bot.search, isBlockSpot);
+  if (blockSpot === -1) blockSpot = nearest(world, bot.search, isBlockSpot);
   if (blockSpot !== -1) {
     follow(bot, bot.search, blockSpot);
     return;
@@ -207,7 +208,7 @@ function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Comman
     bot.config.escapeMarginTicks,
     bot.searchWithBomb,
   );
-  const escape = nearest(bot.searchWithBomb, (i) => bot.dangerWithBomb.start[i] === SAFE);
+  const escape = nearest(world, bot.searchWithBomb, (i) => bot.dangerWithBomb.start[i] === SAFE);
   if (escape === -1 && !mistake) return false;
 
   out.push({ type: 'bomb', playerId: bot.playerId });
@@ -229,7 +230,9 @@ function worthDetonating(world: World, player: Player): boolean {
 
 /** Vai para o tile seguro alcançável mais perto do inimigo vivo mais próximo. */
 function hunt(bot: Bot, world: World, player: Player, hi: number): boolean {
-  const enemies = world.players.filter((p) => p.alive && p.id !== player.id);
+  const enemies = world.players.filter(
+    (p) => p.alive && p.id !== player.id && sees(world, player, p),
+  );
   if (enemies.length === 0) return false;
   const { cols } = world.grid;
   let goal = -1;
@@ -238,7 +241,7 @@ function hunt(bot: Bot, world: World, player: Player, hi: number): boolean {
   const { time } = bot.search;
   for (let i = 0; i < time.length; i++) {
     const t = time[i] ?? UNREACHABLE;
-    if (t === UNREACHABLE || bot.danger.start[i] !== SAFE) continue;
+    if (t === UNREACHABLE || bot.danger.start[i] !== SAFE || isSlipperyTile(world, i)) continue;
     const x = i % cols;
     const y = Math.floor(i / cols);
     let dist = Infinity;
@@ -266,13 +269,16 @@ function currentGoal(bot: Bot, ok: (i: number) => boolean): number {
   return ok(goal) ? goal : -1;
 }
 
-/** Tile alcançável de menor tempo que satisfaz `ok` (desempate: menor índice); -1 se nenhum. */
-function nearest(search: PathSearch, ok: (i: number) => boolean): number {
+/**
+ * Tile alcançável de menor tempo que satisfaz `ok` (desempate: menor índice); -1 se nenhum.
+ * Nunca escolhe gelo: o bot não consegue parar no meio dele.
+ */
+function nearest(world: World, search: PathSearch, ok: (i: number) => boolean): number {
   let goal = -1;
   let best = UNREACHABLE;
   for (let i = 0; i < search.time.length; i++) {
     const t = search.time[i] ?? UNREACHABLE;
-    if (t < best && ok(i)) {
+    if (t < best && !isSlipperyTile(world, i) && ok(i)) {
       best = t;
       goal = i;
     }
@@ -281,11 +287,11 @@ function nearest(search: PathSearch, ok: (i: number) => boolean): number {
 }
 
 /** Sem saída segura: o tile alcançável cujo perigo começa mais tarde. */
-function latestDanger(search: PathSearch, danger: DangerMap): number {
+function latestDanger(world: World, search: PathSearch, danger: DangerMap): number {
   let goal = -1;
   let latest = -1;
   for (let i = 0; i < search.time.length; i++) {
-    if ((search.time[i] ?? UNREACHABLE) === UNREACHABLE) continue;
+    if ((search.time[i] ?? UNREACHABLE) === UNREACHABLE || isSlipperyTile(world, i)) continue;
     const start = danger.start[i] ?? SAFE;
     if (start > latest) {
       latest = start;
@@ -310,8 +316,22 @@ function canPlaceBomb(world: World, player: Player, here: Point): boolean {
 
 function enemyAt(world: World, player: Player, t: Point): boolean {
   return world.players.some(
-    (p) => p.alive && p.id !== player.id && Math.round(p.x) === t.x && Math.round(p.y) === t.y,
+    (p) =>
+      p.alive &&
+      p.id !== player.id &&
+      Math.round(p.x) === t.x &&
+      Math.round(p.y) === t.y &&
+      sees(world, player, p),
   );
+}
+
+/** Quem está num tile que esconde (mato) só é visto a até 1 tile de distância. */
+function sees(world: World, viewer: Player, target: Player): boolean {
+  const tx = Math.round(target.x);
+  const ty = Math.round(target.y);
+  const id = tileAt(world.grid, tx, ty);
+  if (id === undefined || world.terrains.get(id)?.hides !== true) return true;
+  return Math.abs(Math.round(viewer.x) - tx) + Math.abs(Math.round(viewer.y) - ty) <= 1;
 }
 
 function isBreakable(world: World, t: Point): boolean {

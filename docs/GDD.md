@@ -98,10 +98,10 @@ Cada tile do mapa tem um tipo de terreno com propriedades próprias (velocidade,
 | Chão (`chao`) | Normal | Normal |
 | Parede fixa (`parede`) | Bloqueia | Bloqueia fogo |
 | Bloco quebrável (`bloco`) | Bloqueia | Destruído; pode soltar item |
-| Água rasa (`agua_rasa`) | Velocidade −40% | Bomba não pode ser solta (afunda) |
+| Água rasa (`agua_rasa`) | Velocidade −40% | Bomba não pode ser solta (afunda); a chutada para antes |
 | Água funda (`agua_funda`) | Intransponível (exceto capivara) | Fogo passa por cima |
 | Mato alto (`mato_alto`) | Esconde quem está dentro (só aparece um contorno ao se mexer) | Pega fogo e vira chão |
-| Gelo (`gelo`) | Desliza até parar em obstáculo | Bombas chutadas não param |
+| Gelo (`gelo`) | Desliza até parar em obstáculo ou sair do gelo | Normal (a bomba chutada já desliza até bater) |
 | Lama/areia (`lama`) | Velocidade −25% | Normal |
 | Esteira (`esteira`) | Empurra numa direção | Carrega bombas junto |
 | Teleporte, em par (`teleporte`) | Entra num, sai no outro | Bomba chutada também teleporta |

@@ -23,7 +23,7 @@ Cada passo deixa o jogo jogável e testável; a ordem põe cedo o que destrava o
 | 2 | [Bots](bots.md) | 1 | Feita |
 | 3 | [Itens e power-ups](itens-e-power-ups.md) | — | Feita |
 | 4 | [Chute, remota e botão de ação](chute-e-remota.md) | 3 | Feita |
-| 5 | [Terrenos: água, mato, gelo, lama](terrenos.md) | — | Planejada |
+| 5 | [Terrenos: água, mato, gelo, lama](terrenos.md) | — | Feita |
 | 6 | [Mapas da Fase 1](mapas-fase-1.md) | 3, 5 | Planejada |
 | 7 | [Montarias: capivara e sapo](montarias.md) | 3, 4, 5 | Planejada |
 | 8 | [Morte súbita](morte-subita.md) | 1 | Planejada |

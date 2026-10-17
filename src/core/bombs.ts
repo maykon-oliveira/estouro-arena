@@ -68,10 +68,16 @@ export function updateBombs(world: World, out: GameEvent[]): void {
     flames[i] = left - 1;
     if (left === 1) {
       const id = grid.tiles[i];
-      if (id !== undefined && world.terrains.get(id)?.destructible) {
+      const terrain = id === undefined ? undefined : world.terrains.get(id);
+      if (id !== undefined && terrain?.destructible) {
         const x = i % grid.cols;
         const y = Math.floor(i / grid.cols);
         setTile(grid, x, y, FLOOR);
+        // Bloco (barra o fogo) é "destruído" e pode revelar item; o resto (mato) só queima.
+        if (!terrain.blocksFire) {
+          out.push({ type: 'terreno.queimou', x, y, terrainId: id });
+          continue;
+        }
         out.push({ type: 'bloco.destruido', x, y });
         const hidden = world.hiddenItems[i];
         if (hidden !== null && hidden !== undefined) {

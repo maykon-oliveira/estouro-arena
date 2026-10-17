@@ -22,5 +22,47 @@
     "destructible": true,
     "allowsBomb": false,
     "speedMultiplier": 1
+  },
+  {
+    "id": "agua_rasa",
+    "walkable": true,
+    "blocksFire": false,
+    "destructible": false,
+    "allowsBomb": false,
+    "speedMultiplier": 0.6
+  },
+  {
+    "id": "agua_funda",
+    "walkable": false,
+    "blocksFire": false,
+    "destructible": false,
+    "allowsBomb": false,
+    "speedMultiplier": 1
+  },
+  {
+    "id": "mato_alto",
+    "walkable": true,
+    "blocksFire": false,
+    "destructible": true,
+    "allowsBomb": true,
+    "speedMultiplier": 1,
+    "hides": true
+  },
+  {
+    "id": "gelo",
+    "walkable": true,
+    "blocksFire": false,
+    "destructible": false,
+    "allowsBomb": true,
+    "speedMultiplier": 1,
+    "slippery": true
+  },
+  {
+    "id": "lama",
+    "walkable": true,
+    "blocksFire": false,
+    "destructible": false,
+    "allowsBomb": true,
+    "speedMultiplier": 0.75
   }
 ]

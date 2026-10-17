@@ -12,6 +12,8 @@ export type GameEvent =
   | { type: 'bomba.chutada'; bombId: number; playerId: number; dir: Direction }
   /** Bomba chutada parou no centro de um tile. */
   | { type: 'bomba.parou'; bombId: number; x: number; y: number }
+  /** Terreno destrutível que não barra fogo (mato) terminou de queimar e virou chão. */
+  | { type: 'terreno.queimou'; x: number; y: number; terrainId: string }
   /** Bloco com item virou chão: o item aparece no tile. */
   | { type: 'item.revelado'; itemId: string; x: number; y: number }
   | { type: 'item.pego'; playerId: number; itemId: string; x: number; y: number }
@@ -33,6 +35,7 @@ export const GAME_EVENT_TYPES = [
   'bomba.explodiu',
   'bloco.destruido',
   'jogador.morreu',
+  'terreno.queimou',
   'bomba.chutada',
   'bomba.parou',
   'item.revelado',

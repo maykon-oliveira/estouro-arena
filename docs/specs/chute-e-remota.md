@@ -33,7 +33,7 @@
 - Chutar bomba encostada em obstáculo → não se move, sem evento.
 - Duas bombas deslizando para o mesmo tile → a primeira processada (menor posição na lista de bombas) entra; a outra para antes.
 - Jogador entra na frente de uma bomba deslizando → a bomba para antes dele.
-- Bomba deslizando sobre água rasa: entra no passo 5 ([terrenos](terrenos.md)), junto com a água.
+- Bomba chutada e água: para antes (só entra em tile com `allowsBomb`; ver [terrenos](terrenos.md)).
 - Sem `chute`, andar contra a bomba continua bloqueado como hoje.
 
 ## Eventos

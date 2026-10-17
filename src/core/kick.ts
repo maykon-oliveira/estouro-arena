@@ -8,10 +8,14 @@ import type { Bomb, World } from './world';
 /** Tolerância para "parado no centro do tile" (erro de ponto flutuante). */
 const EPSILON = 1e-6;
 
-/** A bomba pode entrar no tile (x, y)? Não entra em tile não andável, com bomba ou com jogador vivo. */
+/**
+ * A bomba pode entrar no tile (x, y)? Só em tile andável onde cabe bomba (`allowsBomb`: não entra
+ * na água, onde afundaria), sem outra bomba e sem jogador vivo.
+ */
 export function canSlideInto(world: World, x: number, y: number): boolean {
   const id = tileAt(world.grid, x, y);
-  if (id === undefined || world.terrains.get(id)?.walkable !== true) return false;
+  const terrain = id === undefined ? undefined : world.terrains.get(id);
+  if (terrain?.walkable !== true || !terrain.allowsBomb) return false;
   if (bombAt(world, x, y)) return false;
   return !world.players.some((p) => p.alive && Math.round(p.x) === x && Math.round(p.y) === y);
 }

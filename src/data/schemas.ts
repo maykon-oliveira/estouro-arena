@@ -23,6 +23,10 @@ export const TerrainSchema = z.strictObject({
   allowsBomb: z.boolean(),
   /** Multiplica a velocidade de quem está no tile. */
   speedMultiplier: z.number().min(0).max(3),
+  /** Esconde quem está dentro (só visual; ex.: mato alto). */
+  hides: z.boolean().optional(),
+  /** Quem entra desliza até bater ou sair (ex.: gelo). */
+  slippery: z.boolean().optional(),
 });
 
 /** Terrenos que o motor usa diretamente (geração de mapa, blocos destruídos). */

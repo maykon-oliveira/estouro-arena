@@ -16,12 +16,17 @@ export function isWalkableFor(world: World, player: Player, x: number, y: number
   return world.terrains.get(id)?.walkable === true;
 }
 
+function isSlippery(world: World, x: number, y: number): boolean {
+  const id = tileAt(world.grid, x, y);
+  return id !== undefined && world.terrains.get(id)?.slippery === true;
+}
+
 /**
- * Move o jogador um tick na direção segurada.
+ * Move o jogador um tick na direção segurada (ou na do deslize no gelo, que ignora o controle).
  * Anda só em eixo: para virar, primeiro desliza até a linha/coluna (assistência de curva).
  */
 export function movePlayer(world: World, player: Player): void {
-  const dir = player.moveDir;
+  const dir = player.iceSlide ?? player.moveDir;
   if (dir === null) return;
   player.facing = dir;
 
@@ -63,12 +68,24 @@ export function movePlayer(world: World, player: Player): void {
     cross = Math.round(cross);
   }
 
+  let blocked = false;
   if (budget > 0) {
-    if (canEnter(mainTile + sign, cross)) {
+    const leavingIce =
+      player.iceSlide !== null &&
+      !(horizontal ? isSlippery(world, mainTile, cross) : isSlippery(world, cross, mainTile));
+    if (leavingIce) {
+      // Saiu do gelo: desliza só até o centro do primeiro tile normal, e o controle volta.
+      if (sign * (mainTile - main) > 0) main += sign * Math.min(budget, Math.abs(mainTile - main));
+      if (Math.abs(mainTile - main) <= EPSILON) {
+        main = mainTile;
+        player.iceSlide = null;
+      }
+    } else if (canEnter(mainTile + sign, cross)) {
       main += sign * budget;
-    } else if (sign * (mainTile - main) > 0) {
+    } else {
       // Próximo tile bloqueado: só avança até o centro do tile atual.
-      main += sign * Math.min(budget, Math.abs(mainTile - main));
+      if (sign * (mainTile - main) > 0) main += sign * Math.min(budget, Math.abs(mainTile - main));
+      blocked = Math.abs(mainTile - main) <= EPSILON;
     }
   }
 
@@ -79,4 +96,8 @@ export function movePlayer(world: World, player: Player): void {
     player.y = main;
     player.x = cross;
   }
+
+  // Gelo: quem se move sobre ele desliza nessa direção; bater para o deslize (pode virar).
+  if (blocked) player.iceSlide = null;
+  else if (isSlippery(world, Math.round(player.x), Math.round(player.y))) player.iceSlide = dir;
 }
