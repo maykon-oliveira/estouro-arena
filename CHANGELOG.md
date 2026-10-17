@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.9.0...v0.10.0) (2026-10-17)
+
+### Funcionalidades
+
+* **fantasma-vingador:** Adiciona o fantasma vingador na borda da arena ([d35cedf](https://github.com/maykon-oliveira/estouro-arena/commit/d35cedf60af2f7081538f714a3bd943e389e65a6))
+
 ## [0.9.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.8.0...v0.9.0) (2026-10-17)
 
 ### Funcionalidades
