@@ -16,8 +16,9 @@ function byId(id: string): HTMLElement {
 byId('rotate-warning').textContent = t('rotate_warning');
 
 const touch = new TouchControls(byId('controls'));
+const keyboard = new KeyboardInput();
 // Joystick ativo tem prioridade sobre o teclado.
-const input = new PlayerInput(LOCAL_PLAYER, [touch.joystick, new KeyboardInput()]);
+const input = new PlayerInput(LOCAL_PLAYER, [touch.joystick, keyboard], [touch.bomb, keyboard]);
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,

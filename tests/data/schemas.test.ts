@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { GameConfigSchema, TerrainsSchema, parseContent } from '../../src/data/schemas';
+import {
+  GameConfigSchema,
+  SoundsSchema,
+  TerrainsSchema,
+  parseContent,
+} from '../../src/data/schemas';
 import gameJson from '../../src/data/game.json';
 import terrainsJson from '../../src/data/terrains.json';
 
@@ -101,5 +106,15 @@ describe('controles', () => {
   it('rejeita botão de bomba menor que 72 px (GDD)', () => {
     const bad = { ...gameJson, controls: { ...gameJson.controls, bombButtonPx: 60 } };
     expect(GameConfigSchema.safeParse(bad).success).toBe(false);
+  });
+});
+
+describe('SoundsSchema', () => {
+  it('aceita mapeamento parcial de eventos conhecidos', () => {
+    expect(SoundsSchema.safeParse({ 'bomba.explodiu': 'sfx' }).success).toBe(true);
+  });
+
+  it('rejeita evento desconhecido', () => {
+    expect(SoundsSchema.safeParse({ 'bomba.explodio': 'sfx' }).success).toBe(false);
   });
 });

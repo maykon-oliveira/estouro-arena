@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BLOCK, FLOOR, SPAWN, WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
+import { GAME_EVENT_TYPES } from '../events';
 
 /** Ids de conteúdo: snake_case em português (`agua_rasa`, `mato_alto`). */
 export const ContentId = z
@@ -50,6 +51,10 @@ export const GameConfigSchema = z
       default: ContentId,
       /** Distância Manhattan, a partir de cada spawn, em que não nascem blocos. */
       spawnSafeRadius: z.number().int().min(0),
+    }),
+    match: z.strictObject({
+      /** Fase 0: espera após a morte antes de reiniciar a arena. */
+      restartDelayMs: z.number().min(0),
     }),
     bomb: z.strictObject({
       fuseMs: z.number().positive(),
@@ -148,6 +153,9 @@ export function createMapSchema(terrainIds: ReadonlySet<string>) {
 export type Terrain = z.infer<typeof TerrainSchema>;
 export type GameConfig = z.infer<typeof GameConfigSchema>;
 export type MapData = z.infer<ReturnType<typeof createMapSchema>>;
+
+/** Evento do jogo → id do som. Chave que não é evento conhecido é erro (digitação). */
+export const SoundsSchema = z.partialRecord(z.enum(GAME_EVENT_TYPES), z.string().min(1));
 
 /** Textos do jogo: chave → texto. */
 export const StringsSchema = z.record(z.string().min(1), z.string().min(1));

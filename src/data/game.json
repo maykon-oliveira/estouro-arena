@@ -2,6 +2,7 @@
   "tickRate": 60,
   "maxTicksPerFrame": 5,
   "map": { "default": "arena_01", "spawnSafeRadius": 1 },
+  "match": { "restartDelayMs": 1500 },
   "bomb": { "fuseMs": 2500, "explosionMs": 500 },
   "player": {
     "speedTilesPerSecond": 4,

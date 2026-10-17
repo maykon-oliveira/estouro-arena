@@ -1,3 +1,4 @@
+import { bombAt } from './bombs';
 import { DIRECTION_VECTORS } from './direction';
 import { tileAt } from './grid';
 import type { Player, World } from './world';
@@ -28,6 +29,9 @@ export function movePlayer(world: World, player: Player): void {
   let cross = horizontal ? player.y : player.x;
   const walkable = (m: number, c: number): boolean =>
     horizontal ? isWalkable(world, m, c) : isWalkable(world, c, m);
+  // Bomba só barra quem tenta entrar no tile; quem está em cima dela consegue sair.
+  const canEnter = (m: number, c: number): boolean =>
+    walkable(m, c) && !(horizontal ? bombAt(world, m, c) : bombAt(world, c, m));
 
   const here = tileAt(world.grid, Math.round(player.x), Math.round(player.y));
   const speedMultiplier =
@@ -40,7 +44,7 @@ export function movePlayer(world: World, player: Player): void {
   if (Math.abs(cross - Math.round(cross)) > EPSILON) {
     const lane = [Math.floor(cross), Math.ceil(cross)]
       .filter((l) => Math.abs(cross - l) <= world.rules.cornerAssistTiles + EPSILON)
-      .filter((l) => walkable(mainTile, l) && walkable(mainTile + sign, l))
+      .filter((l) => walkable(mainTile, l) && canEnter(mainTile + sign, l))
       .sort((a, b) => Math.abs(cross - a) - Math.abs(cross - b))[0];
     if (lane === undefined) return;
 
@@ -55,7 +59,7 @@ export function movePlayer(world: World, player: Player): void {
   }
 
   if (budget > 0) {
-    if (walkable(mainTile + sign, cross)) {
+    if (canEnter(mainTile + sign, cross)) {
       main += sign * budget;
     } else if (sign * (mainTile - main) > 0) {
       // Próximo tile bloqueado: só avança até o centro do tile atual.

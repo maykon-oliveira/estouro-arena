@@ -1,6 +1,6 @@
 import type { Direction } from '../core/direction';
 import { DirectionStack } from './DirectionStack';
-import type { DirectionSource } from './PlayerInput';
+import { BombTrigger, type ActionSource, type DirectionSource } from './PlayerInput';
 
 const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
   ArrowUp: 'up',
@@ -13,9 +13,12 @@ const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
   KeyD: 'right',
 };
 
-/** Teclado (setas e WASD) como fonte de direção. */
-export class KeyboardInput implements DirectionSource {
+const BOMB_KEYS: ReadonlySet<string> = new Set(['Space']);
+
+/** Teclado: setas/WASD para andar, espaço para bomba. */
+export class KeyboardInput implements DirectionSource, ActionSource {
   private readonly stack = new DirectionStack();
+  private readonly bomb = new BombTrigger();
 
   constructor(target: Window = window) {
     target.addEventListener('keydown', (e) => this.onKey(e, true));
@@ -28,7 +31,17 @@ export class KeyboardInput implements DirectionSource {
     return this.stack.current();
   }
 
+  takeBomb(): boolean {
+    return this.bomb.takeBomb();
+  }
+
   private onKey(e: KeyboardEvent, down: boolean): void {
+    if (BOMB_KEYS.has(e.code)) {
+      e.preventDefault();
+      // Segurar a tecla não solta várias bombas (ignora auto-repeat).
+      if (down && !e.repeat) this.bomb.trigger();
+      return;
+    }
     const dir = KEY_DIRECTIONS[e.code];
     if (!dir) return;
     e.preventDefault();

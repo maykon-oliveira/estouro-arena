@@ -1,10 +1,13 @@
 import { gameConfig, t } from '../data';
+import { BombTrigger } from './PlayerInput';
 import { VirtualJoystick } from './VirtualJoystick';
 
 /** Controles de toque: joystick na metade esquerda, botão de bomba à direita. */
 export class TouchControls {
   readonly joystick: VirtualJoystick;
   readonly bombButton: HTMLButtonElement;
+  /** Pedidos de bomba vindos do botão (fonte de ação para o PlayerInput). */
+  readonly bomb = new BombTrigger();
 
   constructor(root: HTMLElement) {
     const { controls } = gameConfig;
@@ -19,7 +22,6 @@ export class TouchControls {
       hysteresis: controls.joystickHysteresis,
     });
 
-    // Só visual por enquanto: o comando de bomba entra junto com a bomba no core.
     this.bombButton = document.createElement('button');
     this.bombButton.className = 'bomb-button';
     this.bombButton.type = 'button';
@@ -28,6 +30,7 @@ export class TouchControls {
     const press = (e: PointerEvent) => {
       e.preventDefault();
       this.bombButton.classList.add('pressed');
+      this.bomb.trigger();
     };
     const unpress = () => this.bombButton.classList.remove('pressed');
     this.bombButton.addEventListener('pointerdown', press);
