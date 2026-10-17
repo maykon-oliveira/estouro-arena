@@ -101,3 +101,43 @@ body {
 #rotate-warning {
   z-index: 10;
 }
+
+/* Painel de debug (?debug=1). */
+.debug-panel {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  left: calc(8px + env(safe-area-inset-left));
+  z-index: 5;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #e0f7fa;
+  font:
+    11px/1.35 ui-monospace,
+    monospace;
+  background: rgb(0 0 0 / 65%);
+  pointer-events: auto;
+}
+
+.debug-panel dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0 8px;
+  margin: 0 0 4px;
+}
+
+.debug-panel dt {
+  opacity: 0.6;
+}
+
+.debug-panel dd {
+  margin: 0;
+}
+
+.debug-panel label {
+  margin-right: 6px;
+}
+
+.debug-panel button {
+  margin: 4px 4px 0 0;
+  font: inherit;
+}

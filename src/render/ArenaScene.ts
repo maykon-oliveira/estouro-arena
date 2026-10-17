@@ -9,6 +9,9 @@ import { gameConfig, maps, sounds, terrains } from '../data';
 import { rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
+import type { DebugPanel } from '../ui/DebugPanel';
+import { debugInfo } from '../ui/debugInfo';
+import { DebugOverlay } from './DebugOverlay';
 
 // Placeholder da Fase 0: formas coloridas até existir o manifest do tema.
 const PLACEHOLDER_COLORS: Readonly<Record<string, number>> = {
@@ -43,9 +46,15 @@ export class ArenaScene extends Phaser.Scene {
   private dynamicLayer!: Phaser.GameObjects.Graphics;
   private playerSprites: Phaser.GameObjects.Arc[] = [];
   private origin = { x: 0, y: 0 };
+  private seed = 0;
+  private mapId = '';
+  private debugOverlay: DebugOverlay | null = null;
 
-  /** `playerInput` gera os comandos do jogador local (id 0). */
-  constructor(private readonly playerInput: PlayerInput) {
+  /** `playerInput` gera os comandos do jogador local (id 0); `debug` só existe com ?debug=1. */
+  constructor(
+    private readonly playerInput: PlayerInput,
+    private readonly debug: DebugPanel | null = null,
+  ) {
     super('arena');
   }
 
@@ -54,6 +63,8 @@ export class ArenaScene extends Phaser.Scene {
     if (!map) throw new Error(`Mapa não encontrado: ${gameConfig.map.default}`);
 
     const seed = readSeed();
+    this.seed = seed;
+    this.mapId = map.id;
     this.world = createWorld({
       map,
       terrains,
@@ -77,6 +88,9 @@ export class ArenaScene extends Phaser.Scene {
 
     this.gridLayer = this.add.graphics();
     this.dynamicLayer = this.add.graphics();
+    this.debugOverlay = this.debug
+      ? new DebugOverlay(this.add.graphics(), this.origin, TILE)
+      : null;
     this.drawGrid();
     this.playerSprites = this.world.players.map(() =>
       this.add.circle(0, 0, TILE * 0.4, PLAYER_COLOR).setStrokeStyle(2, 0xffffff),
@@ -96,6 +110,15 @@ export class ArenaScene extends Phaser.Scene {
     this.handleEvents();
     this.syncPlayers();
     this.drawDynamic();
+    this.drawDebug();
+  }
+
+  private drawDebug(): void {
+    if (!this.debug || !this.debugOverlay) return;
+    this.debugOverlay.draw(this.world, this.debug.layers);
+    this.debug.update(this.time.now, () =>
+      debugInfo(this.world, { seed: this.seed, mapId: this.mapId, fps: this.game.loop.actualFps }),
+    );
   }
 
   private handleEvents(): void {

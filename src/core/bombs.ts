@@ -65,10 +65,13 @@ export function updateBombs(world: World, out: GameEvent[]): void {
   }
 }
 
-function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): void {
-  world.bombs.splice(world.bombs.indexOf(bomb), 1);
-
+/**
+ * Tiles que a explosão da bomba atingiria agora, e as bombas que ela detonaria.
+ * Pura (não altera o mundo): usada pela explosão real e pela prévia do painel de debug.
+ */
+export function explosionTiles(world: World, bomb: Bomb): { tiles: Point[]; hitBombs: Bomb[] } {
   const tiles: Point[] = [{ x: bomb.x, y: bomb.y }];
+  const hitBombs: Bomb[] = [];
   for (const dir of CROSS) {
     const { dx, dy } = DIRECTION_VECTORS[dir];
     for (let d = 1; d <= bomb.range; d++) {
@@ -80,7 +83,7 @@ function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): voi
       if (hitBomb) {
         // O fogo para na bomba, que explode em cadeia.
         tiles.push({ x, y });
-        queue.push(hitBomb);
+        hitBombs.push(hitBomb);
         break;
       }
 
@@ -94,6 +97,14 @@ function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): voi
       tiles.push({ x, y });
     }
   }
+  return { tiles, hitBombs };
+}
+
+function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): void {
+  world.bombs.splice(world.bombs.indexOf(bomb), 1);
+
+  const { tiles, hitBombs } = explosionTiles(world, bomb);
+  queue.push(...hitBombs);
 
   for (const t of tiles) {
     const i = t.y * world.grid.cols + t.x;

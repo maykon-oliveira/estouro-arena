@@ -4,6 +4,7 @@ import { KeyboardInput } from './input/KeyboardInput';
 import { PlayerInput } from './input/PlayerInput';
 import { TouchControls } from './input/TouchControls';
 import { ArenaScene } from './render/ArenaScene';
+import { DebugPanel, isDebugEnabled } from './ui/DebugPanel';
 
 const LOCAL_PLAYER = 0;
 
@@ -16,6 +17,8 @@ function byId(id: string): HTMLElement {
 byId('rotate-warning').textContent = t('rotate_warning');
 
 const touch = new TouchControls(byId('controls'));
+const debug = isDebugEnabled() ? new DebugPanel(document.body) : null;
+
 const keyboard = new KeyboardInput();
 // Joystick ativo tem prioridade sobre o teclado.
 const input = new PlayerInput(LOCAL_PLAYER, [touch.joystick, keyboard], [touch.bomb, keyboard]);
@@ -31,7 +34,7 @@ const game = new Phaser.Game({
     width: gameConfig.render.width,
     height: gameConfig.render.height,
   },
-  scene: [new ArenaScene(input)],
+  scene: [new ArenaScene(input, debug)],
 });
 
 document.addEventListener('visibilitychange', () => {

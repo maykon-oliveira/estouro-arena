@@ -11,4 +11,4 @@ Formato: status · regras · casos de borda · eventos · dados/config · testes
 | [Movimento e assistência de curva](movimento.md) | Feita |
 | [Controles de toque](controles-touch.md) | Feita |
 | [Bomba e explosão](bomba-e-explosao.md) | Feita |
-| [Painel de debug](painel-debug.md) | Em andamento |
+| [Painel de debug](painel-debug.md) | Feita |
