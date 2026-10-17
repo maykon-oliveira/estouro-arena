@@ -19,13 +19,17 @@
 
 **Portão para a Fase 1:** "um jogador explode blocos rodando num celular real". **Cumprido em 2026-10-17**: testado num celular de verdade via `bun run dev --host` + QR code.
 
-## Próximo passo: Fase 1 — MVP: Batalha
+## Próximo passo: Fase 1 — MVP: Batalha (specs prontas)
 
 Escopo (GDD §9): 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. Portão para a Fase 2: amigos jogam 10 partidas seguidas sem bug grave.
 
-1. Quebrar a fase em specs em `docs/specs/` e escolher a ordem (sugestão: fluxo de rodada/partida → power-ups → bots → terrenos → montarias → fantasma → menus/HUD).
-2. Seguir o ciclo por feature do CLAUDE.md, uma feature por vez.
+As 10 specs estão escritas e ordenadas em [`specs/README.md`](specs/README.md) (escopo decidido em [DECISIONS](DECISIONS.md), 2026-10-17).
+
+1. **Começar pelo passo 1, [partida e rodadas](specs/partida-e-rodadas.md):** revisar a spec, escrever os testes do core, implementar, ligar o HUD mínimo. Remove `match.restartDelayMs`.
+2. Seguir a ordem da tabela, uma feature por vez, no ciclo do CLAUDE.md; marcar cada spec como feita no commit dela.
 3. Ajustes de controle no `game.json` (joystick, assistência de curva, botão de bomba) só se aparecer queixa; no teste no celular não houve.
+
+**Para confirmar ao chegar no passo:** efeito do gelo sobre a bomba ([terrenos](specs/terrenos.md)); prioridade remota → montaria no botão de ação ([chute e remota](specs/chute-e-remota.md)).
 
 ## Pendências conhecidas
 

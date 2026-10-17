@@ -258,7 +258,7 @@ Cada fase só começa quando o portão da anterior é cumprido.
 | Fase | Conteúdo | Portão para avançar |
 | --- | --- | --- |
 | 0 — Fundação | Vite + Phaser + TS, CLAUDE.md, testes, deploy; grade, joystick, bomba e explosão em cruz; placeholders Kenney; painel de debug | Um jogador explode blocos no celular real |
-| 1 — MVP: Batalha | 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD | Amigos jogam 10 partidas seguidas sem bug grave |
+| 1 — MVP: Batalha | 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups (todos menos luva e caveira), 2 montarias (capivara e sapo-saltador); terrenos água rasa e funda, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. Specs em `docs/specs/` | Amigos jogam 10 partidas seguidas sem bug grave |
 | 2 — Arte e conteúdo | Sprites finais (PixelLab), tema visual, avatares DiceBear; campanha com 2 biomas de 6 fases e 1 chefe cada; bombas elementais e carga de energia | 60 fps num Android intermediário |
 | 3 — Polimento | Som (Howler.js), vibração, PWA instalável; desafio diário, eventos no mapa, zona encolhendo; lançamento público | Jogadores voltam para jogar de novo |
 | 4 — Online | Multiplayer 2–4 via WebSocket; co-op contra chefe; editor de fases | — |
