@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.5.0...v0.6.0) (2026-10-17)
+
+### Funcionalidades
+
+* **terrenos:** Adiciona água rasa e funda, mato alto, gelo e lama ([d097eb6](https://github.com/maykon-oliveira/estouro-arena/commit/d097eb6b684d244c782ab5b58353eea60bc7fd35))
+
 ## [0.5.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.4.0...v0.5.0) (2026-10-17)
 
 ### Funcionalidades
