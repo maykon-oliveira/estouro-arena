@@ -2,6 +2,7 @@
 
 Formato: data — decisão — motivo. Novas decisões no topo.
 
+- 2026-10-17 — Ids de fase em snake_case (`arena_01`), como os demais ids de conteúdo; exemplo do GDD ajustado. Fases ficam em `src/data/maps/*.json`, o tamanho da grade vem da fase e a área sem blocos em volta do spawn é `map.spawnSafeRadius` (distância Manhattan, padrão 1). — Uma regra só de id; área segura mínima que ainda permite a primeira bomba (soltar ao lado do spawn e se esconder no outro vizinho).
 - 2026-10-17 — TypeScript fixado na linha 6.x. — typescript-eslint ainda não suporta o TS 7; rever quando houver suporte.
 - 2026-10-17 — Bun como gerenciador de pacotes e runner de scripts (substitui npm). — Pedido do autor; instalação mais rápida. Testes seguem no Vitest via `bun run test`.
 - 2026-10-17 — Regras de pureza do `src/core` reforçadas no ESLint (proíbe Phaser, `window`/`document`, `Math.random`, `Date.now`). — Falha cedo em vez de depender de revisão.

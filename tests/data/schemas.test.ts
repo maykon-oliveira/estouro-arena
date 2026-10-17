@@ -76,13 +76,11 @@ describe('GameConfigSchema', () => {
     expect(GameConfigSchema.safeParse(bad).success).toBe(false);
   });
 
-  it('rejeita grade fracionária ou pequena demais', () => {
-    expect(
-      GameConfigSchema.safeParse({ ...gameJson, grid: { cols: 15.5, rows: 13 } }).success,
-    ).toBe(false);
-    expect(GameConfigSchema.safeParse({ ...gameJson, grid: { cols: 3, rows: 13 } }).success).toBe(
-      false,
-    );
+  it('rejeita raio seguro negativo ou fracionário', () => {
+    for (const spawnSafeRadius of [-1, 0.5]) {
+      const bad = { ...gameJson, map: { ...gameJson.map, spawnSafeRadius } };
+      expect(GameConfigSchema.safeParse(bad).success).toBe(false);
+    }
   });
 
   it('rejeita bombas iniciais zero', () => {

@@ -135,7 +135,7 @@ Cada fase é um arquivo JSON. Com o editor gratuito **Tiled** dá para desenhar 
 
 ```json
 {
-  "id": "pantanal-01",
+  "id": "pantanal_01",
   "bioma": "pantanal",
   "tamanho": [15, 13],
   "legenda": { "#": "parede", ".": "chao", "~": "agua_rasa", "\"": "mato_alto", "P": "spawn" },

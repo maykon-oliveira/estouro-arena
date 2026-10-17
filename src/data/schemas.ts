@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BLOCK, FLOOR, SPAWN, WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
 
 /** Ids de conteúdo: snake_case em português (`agua_rasa`, `mato_alto`). */
@@ -23,7 +24,7 @@ export const TerrainSchema = z.strictObject({
 });
 
 /** Terrenos que o motor usa diretamente (geração de mapa, blocos destruídos). */
-export const REQUIRED_TERRAINS = ['chao', 'parede', 'bloco'] as const;
+export const REQUIRED_TERRAINS = [FLOOR, WALL, BLOCK] as const;
 
 export const TerrainsSchema = z.array(TerrainSchema).superRefine((terrains, ctx) => {
   const seen = new Set<string>();
@@ -42,9 +43,11 @@ export const TerrainsSchema = z.array(TerrainSchema).superRefine((terrains, ctx)
 export const GameConfigSchema = z
   .strictObject({
     tickRate: PositiveInt,
-    grid: z.strictObject({
-      cols: z.number().int().min(5),
-      rows: z.number().int().min(5),
+    map: z.strictObject({
+      /** Id da fase carregada por padrão. */
+      default: ContentId,
+      /** Distância Manhattan, a partir de cada spawn, em que não nascem blocos. */
+      spawnSafeRadius: z.number().int().min(0),
     }),
     bomb: z.strictObject({
       fuseMs: z.number().positive(),
@@ -69,8 +72,68 @@ export const GameConfigSchema = z
     }
   });
 
+/** Schema de fase (GDD §4). Recebe os ids de terreno conhecidos para validar a legenda. */
+export function createMapSchema(terrainIds: ReadonlySet<string>) {
+  return z
+    .strictObject({
+      id: ContentId,
+      bioma: ContentId,
+      tamanho: z.tuple([z.number().int().min(1), z.number().int().min(1)]),
+      legenda: z.record(z.string().length(1), z.string()),
+      mapa: z.array(z.string()).min(1),
+      blocos: z.strictObject({
+        densidade: z.number().min(0).max(1),
+        itens: z.record(ContentId, z.number().int().min(0)).optional(),
+      }),
+      musica: z.string().optional(),
+    })
+    .superRefine((map, ctx) => {
+      const [cols, rows] = map.tamanho;
+      for (const [char, id] of Object.entries(map.legenda)) {
+        if (id !== SPAWN && !terrainIds.has(id)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `legenda '${char}' aponta para terreno inexistente: ${id}`,
+            path: ['legenda', char],
+          });
+        }
+      }
+      if (map.mapa.length !== rows) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `mapa tem ${map.mapa.length} linhas, esperado ${rows}`,
+          path: ['mapa'],
+        });
+      }
+      let spawns = 0;
+      map.mapa.forEach((line, y) => {
+        if (line.length !== cols) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `linha com ${line.length} colunas, esperado ${cols}`,
+            path: ['mapa', y],
+          });
+        }
+        [...line].forEach((char, x) => {
+          const id = map.legenda[char];
+          if (id === undefined) {
+            ctx.addIssue({
+              code: 'custom',
+              message: `caractere '${char}' (coluna ${x}) não está na legenda`,
+              path: ['mapa', y],
+            });
+          } else if (id === SPAWN) {
+            spawns++;
+          }
+        });
+      });
+      if (spawns === 0) ctx.addIssue({ code: 'custom', message: 'mapa sem spawn', path: ['mapa'] });
+    });
+}
+
 export type Terrain = z.infer<typeof TerrainSchema>;
 export type GameConfig = z.infer<typeof GameConfigSchema>;
+export type MapData = z.infer<ReturnType<typeof createMapSchema>>;
 
 /** Valida um JSON de conteúdo e falha com mensagem legível, indicando o arquivo. */
 export function parseContent<T>(schema: z.ZodType<T>, raw: unknown, source: string): T {
