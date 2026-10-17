@@ -97,7 +97,7 @@ describe('mapa de perigo', () => {
   it('considera uma bomba hipotética sem mexer no mundo', () => {
     const world = worldFrom(map);
     const d = createDangerMap(world.grid.tiles.length);
-    computeDanger(world, d, { id: -1, ownerId: 0, x: 1, y: 1, fuse: 20, range: 2 });
+    computeDanger(world, d, { extra: { id: -1, ownerId: 0, x: 1, y: 1, fuse: 20, range: 2 } });
     expect(d.start[idx(world, 3, 1)]).toBe(20);
     expect(world.bombs).toHaveLength(0);
   });

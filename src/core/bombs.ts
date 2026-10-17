@@ -1,7 +1,8 @@
 import type { GameEvent } from '../events';
 import { DIRECTION_VECTORS, type Direction } from './direction';
 import { inBounds, setTile, tileAt, type Point } from './grid';
-import { ABILITY_PIERCE } from './items';
+import { ABILITY_PIERCE, ABILITY_REMOTE } from './items';
+import { slideBombs } from './kick';
 import { FLOOR } from './terrainIds';
 import type { Bomb, Player, World } from './world';
 
@@ -34,9 +35,24 @@ export function placeBomb(world: World, player: Player, out: GameEvent[]): void 
     fuse: world.rules.fuseTicks,
     range: player.range,
     pierce: player.abilities.has(ABILITY_PIERCE),
+    remote: player.abilities.has(ABILITY_REMOTE),
   };
   world.bombs.push(bomb);
   out.push({ type: 'bomba.colocada', bombId: bomb.id, playerId: player.id, x, y });
+}
+
+/** Comando `action`: a remota mais antiga (menor id) do jogador explode neste tick. */
+export function detonateOldestRemote(world: World, player: Player): boolean {
+  let oldest: Bomb | undefined;
+  for (const bomb of world.bombs) {
+    if (bomb.remote && bomb.ownerId === player.id && (!oldest || bomb.id < oldest.id)) {
+      oldest = bomb;
+    }
+  }
+  if (!oldest) return false;
+  oldest.remote = false;
+  oldest.fuse = 0;
+  return true;
 }
 
 /**
@@ -67,7 +83,10 @@ export function updateBombs(world: World, out: GameEvent[]): void {
     }
   }
 
-  for (const bomb of world.bombs) bomb.fuse--;
+  slideBombs(world, out);
+
+  // Remotas não queimam o pavio (só explodem por comando ou atingidas por fogo).
+  for (const bomb of world.bombs) if (!bomb.remote) bomb.fuse--;
 
   const queue = world.bombs.filter((b) => b.fuse <= 0 || (flames[b.y * grid.cols + b.x] ?? 0) > 0);
   while (queue.length > 0) {

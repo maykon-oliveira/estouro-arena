@@ -21,7 +21,12 @@ const debug = isDebugEnabled() ? new DebugPanel(document.body, [...items.keys()]
 
 const keyboard = new KeyboardInput();
 // Joystick ativo tem prioridade sobre o teclado.
-const input = new PlayerInput(LOCAL_PLAYER, [touch.joystick, keyboard], [touch.bomb, keyboard]);
+const input = new PlayerInput(
+  LOCAL_PLAYER,
+  [touch.joystick, keyboard],
+  [touch.bomb, keyboard.bomb],
+  [touch.action, keyboard.action],
+);
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -34,7 +39,7 @@ const game = new Phaser.Game({
     width: gameConfig.render.width,
     height: gameConfig.render.height,
   },
-  scene: [new ArenaScene(input, debug)],
+  scene: [new ArenaScene(input, debug, touch)],
 });
 
 document.addEventListener('visibilitychange', () => {

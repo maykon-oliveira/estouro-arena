@@ -94,7 +94,33 @@ body {
   box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
 }
 
-#controls.touch .bomb-button {
+/* Botão de ação: menor, acima e à esquerda do de bomba. */
+.action-button {
+  position: absolute;
+  display: none;
+  right: calc(24px + 88px + 12px + env(safe-area-inset-right));
+  bottom: calc(24px + 88px - 28px + env(safe-area-inset-bottom));
+  padding: 0;
+  border: 3px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #4dd0e1, #00838f);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-button.pressed {
+  transform: translateY(3px) scale(0.95);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
+}
+
+.action-button.unavailable {
+  opacity: 0.35;
+}
+
+#controls.touch .bomb-button,
+#controls.touch .action-button {
   display: block;
 }
 
@@ -105,6 +131,7 @@ body {
 /* Painel de debug (?debug=1). */
 .debug-panel {
   position: fixed;
+  max-width: 190px;
   top: calc(8px + env(safe-area-inset-top));
   left: calc(8px + env(safe-area-inset-left));
   z-index: 5;
@@ -120,7 +147,7 @@ body {
 
 .debug-panel dl {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto 1fr;
   gap: 0 8px;
   margin: 0 0 4px;
 }
@@ -140,6 +167,20 @@ body {
 .debug-panel button {
   margin: 4px 4px 0 0;
   font: inherit;
+}
+
+/* Botões "+ item": pequenos e quebrando linha, para o painel não cobrir a arena no celular. */
+.debug-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.debug-items button {
+  margin: 0;
+  padding: 0 3px;
+  font-size: 9px;
 }
 
 /* HUD da partida: relógio, vitórias e avisos centrais (só leitura, não captura toques). */

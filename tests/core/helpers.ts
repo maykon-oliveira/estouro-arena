@@ -37,6 +37,7 @@ export const testRules: Rules = {
   maxRange: 5,
   speedStep: 3,
   maxSpeedLevel: 2,
+  kickSpeed: 12,
 };
 
 /** Catálogo de itens dos testes (mesmos efeitos do src/data/items.json). */
@@ -47,6 +48,8 @@ export const testItems: ReadonlyMap<string, ItemDef> = new Map<string, ItemDef>(
   ['patins', { id: 'patins', effect: 'extra_speed', amount: 1 }],
   ['perfurante', { id: 'perfurante', effect: 'ability', ability: 'perfurante' }],
   ['atravessa_bloco', { id: 'atravessa_bloco', effect: 'ability', ability: 'atravessa_bloco' }],
+  ['chute', { id: 'chute', effect: 'ability', ability: 'chute' }],
+  ['remota', { id: 'remota', effect: 'ability', ability: 'remota' }],
 ]);
 
 /**

@@ -3,6 +3,7 @@ import { SilentAudio } from '../audio/AudioService';
 import { EventSounds } from '../audio/EventSounds';
 import type { Command } from '../core/commands';
 import { createBot, runBots, type Bot } from '../core/bots/bot';
+import { DIRECTION_VECTORS } from '../core/direction';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
 import { countSpawns } from '../core/grid';
 import { BLOCK } from '../core/terrainIds';
@@ -12,6 +13,7 @@ import { botConfigs, gameConfig, items, maps, sounds, terrains } from '../data';
 import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
+import type { TouchControls } from '../input/TouchControls';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { debugInfo } from '../ui/debugInfo';
 import { MatchHud } from '../ui/MatchHud';
@@ -38,6 +40,8 @@ const ITEM_COLORS: Readonly<Record<string, { bg: number; fg: number }>> = {
   patins: { bg: 0x26c6da, fg: 0xffffff },
   perfurante: { bg: 0x8e24aa, fg: 0xffffff },
   atravessa_bloco: { bg: 0x8d6e63, fg: 0xd7ccc8 },
+  chute: { bg: 0x43a047, fg: 0xffffff },
+  remota: { bg: 0x37474f, fg: 0xff5252 },
 };
 
 const TILE = gameConfig.render.tileSize;
@@ -96,6 +100,7 @@ export class ArenaScene extends Phaser.Scene {
   constructor(
     private readonly playerInput: PlayerInput,
     private readonly debug: DebugPanel | null = null,
+    private readonly touch: TouchControls | null = null,
   ) {
     super('arena');
   }
@@ -191,6 +196,10 @@ export class ArenaScene extends Phaser.Scene {
 
     this.handleEvents();
     this.hud?.update(this.match, this.time.now);
+    // Botão de ação aceso só quando há o que fazer (hoje: bomba remota do jogador no mapa).
+    this.touch?.setActionAvailable(
+      this.world.bombs.some((b) => b.remote === true && b.ownerId === 0),
+    );
     this.syncPlayers();
     this.drawDynamic();
     this.drawDebug();
@@ -310,7 +319,13 @@ export class ArenaScene extends Phaser.Scene {
     });
 
     for (const bomb of this.world.bombs) {
-      const pos = this.toScreen(bomb.x, bomb.y);
+      // Bomba chutada: desenha entre os tiles, pelo avanço do deslize.
+      const slide = bomb.slide ? DIRECTION_VECTORS[bomb.slide] : null;
+      const offset = bomb.slideProgress ?? 0;
+      const pos = this.toScreen(
+        bomb.x + (slide ? slide.dx * offset : 0),
+        bomb.y + (slide ? slide.dy * offset : 0),
+      );
       // Pulsa mais rápido perto de explodir.
       const urgency = 1 - bomb.fuse / fuseTicks;
       const pulse = 1 + 0.08 * Math.sin(this.world.tick * (0.2 + urgency * 0.6));

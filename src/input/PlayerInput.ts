@@ -5,16 +5,16 @@ export interface DirectionSource {
   current(): Direction | null;
 }
 
-/** Fonte de ações pontuais (apertou uma vez = uma ação). */
-export interface ActionSource {
-  /** Devolve true uma vez por pedido de bomba pendente, e o consome. */
-  takeBomb(): boolean;
+/** Fonte de toques pontuais (apertou uma vez = um pedido). */
+export interface PressSource {
+  /** Devolve true uma vez por pedido pendente, e o consome. */
+  take(): boolean;
 }
 
 /**
  * Junta as fontes de entrada de um jogador (joystick, teclado, gamepad) e gera comandos.
  * Direção: a primeira fonte com direção vence; só emite `move` quando muda.
- * Bomba: qualquer fonte com pedido pendente gera um `bomb`.
+ * Bomba e ação: qualquer fonte com pedido pendente gera um `bomb` / um `action` (nessa ordem).
  */
 export class PlayerInput {
   private lastSent: Direction | null = null;
@@ -22,7 +22,8 @@ export class PlayerInput {
   constructor(
     private readonly playerId: number,
     private readonly directions: readonly DirectionSource[],
-    private readonly actions: readonly ActionSource[] = [],
+    private readonly bombs: readonly PressSource[] = [],
+    private readonly actions: readonly PressSource[] = [],
   ) {}
 
   poll(out: Command[]): void {
@@ -36,22 +37,27 @@ export class PlayerInput {
       out.push({ type: 'move', playerId: this.playerId, dir });
     }
 
-    let bomb = false;
-    // Consome todas as fontes, para um pedido antigo não vazar para depois.
-    for (const source of this.actions) bomb = source.takeBomb() || bomb;
-    if (bomb) out.push({ type: 'bomb', playerId: this.playerId });
+    if (takeAny(this.bombs)) out.push({ type: 'bomb', playerId: this.playerId });
+    if (takeAny(this.actions)) out.push({ type: 'action', playerId: this.playerId });
   }
 }
 
-/** Pedido de bomba pendente, preenchido por eventos do DOM. */
-export class BombTrigger implements ActionSource {
+/** Consome todas as fontes (um pedido antigo não vaza para depois); true se alguma tinha pedido. */
+function takeAny(sources: readonly PressSource[]): boolean {
+  let any = false;
+  for (const source of sources) any = source.take() || any;
+  return any;
+}
+
+/** Pedido pendente (bomba ou ação), preenchido por eventos do DOM. */
+export class PressTrigger implements PressSource {
   private pending = false;
 
   trigger(): void {
     this.pending = true;
   }
 
-  takeBomb(): boolean {
+  take(): boolean {
     const was = this.pending;
     this.pending = false;
     return was;

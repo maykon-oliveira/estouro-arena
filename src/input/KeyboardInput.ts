@@ -1,6 +1,6 @@
 import type { Direction } from '../core/direction';
 import { DirectionStack } from './DirectionStack';
-import { BombTrigger, type ActionSource, type DirectionSource } from './PlayerInput';
+import { PressTrigger, type DirectionSource } from './PlayerInput';
 
 const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
   ArrowUp: 'up',
@@ -14,11 +14,14 @@ const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
 };
 
 const BOMB_KEYS: ReadonlySet<string> = new Set(['Space']);
+const ACTION_KEYS: ReadonlySet<string> = new Set(['ShiftLeft', 'ShiftRight', 'KeyK']);
 
-/** Teclado: setas/WASD para andar, espaço para bomba. */
-export class KeyboardInput implements DirectionSource, ActionSource {
+/** Teclado: setas/WASD para andar, espaço para bomba, Shift ou K para ação. */
+export class KeyboardInput implements DirectionSource {
   private readonly stack = new DirectionStack();
-  private readonly bomb = new BombTrigger();
+  /** Pedidos de bomba (espaço) e de ação (Shift ou K), para o `PlayerInput`. */
+  readonly bomb = new PressTrigger();
+  readonly action = new PressTrigger();
 
   constructor(target: Window = window) {
     target.addEventListener('keydown', (e) => this.onKey(e, true));
@@ -31,15 +34,12 @@ export class KeyboardInput implements DirectionSource, ActionSource {
     return this.stack.current();
   }
 
-  takeBomb(): boolean {
-    return this.bomb.takeBomb();
-  }
-
   private onKey(e: KeyboardEvent, down: boolean): void {
-    if (BOMB_KEYS.has(e.code)) {
+    const press = BOMB_KEYS.has(e.code) ? this.bomb : ACTION_KEYS.has(e.code) ? this.action : null;
+    if (press) {
       e.preventDefault();
-      // Segurar a tecla não solta várias bombas (ignora auto-repeat).
-      if (down && !e.repeat) this.bomb.trigger();
+      // Segurar a tecla não repete o pedido (ignora auto-repeat).
+      if (down && !e.repeat) press.trigger();
       return;
     }
     const dir = KEY_DIRECTIONS[e.code];

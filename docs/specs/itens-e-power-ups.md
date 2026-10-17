@@ -6,7 +6,7 @@ Fase 1 tem 8 power-ups. Esta spec cobre o sorteio, a coleta e os 6 de atributo o
 
 ## Regras
 
-- **Catálogo** em `src/data/items.json`: `id`, `effect` (id do handler registrado em [`src/core/items.ts`](../../src/core/items.ts): `extra_bomb`, `extra_range`, `max_range`, `extra_speed`, `ability`) e parâmetros (`amount`, `ability`). Novo item = entrada no JSON + (se preciso) handler, sem `switch` espalhado. Neste passo o catálogo tem os 6 itens abaixo; `chute` e `remota` entram no passo 4 junto com a mecânica.
+- **Catálogo** em `src/data/items.json`: `id`, `effect` (id do handler registrado em [`src/core/items.ts`](../../src/core/items.ts): `extra_bomb`, `extra_range`, `max_range`, `extra_speed`, `ability`) e parâmetros (`amount`, `ability`). Novo item = entrada no JSON + (se preciso) handler, sem `switch` espalhado. O catálogo tem os 8 itens da tabela (`chute` e `remota` entraram no passo 4, com a mecânica).
 
 | Item (`id`) | Efeito | Limite |
 | --- | --- | --- |

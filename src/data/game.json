@@ -4,7 +4,7 @@
   "map": { "default": "arena_01", "spawnSafeRadius": 1 },
   "match": { "winsToWin": 2, "roundMs": 120000, "countdownMs": 3000, "roundEndDelayMs": 2000 },
   "hud": { "goBannerMs": 800 },
-  "bomb": { "fuseMs": 2500, "explosionMs": 500 },
+  "bomb": { "fuseMs": 2500, "explosionMs": 500, "kickSpeedTilesPerSecond": 8 },
   "player": {
     "speedTilesPerSecond": 4,
     "cornerAssistTiles": 0.5,
@@ -20,6 +20,8 @@
       "bomba": 6,
       "fogo": 6,
       "patins": 3,
+      "chute": 2,
+      "remota": 1,
       "perfurante": 1,
       "atravessa_bloco": 1,
       "fogo_max": 1
@@ -29,7 +31,8 @@
     "joystickRadiusPx": 60,
     "joystickDeadZone": 0.25,
     "joystickHysteresis": 0.2,
-    "bombButtonPx": 88
+    "bombButtonPx": 88,
+    "actionButtonPx": 64
   },
   "render": {
     "tileSize": 32,

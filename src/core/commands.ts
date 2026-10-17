@@ -13,6 +13,12 @@ export interface BombCommand {
   playerId: number;
 }
 
+/** Botão de ação: detona a bomba remota mais antiga (depois, habilidade da montaria). */
+export interface ActionCommand {
+  type: 'action';
+  playerId: number;
+}
+
 /** Painel de debug (`?debug=1`): põe um item no tile do jogador. */
 export interface DebugItemCommand {
   type: 'debugItem';
@@ -21,4 +27,4 @@ export interface DebugItemCommand {
 }
 
 /** Tudo que a entrada (teclado, joystick, bot, rede, debug) pode pedir à simulação. */
-export type Command = MoveCommand | BombCommand | DebugItemCommand;
+export type Command = MoveCommand | BombCommand | ActionCommand | DebugItemCommand;

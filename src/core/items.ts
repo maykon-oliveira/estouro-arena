@@ -7,6 +7,8 @@ import type { Player, Rules, World } from './world';
 /** Habilidades dadas por itens (ids iguais aos dos itens em src/data/items.json). */
 export const ABILITY_PIERCE = 'perfurante';
 export const ABILITY_PASS_BLOCKS = 'atravessa_bloco';
+export const ABILITY_KICK = 'chute';
+export const ABILITY_REMOTE = 'remota';
 
 /** Efeitos de item que o core sabe aplicar (o `effect` de cada entrada de items.json). */
 export type ItemEffect =

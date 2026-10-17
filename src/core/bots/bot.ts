@@ -124,7 +124,14 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   const hi = here.y * cols + here.x;
   const margin = bot.config.escapeMarginTicks;
 
-  computeDanger(world, bot.danger);
+  computeDanger(world, bot.danger, { viewerId: player.id });
+  // Remota: se vale detonar, planeja esta decisão como se as próprias remotas explodissem agora
+  // (as chamas duram; a rota precisa desviar delas). Só detona se o tile atual ficar fora.
+  if (worthDetonating(world, player)) {
+    computeDanger(world, bot.danger, { viewerId: player.id, detonateOwn: true });
+    if (bot.danger.start[hi] === SAFE) out.push({ type: 'action', playerId: player.id });
+    else computeDanger(world, bot.danger, { viewerId: player.id });
+  }
   searchPaths(world, bot.danger, moverOf(world, player), margin, bot.search);
 
   // 1. Fugir.
@@ -192,7 +199,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
 /** Checa a fuga com a bomba hipotética; se houver (ou se o bot "errar"), solta e já foge. */
 function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Command[]): boolean {
   const mistake = bot.rng.next() < bot.config.level.mistakeChance;
-  computeDanger(world, bot.dangerWithBomb, bomb);
+  computeDanger(world, bot.dangerWithBomb, { extra: bomb, viewerId: bot.playerId });
   searchPaths(
     world,
     bot.dangerWithBomb,
@@ -206,6 +213,18 @@ function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Comman
   out.push({ type: 'bomb', playerId: bot.playerId });
   follow(bot, bot.searchWithBomb, escape);
   return true;
+}
+
+/** Remota: vale detonar a mais antiga (a que o `action` detona) se ela pega inimigo ou bloco. */
+function worthDetonating(world: World, player: Player): boolean {
+  let oldest: Bomb | undefined;
+  for (const b of world.bombs) {
+    if (b.remote && b.ownerId === player.id && (!oldest || b.id < oldest.id)) oldest = b;
+  }
+  if (!oldest) return false;
+  return explosionTiles(world, oldest).tiles.some(
+    (t) => enemyAt(world, player, t) || isBreakable(world, t),
+  );
 }
 
 /** Vai para o tile seguro alcançável mais perto do inimigo vivo mais próximo. */

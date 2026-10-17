@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ABILITY_PASS_BLOCKS, ABILITY_PIERCE } from '../core/items';
+import { ABILITY_KICK, ABILITY_PASS_BLOCKS, ABILITY_PIERCE, ABILITY_REMOTE } from '../core/items';
 import { BLOCK, FLOOR, SPAWN, WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
 import { GAME_EVENT_TYPES } from '../events';
@@ -70,6 +70,8 @@ export const GameConfigSchema = z
     bomb: z.strictObject({
       fuseMs: z.number().positive(),
       explosionMs: z.number().positive(),
+      /** Velocidade da bomba chutada. */
+      kickSpeedTilesPerSecond: z.number().positive(),
     }),
     player: z.strictObject({
       speedTilesPerSecond: z.number().positive(),
@@ -97,6 +99,8 @@ export const GameConfigSchema = z
       joystickHysteresis: z.number().min(0).max(1),
       /** Diâmetro do botão de bomba; o GDD exige pelo menos 72 px. */
       bombButtonPx: z.number().int().min(72),
+      /** Diâmetro do botão de ação (menor que o de bomba). */
+      actionButtonPx: z.number().int().min(56),
     }),
     render: z.strictObject({
       tileSize: PositiveInt,
@@ -140,7 +144,7 @@ export const GameConfigSchema = z
 const Amount = z.number().int().positive();
 
 /** Habilidades que o core conhece (dadas pelo efeito `ability`). */
-const AbilityId = z.enum([ABILITY_PIERCE, ABILITY_PASS_BLOCKS]);
+const AbilityId = z.enum([ABILITY_PIERCE, ABILITY_PASS_BLOCKS, ABILITY_KICK, ABILITY_REMOTE]);
 
 /** Um item de src/data/items.json; `effect` escolhe o handler do core (src/core/items.ts). */
 export const ItemSchema = z.discriminatedUnion('effect', [

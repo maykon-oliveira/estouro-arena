@@ -4,5 +4,7 @@
   { "id": "fogo_max", "effect": "max_range" },
   { "id": "patins", "effect": "extra_speed", "amount": 1 },
   { "id": "perfurante", "effect": "ability", "ability": "perfurante" },
-  { "id": "atravessa_bloco", "effect": "ability", "ability": "atravessa_bloco" }
+  { "id": "atravessa_bloco", "effect": "ability", "ability": "atravessa_bloco" },
+  { "id": "chute", "effect": "ability", "ability": "chute" },
+  { "id": "remota", "effect": "ability", "ability": "remota" }
 ]

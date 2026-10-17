@@ -96,6 +96,34 @@ test('itens: o botão de debug dá fogo +1 e patins ao jogador', async ({ page }
   expect(errors).toEqual([]);
 });
 
+test('remota: a bomba espera; K detona e o botão de ação acende', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&debug=1&ia=0&touch=1');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  const action = page.locator('.action-button');
+  await expect(action).toBeVisible();
+  await expect(action).toHaveClass(/unavailable/);
+
+  await page.getByRole('button', { name: '+ remota', exact: true }).click();
+  // Anda até (2,1) e solta: a cruz não pega o esconderijo (1,2).
+  await holdKey(page, 'ArrowRight', 350);
+  await page.keyboard.press('Space');
+  await expect.poll(() => debugValue(page, 'bombs')).toBe('1/1');
+  await expect(action).not.toHaveClass(/unavailable/);
+  await holdKey(page, 'ArrowLeft', 350);
+  await holdKey(page, 'ArrowDown', 300);
+  await page.waitForTimeout(3_000); // mais que o pavio de 2,5 s
+  expect(await debugValue(page, 'bombs')).toBe('1/1');
+
+  await page.keyboard.press('KeyK');
+  await expect.poll(() => debugValue(page, 'bombs')).toBe('0/1');
+  await expect(action).toHaveClass(/unavailable/);
+  expect(await debugValue(page, 'alive')).toBe('vivo');
+  expect(errors).toEqual([]);
+});
+
 test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1&nivel=dificil');

@@ -1,5 +1,6 @@
 // Tipos de todos os eventos emitidos pela simulação (src/core).
 // Render, áudio e rede apenas escutam; nunca alteram o estado.
+import type { Direction } from './core/direction';
 import type { Point } from './core/grid';
 
 export type GameEvent =
@@ -8,6 +9,9 @@ export type GameEvent =
   /** Emitido quando o bloco termina de queimar e vira chão. */
   | { type: 'bloco.destruido'; x: number; y: number }
   | { type: 'jogador.morreu'; playerId: number }
+  | { type: 'bomba.chutada'; bombId: number; playerId: number; dir: Direction }
+  /** Bomba chutada parou no centro de um tile. */
+  | { type: 'bomba.parou'; bombId: number; x: number; y: number }
   /** Bloco com item virou chão: o item aparece no tile. */
   | { type: 'item.revelado'; itemId: string; x: number; y: number }
   | { type: 'item.pego'; playerId: number; itemId: string; x: number; y: number }
@@ -29,6 +33,8 @@ export const GAME_EVENT_TYPES = [
   'bomba.explodiu',
   'bloco.destruido',
   'jogador.morreu',
+  'bomba.chutada',
+  'bomba.parou',
   'item.revelado',
   'item.pego',
   'item.destruido',

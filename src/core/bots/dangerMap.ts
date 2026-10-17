@@ -17,11 +17,24 @@ export function createDangerMap(size: number): DangerMap {
   return { start: new Int32Array(size), end: new Int32Array(size) };
 }
 
+export interface DangerOptions {
+  /** Bomba hipotética (a que o bot pensa em soltar), considerada sem alterar o mundo. */
+  extra?: Bomb;
+  /** Quem olha: as próprias remotas não têm tempo; as alheias são perigo imediato e sem fim. */
+  viewerId?: number;
+  /** Trata as próprias remotas como explodindo agora (o bot vai apertar o `action`). */
+  detonateOwn?: boolean;
+}
+
 /**
- * Preenche o mapa de perigo do mundo, considerando também `extra` (a bomba que o bot pensa em
- * soltar), sem alterar o mundo. Cadeias: uma bomba atingida por outra herda o menor tempo.
+ * Preenche o mapa de perigo do mundo. Cadeias: uma bomba atingida por outra herda o menor tempo
+ * (e o "sem fim" das remotas alheias).
  */
-export function computeDanger(world: World, danger: DangerMap, extra?: Bomb): void {
+export function computeDanger(
+  world: World,
+  danger: DangerMap,
+  { extra, viewerId, detonateOwn = false }: DangerOptions = {},
+): void {
   const { start, end } = danger;
   start.fill(SAFE);
   end.fill(0);
@@ -35,7 +48,13 @@ export function computeDanger(world: World, danger: DangerMap, extra?: Bomb): vo
   if (bombs.length === 0) return;
 
   const crosses = bombs.map((b) => explosionTiles(world, b, bombs));
-  const times = bombs.map((b) => Math.max(0, b.fuse));
+  const times = bombs.map((b) => {
+    if (!b.remote) return Math.max(0, b.fuse);
+    if (b.ownerId !== viewerId) return 0;
+    return detonateOwn ? 0 : SAFE;
+  });
+  // Remota alheia pode explodir a qualquer momento: o perigo não acaba.
+  const open = bombs.map((b) => b.remote === true && b.ownerId !== viewerId);
 
   // Relaxa até estabilizar: cada bomba atingida explode no menor tempo entre a dela e a de quem a atinge.
   let changed = true;
@@ -47,6 +66,7 @@ export function computeDanger(world: World, danger: DangerMap, extra?: Bomb): vo
         const j = bombs.indexOf(hit);
         if (j !== -1 && t < (times[j] ?? SAFE)) {
           times[j] = t;
+          open[j] = open[i] ?? false;
           changed = true;
         }
       }
@@ -57,7 +77,9 @@ export function computeDanger(world: World, danger: DangerMap, extra?: Bomb): vo
   const flameTicks = world.rules.explosionTicks;
   crosses.forEach((cross, i) => {
     const t = times[i] ?? SAFE;
-    for (const tile of cross.tiles) mark(danger, tile.y * cols + tile.x, t, t + flameTicks);
+    if (t === SAFE) return;
+    const until = open[i] ? SAFE : t + flameTicks;
+    for (const tile of cross.tiles) mark(danger, tile.y * cols + tile.x, t, until);
   });
 }
 

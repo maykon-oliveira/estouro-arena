@@ -1,9 +1,10 @@
 import type { GameEvent } from '../events';
-import { placeBomb, updateBombs } from './bombs';
+import { detonateOldestRemote, placeBomb, updateBombs } from './bombs';
 import type { Command } from './commands';
 import type { Direction } from './direction';
 import { generateGrid, type Grid, type MapDefinition } from './grid';
 import { collectItems, hideItems, type ItemDef } from './items';
+import { kickBombs } from './kick';
 import { movePlayer } from './movement';
 import { createRng, type Rng } from './rng';
 
@@ -34,6 +35,8 @@ export interface Rules {
   /** Tiles/s a mais por nível de patins. */
   speedStep: number;
   maxSpeedLevel: number;
+  /** Velocidade da bomba chutada, em tiles por segundo. */
+  kickSpeed: number;
 }
 
 export interface Player {
@@ -65,6 +68,12 @@ export interface Bomb {
   range: number;
   /** O fogo atravessa blocos quebráveis (dono com `perfurante` ao soltar). */
   pierce?: boolean;
+  /** Remota: o pavio não corre; explode pelo comando `action` do dono (ou atingida por fogo). */
+  remote?: boolean;
+  /** Direção do deslize depois de um chute (null/ausente = parada). */
+  slide?: Direction | null;
+  /** Avanço do deslize em relação ao centro do tile, em tiles (−0,5 a 0,5). */
+  slideProgress?: number;
 }
 
 export interface World {
@@ -139,7 +148,8 @@ export function createWorld(options: WorldOptions): World {
 }
 
 /**
- * Avança a simulação em exatamente um tick: comandos → movimento → coleta → bombas/chamas → mortes.
+ * Avança a simulação em exatamente um tick:
+ * comandos → movimento → coleta → chutes → bombas/chamas → mortes.
  * Os eventos do tick são acrescentados em `out` (também devolvido).
  */
 export function step(
@@ -152,6 +162,8 @@ export function step(
     if (!player?.alive) continue;
     if (cmd.type === 'move') player.moveDir = cmd.dir;
     else if (cmd.type === 'bomb') placeBomb(world, player, out);
+    // Ação: detona a remota mais antiga (a habilidade da montaria vem depois, no passo 7).
+    else if (cmd.type === 'action') detonateOldestRemote(world, player);
     else if (cmd.type === 'debugItem' && world.itemDefs.has(cmd.itemId)) {
       // Painel de debug: põe o item no tile do jogador (coletado logo abaixo).
       world.items[Math.round(player.y) * world.grid.cols + Math.round(player.x)] = cmd.itemId;
@@ -162,12 +174,24 @@ export function step(
     if (player.alive) movePlayer(world, player);
   }
   collectItems(world, out);
+  kickBombs(world, out);
 
   updateBombs(world, out);
   killPlayersInFlames(world, out);
+  armOrphanRemotes(world);
 
   world.tick++;
   return out;
+}
+
+/** Remotas de quem morreu ganham pavio normal (senão ficariam no mapa para sempre). */
+function armOrphanRemotes(world: World): void {
+  for (const bomb of world.bombs) {
+    if (bomb.remote && !world.players[bomb.ownerId]?.alive) {
+      bomb.remote = false;
+      bomb.fuse = world.rules.fuseTicks;
+    }
+  }
 }
 
 function killPlayersInFlames(world: World, out: GameEvent[]): void {

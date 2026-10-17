@@ -36,6 +36,6 @@ Nenhum; gera `Command`s.
 
 ## Pendências
 
-- Botão de ação (chutar/detonar/montaria) — quando houver ação.
+- ~~Botão de ação~~: feito em [chute e remota](chute-e-remota.md) (detona a remota; montaria no passo 7).
 - Vibração (Vibration API) — Fase 3.
 - Validar tamanhos e zona morta num celular real.

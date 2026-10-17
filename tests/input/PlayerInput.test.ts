@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Command } from '../../src/core/commands';
 import type { Direction } from '../../src/core/direction';
-import { BombTrigger, PlayerInput, type DirectionSource } from '../../src/input/PlayerInput';
+import { PlayerInput, PressTrigger, type DirectionSource } from '../../src/input/PlayerInput';
 
 class FakeSource implements DirectionSource {
   dir: Direction | null = null;
@@ -55,7 +55,7 @@ describe('PlayerInput', () => {
 
 describe('PlayerInput — bomba', () => {
   it('emite bomb uma vez por pedido', () => {
-    const trigger = new BombTrigger();
+    const trigger = new PressTrigger();
     const input = new PlayerInput(1, [], [trigger]);
     const poll = (): Command[] => {
       const out: Command[] = [];
@@ -68,25 +68,53 @@ describe('PlayerInput — bomba', () => {
   });
 
   it('vários pedidos de fontes diferentes no mesmo quadro viram um comando', () => {
-    const a = new BombTrigger();
-    const b = new BombTrigger();
+    const a = new PressTrigger();
+    const b = new PressTrigger();
     const input = new PlayerInput(0, [], [a, b]);
     a.trigger();
     b.trigger();
     const out: Command[] = [];
     input.poll(out);
     expect(out).toEqual([{ type: 'bomb', playerId: 0 }]);
-    expect(b.takeBomb()).toBe(false); // consumido
+    expect(b.take()).toBe(false); // consumido
   });
 
   it('move vem antes de bomb no mesmo quadro', () => {
     const dirs = new FakeSource();
-    const trigger = new BombTrigger();
+    const trigger = new PressTrigger();
     const input = new PlayerInput(0, [dirs], [trigger]);
     dirs.dir = 'up';
     trigger.trigger();
     const out: Command[] = [];
     input.poll(out);
     expect(out.map((c) => c.type)).toEqual(['move', 'bomb']);
+  });
+});
+
+describe('PlayerInput — ação', () => {
+  it('emite action uma vez por pedido, separado da bomba', () => {
+    const bomb = new PressTrigger();
+    const action = new PressTrigger();
+    const input = new PlayerInput(2, [], [bomb], [action]);
+    action.trigger();
+    const out: Command[] = [];
+    input.poll(out);
+    expect(out).toEqual([{ type: 'action', playerId: 2 }]);
+    out.length = 0;
+    input.poll(out);
+    expect(out).toEqual([]);
+  });
+
+  it('bomba e ação no mesmo quadro: move, bomb, action', () => {
+    const dirs = new FakeSource();
+    const bomb = new PressTrigger();
+    const action = new PressTrigger();
+    const input = new PlayerInput(0, [dirs], [bomb], [action]);
+    dirs.dir = 'left';
+    bomb.trigger();
+    action.trigger();
+    const out: Command[] = [];
+    input.poll(out);
+    expect(out.map((c) => c.type)).toEqual(['move', 'bomb', 'action']);
   });
 });

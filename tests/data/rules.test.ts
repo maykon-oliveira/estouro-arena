@@ -6,7 +6,7 @@ describe('rulesFromConfig', () => {
   it('converte as durações de ms para ticks', () => {
     const rules = rulesFromConfig({
       ...gameConfig,
-      bomb: { fuseMs: 2500, explosionMs: 500 },
+      bomb: { fuseMs: 2500, explosionMs: 500, kickSpeedTilesPerSecond: 8 },
     });
     expect(rules.fuseTicks).toBe(150);
     expect(rules.explosionTicks).toBe(30);

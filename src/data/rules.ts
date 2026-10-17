@@ -19,6 +19,7 @@ export function rulesFromConfig(cfg: GameConfig): Rules {
     maxRange: cfg.player.maxRange,
     speedStep: cfg.player.speedStep,
     maxSpeedLevel: cfg.player.maxSpeedLevel,
+    kickSpeed: cfg.bomb.kickSpeedTilesPerSecond,
   };
 }
 

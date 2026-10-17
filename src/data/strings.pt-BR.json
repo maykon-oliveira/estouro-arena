@@ -1,6 +1,7 @@
 {
   "rotate_warning": "Gire o aparelho para jogar",
   "controls.bomb": "Bomba",
+  "controls.action": "Ação",
   "controls.joystick": "Joystick de movimento",
   "round.label": "Rodada {round}",
   "round.go": "Já!",
