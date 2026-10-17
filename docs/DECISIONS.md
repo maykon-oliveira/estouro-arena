@@ -2,6 +2,7 @@
 
 Formato: data — decisão — motivo. Novas decisões no topo.
 
+- 2026-10-17 — Movimento contínuo só em eixo, com assistência de curva: fora do eixo, o jogador desliza até a faixa vizinha livre se ela estiver a ≤ `player.cornerAssistTiles` (0,5). Com várias direções seguradas, vale a última. Passo fixo descarta o atraso acima de `maxTicksPerFrame`. — Curvas fáceis no touch sem atravessar pilares; nada de rajada de ticks ao voltar de pausa. Ajustar o 0,5 testando no celular.
 - 2026-10-17 — Ids de fase em snake_case (`arena_01`), como os demais ids de conteúdo; exemplo do GDD ajustado. Fases ficam em `src/data/maps/*.json`, o tamanho da grade vem da fase e a área sem blocos em volta do spawn é `map.spawnSafeRadius` (distância Manhattan, padrão 1). — Uma regra só de id; área segura mínima que ainda permite a primeira bomba (soltar ao lado do spawn e se esconder no outro vizinho).
 - 2026-10-17 — TypeScript fixado na linha 6.x. — typescript-eslint ainda não suporta o TS 7; rever quando houver suporte.
 - 2026-10-17 — Bun como gerenciador de pacotes e runner de scripts (substitui npm). — Pedido do autor; instalação mais rápida. Testes seguem no Vitest via `bun run test`.

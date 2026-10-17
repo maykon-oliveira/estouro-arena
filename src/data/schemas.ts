@@ -43,6 +43,8 @@ export const TerrainsSchema = z.array(TerrainSchema).superRefine((terrains, ctx)
 export const GameConfigSchema = z
   .strictObject({
     tickRate: PositiveInt,
+    /** Teto de ticks por quadro; o atraso além disso é descartado. */
+    maxTicksPerFrame: PositiveInt,
     map: z.strictObject({
       /** Id da fase carregada por padrão. */
       default: ContentId,
@@ -55,6 +57,8 @@ export const GameConfigSchema = z
     }),
     player: z.strictObject({
       speedTilesPerSecond: z.number().positive(),
+      /** Quanto (em tiles) a assistência de curva pode deslizar o jogador até a faixa livre. */
+      cornerAssistTiles: z.number().min(0).max(1),
       startBombs: PositiveInt,
       startRange: PositiveInt,
     }),

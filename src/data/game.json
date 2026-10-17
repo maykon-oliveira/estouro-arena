@@ -1,7 +1,13 @@
 {
   "tickRate": 60,
+  "maxTicksPerFrame": 5,
   "map": { "default": "arena_01", "spawnSafeRadius": 1 },
   "bomb": { "fuseMs": 2500, "explosionMs": 500 },
-  "player": { "speedTilesPerSecond": 4, "startBombs": 1, "startRange": 2 },
+  "player": {
+    "speedTilesPerSecond": 4,
+    "cornerAssistTiles": 0.5,
+    "startBombs": 1,
+    "startRange": 2
+  },
   "render": { "tileSize": 32, "width": 854, "height": 480 }
 }
