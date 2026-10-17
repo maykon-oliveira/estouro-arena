@@ -110,6 +110,6 @@ Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 
 ## Fase atual
 
-**Fase 0 — Fundação** (ver GDD §9): projeto Vite + Phaser + TS, este CLAUDE.md, testes e deploy; grade, movimento com joystick, bomba e explosão em cruz; placeholders e painel de debug.
-Portão para a Fase 1: um jogador explode blocos rodando num celular real.
-Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md): portão cumprido (testado num celular real); falta só publicar na Coolify.
+**Fase 1 — MVP: Batalha** (ver GDD §9), ainda não iniciada: 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD.
+Portão para a Fase 2: amigos jogam 10 partidas seguidas sem bug grave.
+Fase 0 (Fundação) concluída em 2026-10-17: testada num celular real e publicada na Coolify. Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md).

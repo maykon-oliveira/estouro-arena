@@ -4,7 +4,7 @@
 
 **Atualizado em:** 2026-10-17 · **Último commit de feature:** `2f5a7b2` (painel de debug + smoke Playwright) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público)
 
-## Fase atual: 0 — Fundação (GDD §9)
+## Fase 0 — Fundação (GDD §9): concluída em 2026-10-17
 
 | Item da fase | Situação |
 | --- | --- |
@@ -15,21 +15,21 @@
 | Bomba e explosão em cruz | Feito: [spec](specs/bomba-e-explosao.md) |
 | Placeholders | Feito com formas coloridas no código; ainda sem Kenney nem `manifest.json` |
 | Painel de debug | Feito: [spec](specs/painel-debug.md); falta spawn de itens (não há itens ainda) |
-| Deploy | **Em andamento**: `Dockerfile` multi-stage pronto e testado localmente (imagem de ~50 MB, nginx na porta 80); falta criar a aplicação na Coolify |
+| Deploy | Feito: Coolify, `Dockerfile` multi-stage (nginx, porta 80). No ar em <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (só HTTP por enquanto) |
 
 **Portão para a Fase 1:** "um jogador explode blocos rodando num celular real". **Cumprido em 2026-10-17**: testado num celular de verdade via `bun run dev --host` + QR code.
 
-## Próximo passo
+## Próximo passo: Fase 1 — MVP: Batalha
 
-1. Publicar na Coolify:
-   - nova aplicação a partir do repositório público, branch `main`, build pack **Dockerfile**, porta **80**;
-   - apontar um domínio e ligar HTTPS (Let's Encrypt), necessário para a PWA depois;
-   - abrir no celular pela URL pública e conferir.
-2. Ajustes finos no aparelho, se preciso, no `game.json` (zona morta do joystick 0,25, histerese 0,2, raio 60 px; assistência de curva 0,5; botão de bomba 88 px). No primeiro teste não houve queixa.
-3. Fechar a Fase 0 (atualizar este arquivo e o "Fase atual" do CLAUDE.md) e planejar a Fase 1 em `docs/specs/` (bots, power-ups, terrenos, HUD/menus).
+Escopo (GDD §9): 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. Portão para a Fase 2: amigos jogam 10 partidas seguidas sem bug grave.
+
+1. Quebrar a fase em specs em `docs/specs/` e escolher a ordem (sugestão: fluxo de rodada/partida → power-ups → bots → terrenos → montarias → fantasma → menus/HUD).
+2. Seguir o ciclo por feature do CLAUDE.md, uma feature por vez.
+3. Ajustes de controle no `game.json` (joystick, assistência de curva, botão de bomba) só se aparecer queixa; no teste no celular não houve.
 
 ## Pendências conhecidas
 
+- Deploy só em HTTP (domínio sslip.io da Coolify). Ligar HTTPS (domínio próprio + Let's Encrypt) antes da PWA: service worker exige HTTPS.
 - Assistência de curva pode deslizar lateralmente para dentro de uma bomba alheia (caso raro). Ver [movimento](specs/movimento.md).
 - Sem `manifest.json` de tema: as cores dos placeholders estão em `src/render/ArenaScene.ts`. Criar quando entrarem sprites (Kenney/PixelLab).
 - Sem botão de ação, vibração, gamepad e PWA (fases seguintes).
