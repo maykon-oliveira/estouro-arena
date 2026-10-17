@@ -27,7 +27,7 @@ Se um pedido contradiz o GDD, pergunte antes de implementar e, se aprovado, atua
 | Mapas | Tiled (JSON) ou formato ASCII próprio (ver GDD §4) |
 | Áudio | Interface `AudioService`; `SilentAudio` no MVP; Howler.js depois |
 | PWA | vite-plugin-pwa, `orientation: landscape` |
-| Deploy | Vercel (site estático) |
+| Deploy | Coolify (`Dockerfile` multi-stage: build com Bun, nginx serve o `dist/`) |
 
 Gerenciador de pacotes e runner de scripts: **Bun** (`bun.lock` versionado). Node LTS continua instalado (ferramentas como Vite/Vitest rodam sobre ele).
 
@@ -112,4 +112,4 @@ Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 
 **Fase 0 — Fundação** (ver GDD §9): projeto Vite + Phaser + TS, este CLAUDE.md, testes e deploy; grade, movimento com joystick, bomba e explosão em cruz; placeholders e painel de debug.
 Portão para a Fase 1: um jogador explode blocos rodando num celular real.
-Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md): tudo feito menos o deploy e o teste no celular real.
+Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md): portão cumprido (testado num celular real); falta só publicar na Coolify.
