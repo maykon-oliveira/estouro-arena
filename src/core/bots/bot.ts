@@ -3,6 +3,7 @@ import type { Command } from '../commands';
 import type { Direction } from '../direction';
 import { tileAt, type Point } from '../grid';
 import { DIRECTION_VECTORS } from '../direction';
+import { ringPoint, ringPosition, throwTarget, type Ghost } from '../ghost';
 import { ABILITY_PIERCE, playerSpeed } from '../items';
 import { canStand } from '../mounts';
 import type { Match } from '../match';
@@ -56,6 +57,10 @@ export interface Bot {
   forceDecision: boolean;
   /** Apertou o `action` nesta decisão (as próprias remotas contam como explodindo agora). */
   detonating: boolean;
+  /** Fantasma: direção escolhida na última decisão. */
+  ghostDir: Direction | null;
+  /** Fantasma que o bot está controlando (outro = acabou de surgir). */
+  ghostRef: Ghost | null;
   /** Rota atual (índices de tile, do primeiro passo ao destino). */
   path: number[];
   pathStep: number;
@@ -77,6 +82,8 @@ export function createBot(playerId: number, config: BotConfig, seed: number): Bo
     nextDecisionTick: 0,
     forceDecision: false,
     detonating: false,
+    ghostDir: null,
+    ghostRef: null,
     path: [],
     pathStep: 0,
     lastDir: null,
@@ -97,8 +104,10 @@ export function runBots(match: Match, bots: readonly Bot[], out: Command[]): voi
 export function updateBot(bot: Bot, world: World, out: Command[]): void {
   if (bot.world !== world) resetFor(bot, world);
   const player = world.players[bot.playerId];
-  if (!player?.alive) {
+  if (!player) return;
+  if (!player.alive) {
     bot.path.length = 0;
+    if (player.ghost) ghostBrain(bot, world, player, out);
     return;
   }
   // No ar (pulo do sapo) não há o que decidir nem para onde andar.
@@ -288,6 +297,94 @@ function worthDetonating(world: World, player: Player): boolean {
   return explosionTiles(world, oldest).tiles.some(
     (t) => enemyAt(world, player, t) || isBreakable(world, t),
   );
+}
+
+/**
+ * Bot fantasma: anda pelo anel até o ponto mais perto da linha ou coluna do inimigo vivo mais
+ * próximo e arremessa quando a cruz no pouso pega um inimigo (fácil: assim que houver pouso).
+ */
+function ghostBrain(bot: Bot, world: World, player: Player, out: Command[]): void {
+  const ghost = player.ghost;
+  if (!ghost) return;
+  // Fantasma novo: o último `move` emitido era do jogador vivo.
+  if (bot.ghostRef !== ghost) {
+    bot.ghostRef = ghost;
+    bot.lastDir = undefined;
+    bot.ghostDir = null;
+  }
+  let dir: Direction | null = null;
+  if (!ghost.thrown && world.tick >= bot.nextDecisionTick) {
+    bot.nextDecisionTick = world.tick + bot.config.level.reactionTicks;
+    const target = throwTarget(world, ghost);
+    const eager = bot.config.level.aggression < 0.5;
+    if (target && (eager || landingHitsEnemy(world, player, target))) {
+      out.push({ type: 'bomb', playerId: player.id });
+    } else {
+      dir = ghostHeading(world, player);
+    }
+    bot.ghostDir = dir;
+  } else if (!ghost.thrown) {
+    dir = bot.ghostDir;
+  }
+  if (dir !== bot.lastDir) {
+    bot.lastDir = dir;
+    out.push({ type: 'move', playerId: player.id, dir });
+  }
+}
+
+/** A cruz de uma bomba no pouso pegaria algum inimigo vivo (visto)? */
+function landingHitsEnemy(world: World, player: Player, at: Point): boolean {
+  const bomb: Bomb = {
+    id: -1,
+    ownerId: player.id,
+    x: at.x,
+    y: at.y,
+    fuse: world.rules.fuseTicks,
+    range: world.rules.startRange,
+  };
+  return explosionTiles(world, bomb, [...world.bombs, bomb]).tiles.some((t) =>
+    enemyAt(world, player, t),
+  );
+}
+
+/** Direção para andar no anel rumo ao alinhamento com o inimigo vivo mais próximo. */
+function ghostHeading(world: World, player: Player): Direction | null {
+  const ghost = player.ghost;
+  if (!ghost) return null;
+  const { grid } = world;
+  const w = grid.cols - 1;
+  const h = grid.rows - 1;
+  const perimeter = 2 * (w + h);
+  let best: number | null = null;
+  let bestDist = Infinity;
+  for (const e of world.players) {
+    if (!e.alive || e.id === player.id) continue;
+    const ex = Math.round(e.x);
+    const ey = Math.round(e.y);
+    // Pontos do anel alinhados com o inimigo (fora das quinas).
+    for (const s of [
+      ringPosition(grid, ex, 0),
+      ringPosition(grid, ex, h),
+      ringPosition(grid, 0, ey),
+      ringPosition(grid, w, ey),
+    ]) {
+      const raw = Math.abs(s - ghost.s);
+      const dist = Math.min(raw, perimeter - raw);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = s;
+      }
+    }
+  }
+  if (best === null || bestDist < 0.5) return null;
+  const forward = (((best - ghost.s) % perimeter) + perimeter) % perimeter;
+  const sign = forward <= perimeter / 2 ? 1 : -1;
+  // Direção que dá esse sentido no lado atual.
+  const { x, y } = ringPoint(grid, ghost.s);
+  if (y < 0.5 && x < w - 0.5) return sign > 0 ? 'right' : 'left';
+  if (x > w - 0.5 && y < h - 0.5) return sign > 0 ? 'down' : 'up';
+  if (y > h - 0.5 && x > 0.5) return sign > 0 ? 'left' : 'right';
+  return sign > 0 ? 'up' : 'down';
 }
 
 /** O bot quer o item? Ovo só se não estiver montado (montado, o ovo nem é pego). */

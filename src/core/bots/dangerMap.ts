@@ -57,7 +57,24 @@ export function computeDanger(
     }
   }
 
-  const bombs = extra ? [...world.bombs, extra] : world.bombs;
+  // Bombas de fantasma em voo: contam como bomba no pouso, com o voo somado ao pavio.
+  const flying: Bomb[] = [];
+  for (const p of world.players) {
+    const f = p.ghost?.flight;
+    if (!f) continue;
+    flying.push({
+      id: -2 - p.id,
+      ownerId: p.id,
+      x: f.toX,
+      y: f.toY,
+      fuse: f.ticksLeft + world.rules.fuseTicks,
+      range: world.rules.startRange,
+    });
+  }
+  const bombs =
+    extra || flying.length > 0
+      ? [...world.bombs, ...flying, ...(extra ? [extra] : [])]
+      : world.bombs;
   if (bombs.length === 0) return;
 
   const crosses = bombs.map((b) => explosionTiles(world, b, bombs));

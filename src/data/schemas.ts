@@ -67,6 +67,16 @@ export const GameConfigSchema = z
       /** Espera depois de sobrar ≤ 1 vivo, antes de dar a rodada (quem morrer nela empata). */
       roundEndDelayMs: z.number().positive(),
     }),
+    ghost: z.strictObject({
+      /** Espera entre a morte e virar fantasma. */
+      delayMs: z.number().min(0),
+      /** Velocidade do fantasma no anel da borda. */
+      speedTilesPerSecond: z.number().positive(),
+      /** Distância mínima (em tiles, a partir da borda) do pouso do arremesso. */
+      throwTiles: PositiveInt,
+      /** Duração do voo da bomba arremessada. */
+      flightMs: z.number().positive(),
+    }),
     suddenDeath: z.strictObject({
       /** Últimos ms da rodada em que os tiles caem em espiral (0 = desligada). */
       durationMs: z.number().min(0),

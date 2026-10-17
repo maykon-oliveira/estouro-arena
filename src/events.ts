@@ -10,6 +10,10 @@ export type GameEvent =
   | { type: 'bloco.destruido'; x: number; y: number }
   /** `cause`: chama (`fogo`) ou tile da morte súbita caindo em cima (`esmagado`). */
   | { type: 'jogador.morreu'; playerId: number; cause: 'fogo' | 'esmagado' }
+  /** Quem morreu virou fantasma no anel da borda. */
+  | { type: 'fantasma.surgiu'; playerId: number; x: number; y: number }
+  /** O fantasma arremessou sua bomba (pousa em `to` depois do voo). */
+  | { type: 'fantasma.arremessou'; playerId: number; from: Point; to: Point }
   /** Começou a morte súbita: tiles caem em espiral até o relógio zerar. */
   | { type: 'morte_subita.iniciou'; round: number }
   | { type: 'morte_subita.bloco_caiu'; x: number; y: number }
@@ -44,6 +48,8 @@ export const GAME_EVENT_TYPES = [
   'bomba.explodiu',
   'bloco.destruido',
   'jogador.morreu',
+  'fantasma.surgiu',
+  'fantasma.arremessou',
   'morte_subita.iniciou',
   'morte_subita.bloco_caiu',
   'montaria.montou',

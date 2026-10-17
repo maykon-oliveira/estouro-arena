@@ -91,6 +91,7 @@ function crushTile(world: World, i: number, out: GameEvent[]): void {
     p.alive = false;
     p.moveDir = null;
     p.jump = null;
+    p.deathTick = world.tick;
     out.push({ type: 'jogador.morreu', playerId: p.id, cause: 'esmagado' });
   }
 }

@@ -46,6 +46,10 @@ export const testRules: Rules = {
   maxSpeedLevel: 2,
   kickSpeed: 12,
   mountInvulnerableTicks: 5,
+  ghostDelayTicks: 3,
+  ghostSpeed: 6,
+  ghostThrowTiles: 3,
+  ghostFlightTicks: 4,
 };
 
 /** Catálogo de itens dos testes (mesmos efeitos do src/data/items.json). */

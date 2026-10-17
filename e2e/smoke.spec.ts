@@ -170,6 +170,25 @@ test('morte súbita: com a rodada curta, aparece o aviso e o relógio fica verme
   expect(errors).toEqual([]);
 });
 
+test('fantasma: quem morre vira fantasma na borda e arremessa uma bomba', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&debug=1&ia=0&touch=1');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  // Solta a bomba no spawn e fica: morre na explosão.
+  await page.keyboard.press('Space');
+  await expect.poll(() => debugValue(page, 'alive'), { timeout: 5_000 }).toBe('morto');
+  // Depois de 1,5 s vira fantasma em (1,0); o botão de ação acende para o arremesso.
+  const action = page.locator('.action-button');
+  await expect(action).not.toHaveClass(/unavailable/, { timeout: 4_000 });
+  await page.keyboard.press('Space');
+  // A bomba voa e pousa em (1,3): o painel conta as bombas do jogador 0 (o fantasma).
+  await expect.poll(() => debugValue(page, 'bombs'), { timeout: 3_000 }).toBe('1/1');
+  await expect(action).toHaveClass(/unavailable/);
+  expect(errors).toEqual([]);
+});
+
 test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1&nivel=dificil');

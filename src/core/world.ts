@@ -4,6 +4,7 @@ import type { Command } from './commands';
 import type { Direction } from './direction';
 import { generateGrid, type Grid, type MapDefinition } from './grid';
 import { collectItems, hideItems, type ItemDef } from './items';
+import { ghostCommand, updateGhosts, type Ghost } from './ghost';
 import { kickBombs } from './kick';
 import { advanceJump, loseMount, useMountAbility, type Jump, type MountDef } from './mounts';
 import { movePlayer } from './movement';
@@ -45,6 +46,11 @@ export interface Rules {
   kickSpeed: number;
   /** Invulnerabilidade depois de perder a montaria. */
   mountInvulnerableTicks: number;
+  /** Fantasma vingador: espera depois da morte, velocidade no anel (tiles/s), distância mínima do pouso e duração do voo. */
+  ghostDelayTicks: number;
+  ghostSpeed: number;
+  ghostThrowTiles: number;
+  ghostFlightTicks: number;
 }
 
 export interface Player {
@@ -74,6 +80,10 @@ export interface Player {
   jump: Jump | null;
   /** Ticks até poder usar a habilidade da montaria de novo. */
   abilityCooldown: number;
+  /** Tick da morte (para virar fantasma depois do atraso); null vivo. */
+  deathTick: number | null;
+  /** Fantasma vingador (depois de morto). */
+  ghost: Ghost | null;
 }
 
 export interface Bomb {
@@ -152,6 +162,8 @@ export function createWorld(options: WorldOptions): World {
     invulnerableTicks: 0,
     jump: null,
     abilityCooldown: 0,
+    deathTick: null,
+    ghost: null,
   }));
   const itemDefs = options.items ?? new Map<string, ItemDef>();
   const counts = options.map.blocos.itens ?? options.defaultItems ?? {};
@@ -189,7 +201,15 @@ export function step(
 ): GameEvent[] {
   for (const cmd of commands) {
     const player = world.players[cmd.playerId];
-    if (!player?.alive) continue;
+    if (!player) continue;
+    if (!player.alive) {
+      // Morto: só o fantasma (anel e arremesso) recebe comandos.
+      if (cmd.type === 'move') ghostCommand(world, player, 'move', cmd.dir, out);
+      else if (cmd.type === 'bomb' || cmd.type === 'action') {
+        ghostCommand(world, player, cmd.type, null, out);
+      }
+      continue;
+    }
     if (cmd.type === 'move') player.moveDir = cmd.dir;
     else if (cmd.type === 'bomb') placeBomb(world, player, out);
     // Ação: detona a remota mais antiga; sem remota, usa a habilidade da montaria.
@@ -210,6 +230,7 @@ export function step(
   }
   collectItems(world, out);
   kickBombs(world, out);
+  updateGhosts(world, out);
 
   updateBombs(world, out);
   killPlayersInFlames(world, out);
@@ -242,6 +263,7 @@ function killPlayersInFlames(world: World, out: GameEvent[]): void {
       }
       player.alive = false;
       player.moveDir = null;
+      player.deathTick = world.tick;
       out.push({ type: 'jogador.morreu', playerId: player.id, cause: 'fogo' });
     }
   }

@@ -5,6 +5,7 @@ import type { Command } from '../core/commands';
 import { createBot, runBots, type Bot } from '../core/bots/bot';
 import { DIRECTION_VECTORS } from '../core/direction';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
+import { ringPoint, throwOrigin } from '../core/ghost';
 import { countSpawns } from '../core/grid';
 import { BLOCK, WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
@@ -249,6 +250,10 @@ export class ArenaScene extends Phaser.Scene {
   /** Botão de ação aceso: remota do jogador no mapa ou habilidade da montaria pronta. */
   private actionAvailable(): boolean {
     const me = this.world.players[0];
+    if (me?.ghost) {
+      // Fantasma: o botão (ou a bomba) arremessa, uma vez, fora das quinas.
+      return !me.ghost.thrown && throwOrigin(this.world.grid, me.ghost) !== null;
+    }
     if (!me?.alive) return false;
     if (this.world.bombs.some((b) => b.remote === true && b.ownerId === 0)) return true;
     const mount = me.mount === null ? undefined : mounts.get(me.mount);
@@ -313,6 +318,16 @@ export class ArenaScene extends Phaser.Scene {
     this.world.players.forEach((p, i) => {
       const sprite = this.playerSprites[i];
       if (!sprite) return;
+      if (p.ghost) {
+        // Fantasma: pequeno e translúcido, sobre o anel da borda.
+        const at = ringPoint(this.world.grid, p.ghost.s);
+        const gp = this.toScreen(at.x, at.y);
+        sprite.setPosition(gp.x, gp.y).setScale(0.7);
+        sprite.setFillStyle(PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR, 0.45);
+        sprite.setStrokeStyle(2, 0xffffff, p.ghost.thrown ? 0.3 : 0.9);
+        this.mountSprites[i]?.setVisible(false);
+        return;
+      }
       const pos = this.toScreen(p.x, p.y);
       const moved = this.lastPositions[i * 2] !== p.x || this.lastPositions[i * 2 + 1] !== p.y;
       this.lastPositions[i * 2] = p.x;
@@ -449,6 +464,16 @@ export class ArenaScene extends Phaser.Scene {
       g.fillStyle(colors.fg);
       g.fillCircle(x + TILE / 2, y + TILE / 2, TILE / 7);
     });
+
+    // Bombas de fantasma em voo: arco do anel até o pouso.
+    for (const p of this.world.players) {
+      const f = p.ghost?.flight;
+      if (!f) continue;
+      const t = 1 - f.ticksLeft / f.totalTicks;
+      const at = this.toScreen(f.fromX + (f.toX - f.fromX) * t, f.fromY + (f.toY - f.fromY) * t);
+      g.fillStyle(BOMB_COLOR);
+      g.fillCircle(at.x, at.y - Math.sin(Math.PI * t) * TILE * 0.9, TILE * 0.3);
+    }
 
     for (const bomb of this.world.bombs) {
       // Bomba chutada: desenha entre os tiles, pelo avanço do deslize.

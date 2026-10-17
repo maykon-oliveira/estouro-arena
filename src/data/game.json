@@ -62,5 +62,11 @@
   },
   "suddenDeath": {
     "durationMs": 30000
+  },
+  "ghost": {
+    "delayMs": 1500,
+    "speedTilesPerSecond": 3,
+    "throwTiles": 3,
+    "flightMs": 500
   }
 }
