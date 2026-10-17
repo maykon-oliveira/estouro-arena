@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [qrcode()],
   build: {
     target: 'es2022',
+    // SVGs do tema viram arquivos, não data URIs: o carregador do Phaser não lê SVG em data URI.
+    assetsInlineLimit: (file) => (file.endsWith('.svg') ? false : undefined),
     chunkSizeWarningLimit: 1600, // Phaser sozinho tem ~1,2 MB
   },
   test: {

@@ -19,6 +19,23 @@ assets/
   avatars/               # SVGs do DiceBear (só estilos CC0)
 ```
 
+## Texturas de terreno (DiceBear)
+
+Enquanto não houver arte final, os tiles de terreno do tema `default` são SVGs do **DiceBear 10**, só estilos **CC0**, gerados no desenvolvimento — o jogo não chama a API nem carrega o DiceBear em tempo de execução.
+
+- Fonte: `assets/themes/default/tiles.dicebear.json` (estilo, cores e nº de variações por terreno; lista de estilos CC0 permitidos).
+- Gerar: `bun run tiles` → `assets/themes/default/tiles/<terreno>_<n>.svg` e as entradas `tile.<terreno>` do `manifest.json` (com `files` e `source`). Não edite os SVGs nem essas entradas à mão.
+- O render escolhe a variação pela posição do tile (fixa, sem repetição visível).
+- Créditos e licenças: `assets/themes/default/CREDITS.md`.
+
+Formato atual do manifest para tiles (o atlas do exemplo abaixo continua valendo para spritesheets futuros):
+
+```json
+{
+  "tile.chao": { "files": ["tiles/chao_0.svg", "tiles/chao_1.svg"], "source": "dicebear:loops" }
+}
+```
+
 Exemplo de `manifest.json`:
 
 ```json

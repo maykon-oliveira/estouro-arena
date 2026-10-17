@@ -1,0 +1,65 @@
+{
+  "$comment": "Fonte das texturas de terreno (DiceBear 10, só estilos CC0). Gere com: bun run tiles",
+  "size": 32,
+  "variants": 4,
+  "cc0Styles": ["loops", "patchwork", "squircles", "waves", "stripes", "glass", "blobs"],
+  "tiles": {
+    "chao": {
+      "style": "loops",
+      "options": {
+        "backgroundColor": ["#2e7d32"],
+        "lineColor": ["#43a047"]
+      }
+    },
+    "parede": {
+      "style": "patchwork",
+      "options": {
+        "backgroundColor": ["#4a4a6a"],
+        "fabricAColor": ["#5c5c7e"],
+        "fabricBColor": ["#3c3c58"],
+        "fabricCColor": ["#6a6a8a"]
+      }
+    },
+    "bloco": {
+      "style": "squircles",
+      "options": {
+        "backgroundColor": ["#a1887f"],
+        "shapeColor": ["#8d6e63", "#bcaaa4"]
+      }
+    },
+    "agua_rasa": {
+      "style": "loops",
+      "options": {
+        "backgroundColor": ["#4fc3f7"],
+        "lineColor": ["#b3e5fc"]
+      }
+    },
+    "agua_funda": {
+      "style": "waves",
+      "options": {
+        "backgroundColor": ["#1565c0"],
+        "waveColor": ["#1976d2", "#0d47a1"]
+      }
+    },
+    "mato_alto": {
+      "style": "stripes",
+      "options": {
+        "backgroundColor": ["#1b5e20"],
+        "stripeColor": ["#2e7d32", "#66bb6a"]
+      }
+    },
+    "gelo": {
+      "style": "glass",
+      "options": {
+        "backgroundColor": ["#b3e5fc", "#e1f5fe"]
+      }
+    },
+    "lama": {
+      "style": "blobs",
+      "options": {
+        "backgroundColor": ["#5d4037"],
+        "blobColor": ["#795548", "#4e342e"]
+      }
+    }
+  }
+}

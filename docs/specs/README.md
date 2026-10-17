@@ -13,6 +13,12 @@ Formato: status · regras · casos de borda · eventos · dados/config · testes
 | [Bomba e explosão](bomba-e-explosao.md) | Feita |
 | [Painel de debug](painel-debug.md) | Feita |
 
+## Arte provisória
+
+| Spec | Status |
+| --- | --- |
+| [Texturas de terreno com DiceBear](tema-dicebear.md) | Feita |
+
 ## Fase 1 — MVP: Batalha (ordem de implementação)
 
 Cada passo deixa o jogo jogável e testável; a ordem põe cedo o que destrava o playtest (rodadas e bots) e deixa por último o que embrulha tudo (menus).

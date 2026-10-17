@@ -2,7 +2,7 @@
 
 > **Leia isto primeiro ao começar uma sessão.** Reescrito ao fechar cada spec ou fase, no mesmo commit.
 
-**Atualizado em:** 2026-10-17 · **Última feature:** Fase 1, passo 10 — [menus e HUD](specs/menus-e-hud.md) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
+**Atualizado em:** 2026-10-17 · **Última feature:** [texturas de terreno com DiceBear](specs/tema-dicebear.md) (depois do passo 10 da Fase 1) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
 
 ## Fase atual: 1 — MVP: Batalha (GDD §9)
 
@@ -30,13 +30,14 @@ Os 10 passos estão feitos. **Portão para a Fase 2:** amigos jogam 10 partidas 
 1. Publicar a versão atual (o push na `main` gera a release; conferir se a Coolify fez o deploy da `main` nova) e jogar no celular, pelo fluxo normal: Título → Batalha → Começar.
 2. Chamar amigos para 10 partidas seguidas. Anotar cada bug (o que aconteceu, fase, seed — o `?debug=1` mostra a seed) e corrigir os graves, um commit `fix(<spec>)` por bug, com teste.
 3. Cumprido o portão: tag anotada `fase-1` no commit que fecha a fase (`git tag -a fase-1 -m "Fase 1 — MVP: Batalha" && git push origin fase-1`), reescrever este arquivo e o "Fase atual" do CLAUDE.md, e planejar a Fase 2 (arte PixelLab, tema, campanha) em `docs/specs/`.
-4. Roteiro do fechamento da fase: `roteiros/post-39-…` (recap da Fase 1, como o 28 foi para a Fase 0).
+4. Roteiro do fechamento da fase: `roteiros/post-40-…` (recap da Fase 1, como o 28 foi para a Fase 0).
 
 ## Pendências conhecidas
 
 - Deploy só em HTTP (domínio sslip.io da Coolify). Ligar HTTPS (domínio próprio + Let's Encrypt) antes da PWA: service worker exige HTTPS.
 - Assistência de curva pode deslizar lateralmente para dentro de uma bomba alheia (caso raro). Ver [movimento](specs/movimento.md).
-- Sem `manifest.json` de tema: as cores dos placeholders (terrenos, itens) estão em `src/render/ArenaScene.ts` (cores dos jogadores já em `render.playerColors`). Itens ainda sem ícone próprio: quadrado colorido por id. Criar quando entrarem sprites (Kenney/PixelLab).
+- Terreno com texturas DiceBear pelo `manifest.json` do tema (`bun run tiles`); jogadores, itens, bombas e montarias ainda são formas coloridas em `src/render/ArenaScene.ts`.
+- Os PNGs do PixelLab que uma sessão paralela gerou em `assets/themes/default/` entraram por engano no commit da morte súbita e depois foram apagados da pasta por aquela sessão; o apagamento **não** foi commitado (decidir: `git rm` ou restaurar). Criar quando entrarem sprites (Kenney/PixelLab).
 - Bots ainda não usam o chute para fugir (pendência em [chute e remota](specs/chute-e-remota.md)).
 - Sem vibração, gamepad e PWA (fases seguintes).
 - Perguntas em aberto do GDD §10 (estilo visual, dinâmicas-marca, multiplayer) seguem abertas.

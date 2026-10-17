@@ -331,6 +331,19 @@ export const BotsSchema = z.strictObject({
 
 export type BotsData = z.infer<typeof BotsSchema>;
 
+/**
+ * Manifest do tema (assets/themes/<tema>/manifest.json): nome lógico → arquivos.
+ * `source` registra de onde a arte veio (ex.: `dicebear:loops`).
+ */
+export const ThemeManifestSchema = z.record(
+  z.string().regex(/^[a-z]+(\.[a-z0-9_]+)+$/, 'nome lógico como tile.agua_rasa'),
+  z.strictObject({
+    files: z.array(z.string().regex(/^[a-z0-9_/]+\.(svg|png)$/)).min(1),
+    source: z.string().optional(),
+  }),
+);
+export type ThemeManifest = z.infer<typeof ThemeManifestSchema>;
+
 /** Textos do jogo: chave → texto. */
 export const StringsSchema = z.record(z.string().min(1), z.string().min(1));
 

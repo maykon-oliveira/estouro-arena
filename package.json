@@ -13,7 +13,8 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test:e2e": "playwright test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "tiles": "bun scripts/generate-tiles.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0",
@@ -22,6 +23,8 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
+    "@dicebear/core": "10.7.0",
+    "@dicebear/styles": "10.6.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@semantic-release/changelog": "^7.0.0",

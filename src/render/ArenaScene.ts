@@ -7,7 +7,7 @@ import { DIRECTION_VECTORS } from '../core/direction';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
 import { ringPoint, throwOrigin } from '../core/ghost';
 import { countSpawns } from '../core/grid';
-import { BLOCK, WALL } from '../core/terrainIds';
+import { WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
@@ -21,8 +21,9 @@ import type { DebugPanel } from '../ui/DebugPanel';
 import { debugInfo } from '../ui/debugInfo';
 import { MatchHud } from '../ui/MatchHud';
 import { DebugOverlay } from './DebugOverlay';
+import { themeTextures, tileVariant } from './theme';
 
-// Placeholder da Fase 0: formas coloridas até existir o manifest do tema.
+// Cor de reserva para terreno sem textura no tema (as texturas vêm do manifest).
 const PLACEHOLDER_COLORS: Readonly<Record<string, number>> = {
   chao: 0x2e7d32,
   parede: 0x4a4a6a,
@@ -90,6 +91,10 @@ export class ArenaScene extends Phaser.Scene {
   private bots: Bot[] = [];
   private readonly gameEvents: GameEvent[] = [];
   private readonly eventSounds = new EventSounds(new SilentAudio(), sounds);
+  /** Terreno desenhado com as texturas do tema; redesenhado só quando um tile muda. */
+  private terrainLayer!: Phaser.GameObjects.RenderTexture;
+  /** Chaves de textura de cada terreno (variações), resolvidas pelo manifest. */
+  private readonly tileKeys = new Map<string, string[]>();
   private gridLayer!: Phaser.GameObjects.Graphics;
   private dynamicLayer!: Phaser.GameObjects.Graphics;
   private playerSprites: Phaser.GameObjects.Arc[] = [];
@@ -133,6 +138,22 @@ export class ArenaScene extends Phaser.Scene {
 
   get isPaused(): boolean {
     return this.paused;
+  }
+
+  /** Carrega as texturas de terreno do tema (uma vez por chave). */
+  preload(): void {
+    for (const id of terrains.keys()) {
+      const textures = themeTextures(`tile.${id}`);
+      this.tileKeys.set(
+        id,
+        textures.map((tex) => tex.key),
+      );
+      for (const tex of textures) {
+        if (!this.textures.exists(tex.key)) {
+          this.load.svg(tex.key, tex.url, { width: TILE, height: TILE });
+        }
+      }
+    }
   }
 
   create(): void {
@@ -188,6 +209,7 @@ export class ArenaScene extends Phaser.Scene {
       y: Math.min(gameConfig.render.boardTop, height - this.world.grid.rows * TILE),
     };
 
+    this.terrainLayer = this.add.renderTexture(0, 0, width, height).setOrigin(0, 0);
     this.gridLayer = this.add.graphics();
     this.dynamicLayer = this.add.graphics();
     this.debugOverlay = this.debug
@@ -340,27 +362,21 @@ export class ArenaScene extends Phaser.Scene {
   private drawGrid(): void {
     const { cols, tiles, spawns } = this.world.grid;
     const g = this.gridLayer.clear();
+    const rt = this.terrainLayer.clear();
 
     tiles.forEach((id, i) => {
-      const x = this.origin.x + (i % cols) * TILE;
-      const y = this.origin.y + Math.floor(i / cols) * TILE;
-      g.fillStyle(PLACEHOLDER_COLORS[id] ?? UNKNOWN_COLOR);
-      g.fillRect(x, y, TILE, TILE);
-      if (id === BLOCK) {
-        g.lineStyle(2, 0x6d4c41);
-        g.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
-      }
-      const terrain = this.world.terrains.get(id);
-      if (terrain?.hides) {
-        // Touceiras: traços verticais claros.
-        g.lineStyle(2, 0x66bb6a, 0.9);
-        for (let k = 1; k <= 3; k++) {
-          g.lineBetween(x + (k * TILE) / 4, y + TILE - 4, x + (k * TILE) / 4 - 2, y + 6);
-        }
-      } else if (terrain?.slippery) {
-        // Brilho diagonal do gelo.
-        g.lineStyle(2, 0xffffff, 0.8);
-        g.lineBetween(x + 6, y + TILE - 8, x + TILE - 8, y + 6);
+      const tx = i % cols;
+      const ty = Math.floor(i / cols);
+      const x = this.origin.x + tx * TILE;
+      const y = this.origin.y + ty * TILE;
+      const keys = this.tileKeys.get(id) ?? [];
+      const key = keys[tileVariant(tx, ty, keys.length)];
+      if (key !== undefined && this.textures.exists(key)) {
+        rt.draw(key, x, y);
+      } else {
+        // Sem textura no tema: cor de reserva.
+        g.fillStyle(PLACEHOLDER_COLORS[id] ?? UNKNOWN_COLOR);
+        g.fillRect(x, y, TILE, TILE);
       }
     });
 

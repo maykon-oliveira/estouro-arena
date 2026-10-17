@@ -197,11 +197,11 @@ Escolher 2 ou 3 para a identidade do jogo e deixar o resto como variações de r
 
 ## 6. Arte e assets
 
-DiceBear só para avatares e retratos (perfil, HUD, nomes dos bots); sprites jogáveis com ferramenta própria para jogos (PixelLab). Detalhes e convenções em [ASSETS.md](ASSETS.md).
+DiceBear para avatares e retratos (perfil, HUD, nomes dos bots) e, enquanto não houver arte final, para as **texturas de terreno** (estilos abstratos CC0, gerados no desenvolvimento). Sprites jogáveis com ferramenta própria para jogos (PixelLab, pago — adiado). Detalhes e convenções em [ASSETS.md](ASSETS.md).
 
 | Ferramenta | Serve para | Atenção |
 | --- | --- | --- |
-| [DiceBear](https://www.dicebear.com) | Avatares, retratos | Licença varia por estilo; usar os CC0 |
+| [DiceBear](https://www.dicebear.com) | Avatares, retratos, texturas de terreno (provisórias) | Licença varia por estilo; usar só os CC0 |
 | [PixelLab](https://pixellab.ai/) | Personagens, animações, tilesets, UI | Tem [MCP](https://www.pixellab.ai/docs/ways-to-use-pixellab) para usar direto do agente; pago para uso intenso |
 | [Kenney.nl](https://kenney.nl/assets) | Placeholders | CC0, visual genérico |
 | Aseprite / Pixelorama | Ajustes e spritesheets | Pixelorama é grátis no navegador |

@@ -1,0 +1,74 @@
+{
+  "tile.agua_funda": {
+    "files": [
+      "tiles/agua_funda_0.svg",
+      "tiles/agua_funda_1.svg",
+      "tiles/agua_funda_2.svg",
+      "tiles/agua_funda_3.svg"
+    ],
+    "source": "dicebear:waves"
+  },
+  "tile.agua_rasa": {
+    "files": [
+      "tiles/agua_rasa_0.svg",
+      "tiles/agua_rasa_1.svg",
+      "tiles/agua_rasa_2.svg",
+      "tiles/agua_rasa_3.svg"
+    ],
+    "source": "dicebear:loops"
+  },
+  "tile.bloco": {
+    "files": [
+      "tiles/bloco_0.svg",
+      "tiles/bloco_1.svg",
+      "tiles/bloco_2.svg",
+      "tiles/bloco_3.svg"
+    ],
+    "source": "dicebear:squircles"
+  },
+  "tile.chao": {
+    "files": [
+      "tiles/chao_0.svg",
+      "tiles/chao_1.svg",
+      "tiles/chao_2.svg",
+      "tiles/chao_3.svg"
+    ],
+    "source": "dicebear:loops"
+  },
+  "tile.gelo": {
+    "files": [
+      "tiles/gelo_0.svg",
+      "tiles/gelo_1.svg",
+      "tiles/gelo_2.svg",
+      "tiles/gelo_3.svg"
+    ],
+    "source": "dicebear:glass"
+  },
+  "tile.lama": {
+    "files": [
+      "tiles/lama_0.svg",
+      "tiles/lama_1.svg",
+      "tiles/lama_2.svg",
+      "tiles/lama_3.svg"
+    ],
+    "source": "dicebear:blobs"
+  },
+  "tile.mato_alto": {
+    "files": [
+      "tiles/mato_alto_0.svg",
+      "tiles/mato_alto_1.svg",
+      "tiles/mato_alto_2.svg",
+      "tiles/mato_alto_3.svg"
+    ],
+    "source": "dicebear:stripes"
+  },
+  "tile.parede": {
+    "files": [
+      "tiles/parede_0.svg",
+      "tiles/parede_1.svg",
+      "tiles/parede_2.svg",
+      "tiles/parede_3.svg"
+    ],
+    "source": "dicebear:patchwork"
+  }
+}
