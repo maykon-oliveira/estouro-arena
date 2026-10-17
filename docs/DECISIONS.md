@@ -2,6 +2,9 @@
 
 Formato: data — decisão — motivo. Novas decisões no topo.
 
+- 2026-10-17 — TypeScript fixado na linha 6.x. — typescript-eslint ainda não suporta o TS 7; rever quando houver suporte.
+- 2026-10-17 — Bun como gerenciador de pacotes e runner de scripts (substitui npm). — Pedido do autor; instalação mais rápida. Testes seguem no Vitest via `bun run test`.
+- 2026-10-17 — Regras de pureza do `src/core` reforçadas no ESLint (proíbe Phaser, `window`/`document`, `Math.random`, `Date.now`). — Falha cedo em vez de depender de revisão.
 - 2026-10-17 — Nome do jogo: **Estouro Arena**. — Brasileiro, lembra o gênero sem usar a marca Bomberman.
 - 2026-10-17 — Elenco do folclore brasileiro + personagens originais por arquétipo; nenhuma pessoa real. — Domínio público e sem risco de direito de imagem.
 - 2026-10-17 — Montarias da fauna brasileira (tatu-bola, sapo-saltador, capivara, besouro-aríete, coruja, tamanduá, arara). — Substituem os dinossauros do clássico com identidade própria.

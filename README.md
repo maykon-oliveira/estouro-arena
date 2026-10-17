@@ -13,4 +13,9 @@ Projeto IA-first: o desenvolvimento é feito com agentes de IA seguindo [`CLAUDE
 
 ## Status
 
-Fase 0 — Fundação (ainda sem código).
+Fase 0 — Fundação: projeto Vite + Phaser 3 + TypeScript + Vitest criado.
+
+```bash
+bun install
+bun run dev
+```

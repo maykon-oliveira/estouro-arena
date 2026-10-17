@@ -27,20 +27,21 @@ Se um pedido contradiz o GDD, pergunte antes de implementar e, se aprovado, atua
 | PWA | vite-plugin-pwa, `orientation: landscape` |
 | Deploy | Vercel (site estático) |
 
-Gerenciador de pacotes: **npm**. Node LTS.
+Gerenciador de pacotes e runner de scripts: **Bun** (`bun.lock` versionado). Node LTS continua instalado (ferramentas como Vite/Vitest rodam sobre ele).
 
 ## Comandos
 
 ```bash
-npm install          # dependências
-npm run dev          # servidor local (use --host para testar no celular na mesma rede)
-npm test             # Vitest
-npm run test:e2e     # Playwright
-npm run lint         # ESLint + Prettier
-npm run build        # build de produção
+bun install          # dependências
+bun run dev          # servidor local (use `bun run dev --host` para testar no celular na mesma rede)
+bun run test         # Vitest — atenção: `bun test` (sem "run") chama o runner do Bun, não o Vitest
+bun run test:e2e     # Playwright (ainda não criado)
+bun run lint         # ESLint + Prettier
+bun run format       # aplica o Prettier
+bun run build        # typecheck + build de produção
 ```
 
-(Os scripts serão criados na Fase 0. Se não existirem ainda, crie-os.)
+(Se algum script ainda não existir, crie-o.)
 
 ## Arquitetura — regras obrigatórias
 
@@ -71,7 +72,7 @@ assets/themes/<tema>/   # atlas, spritesheets e manifest.json
 3. Escreva os testes do core primeiro (Vitest).
 4. Implemente até passar.
 5. Conecte render/input e verifique no navegador (paisagem, viewport de celular).
-6. Rode `npm test`, `npm run lint` e `npm run build` — tudo deve passar antes de concluir.
+6. Rode `bun run test`, `bun run lint` e `bun run build` — tudo deve passar antes de concluir.
 7. Commits pequenos, mensagem em português no imperativo (`Adiciona terreno de gelo`).
 
 Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
