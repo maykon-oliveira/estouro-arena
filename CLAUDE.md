@@ -35,7 +35,7 @@ Gerenciador de pacotes e runner de scripts: **Bun** (`bun.lock` versionado). Nod
 
 ```bash
 bun install          # dependências
-bun run dev          # servidor local (use `bun run dev --host` para testar no celular na mesma rede)
+bun run dev          # servidor local (`bun run dev --host`: celular na mesma rede; o terminal mostra um QR code)
 bun run test         # Vitest — atenção: `bun test` (sem "run") chama o runner do Bun, não o Vitest
 bun run test:e2e     # Playwright: smoke contra o build de produção (1ª vez: bunx playwright install chromium)
 bun run lint         # ESLint + Prettier

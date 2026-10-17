@@ -23,7 +23,7 @@
 
 1. Colocar o jogo num celular real:
    - **Opção A:** deploy de preview na Vercel (pedir OK antes).
-   - **Opção B:** `bun run dev --host` e abrir `http://<ip-do-pc>:5173/?debug=1` no celular, na mesma rede.
+   - **Opção B:** `bun run dev --host` e ler no celular o QR code que o terminal mostra (mesma rede; acrescente `?debug=1`).
 2. No aparelho, validar e ajustar no `game.json`:
    - joystick: zona morta 0,25, histerese 0,2, raio 60 px;
    - assistência de curva 0,5;
