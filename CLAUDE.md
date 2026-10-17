@@ -10,6 +10,7 @@ Instruções para agentes de IA (Claude Code e similares) que trabalham neste re
 - Elenco e montarias: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md).
 - Convenções de arte: [`docs/ASSETS.md`](docs/ASSETS.md).
 - Decisões tomadas: [`docs/DECISIONS.md`](docs/DECISIONS.md) — não desfaça uma decisão sem registrar a nova.
+- Specs por feature: [`docs/specs/`](docs/specs/) — como cada regra funciona de fato, com casos de borda.
 
 Se um pedido contradiz o GDD, pergunte antes de implementar e, se aprovado, atualize o GDD no mesmo commit.
 
@@ -68,7 +69,7 @@ assets/themes/<tema>/   # atlas, spritesheets e manifest.json
 ## Como trabalhar (ciclo por feature)
 
 1. Leia a seção relevante do GDD.
-2. Escreva uma mini-spec curta (regras, casos de borda, eventos emitidos) e confirme se houver ambiguidade.
+2. Escreva a mini-spec em `docs/specs/<feature>.md` (regras, casos de borda, eventos emitidos, dados, testes, pendências — ver `docs/specs/README.md`) e confirme se houver ambiguidade. A spec é commitada junto com a feature e atualizada se a implementação mudar a regra.
 3. Escreva os testes do core primeiro (Vitest).
 4. Implemente até passar.
 5. Conecte render/input e verifique no navegador (paisagem, viewport de celular).

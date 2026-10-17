@@ -10,6 +10,7 @@ Projeto IA-first: o desenvolvimento é feito com agentes de IA seguindo [`CLAUDE
 - [Personagens e montarias](docs/PERSONAGENS.md)
 - [Convenções de assets](docs/ASSETS.md)
 - [Decisões](docs/DECISIONS.md)
+- [Specs por feature](docs/specs/README.md)
 
 ## Status
 
