@@ -36,8 +36,7 @@ Os 10 passos estão feitos. **Portão para a Fase 2:** amigos jogam 10 partidas 
 
 - Deploy só em HTTP (domínio sslip.io da Coolify). Ligar HTTPS (domínio próprio + Let's Encrypt) antes da PWA: service worker exige HTTPS.
 - Assistência de curva pode deslizar lateralmente para dentro de uma bomba alheia (caso raro). Ver [movimento](specs/movimento.md).
-- Terreno com texturas DiceBear pelo `manifest.json` do tema (`bun run tiles`); jogadores, itens, bombas e montarias ainda são formas coloridas em `src/render/ArenaScene.ts`.
-- Os PNGs do PixelLab que uma sessão paralela gerou em `assets/themes/default/` entraram por engano no commit da morte súbita e depois foram apagados da pasta por aquela sessão; o apagamento **não** foi commitado (decidir: `git rm` ou restaurar). Criar quando entrarem sprites (Kenney/PixelLab).
+- Terreno com texturas DiceBear pelo `manifest.json` do tema (`bun run tiles`); jogadores, itens, bombas e montarias ainda são formas coloridas em `src/render/ArenaScene.ts`. Criar quando entrarem sprites (Kenney/PixelLab).
 - Bots ainda não usam o chute para fugir (pendência em [chute e remota](specs/chute-e-remota.md)).
 - Sem vibração, gamepad e PWA (fases seguintes).
 - Perguntas em aberto do GDD §10 (estilo visual, dinâmicas-marca, multiplayer) seguem abertas.
