@@ -81,6 +81,7 @@ assets/themes/<tema>/   # atlas, spritesheets e manifest.json
    - marque a spec como feita (e o índice em `docs/specs/README.md`);
    - atualize o que a feature tornou desatualizado (GDD se a regra mudou, `DECISIONS.md`, README, "Fase atual" abaixo);
    - reescreva [`docs/STATUS.md`](docs/STATUS.md) para a próxima sessão começar sabendo onde parou.
+   - escreva o roteiro do post da feature em `roteiros/post-NN-<tema>.md` (pasta fora do git; formato, guia de estilo e numeração em `roteiros/README.md`): fala do autor + animação, cena a cena, 60–90 s, em inglês, explicando regra, decisão e matemática.
    Vale também ao fechar uma fase.
 8. Commits pequenos no formato [Conventional Commits](https://www.conventionalcommits.org/pt-br/), assunto em português no imperativo: `feat(terrenos): Adiciona gelo`. O escopo da feature é o nome da spec (`partida-e-rodadas`, `bots`…). Tipos: `feat` (feature), `fix` (correção), `docs(specs)` (spec nova ou mudada), `docs`, `test`, `refactor`, `chore`, `ci`. O hook `commit-msg` (commitlint) recusa mensagem fora do formato.
 9. **Versões são automáticas:** a cada push na `main`, o GitHub Actions roda testes, lint e build e o `semantic-release` lê os commits (`feat` → minor, `fix` → patch), atualiza o `CHANGELOG.md`, cria a tag `vX.Y.Z` e a GitHub Release. Não edite versão nem changelog à mão.

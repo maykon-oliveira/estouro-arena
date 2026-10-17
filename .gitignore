@@ -14,3 +14,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Roteiros dos posts (rascunhos pessoais, fora do git)
+roteiros/
