@@ -16,7 +16,8 @@ export type ItemEffect =
   | { effect: 'extra_range'; amount: number }
   | { effect: 'max_range' }
   | { effect: 'extra_speed'; amount: number }
-  | { effect: 'ability'; ability: string };
+  | { effect: 'ability'; ability: string }
+  | { effect: 'mount'; mount: string };
 
 export type ItemDef = { id: string } & ItemEffect;
 
@@ -26,6 +27,7 @@ export const ITEM_EFFECT_IDS = [
   'max_range',
   'extra_speed',
   'ability',
+  'mount',
 ] as const satisfies readonly ItemEffect['effect'][];
 
 /**
@@ -48,6 +50,9 @@ export function applyItem(player: Player, item: ItemDef, rules: Rules): void {
       break;
     case 'ability':
       player.abilities.add(item.ability);
+      break;
+    case 'mount':
+      player.mount = item.mount;
       break;
   }
 }
@@ -85,16 +90,21 @@ export function hideItems(
 /** Coleta: cada jogador vivo (em ordem de id) pega o item visível do seu tile. */
 export function collectItems(world: World, out: GameEvent[]): void {
   for (const player of world.players) {
-    if (!player.alive) continue;
+    if (!player.alive || player.jump) continue;
     const x = Math.round(player.x);
     const y = Math.round(player.y);
     const i = y * world.grid.cols + x;
     const itemId = world.items[i];
     if (itemId === null || itemId === undefined) continue;
-    world.items[i] = null;
     const item = world.itemDefs.get(itemId);
+    // Já montado, o ovo fica no chão.
+    if (item?.effect === 'mount' && player.mount !== null) continue;
+    world.items[i] = null;
     if (item) applyItem(player, item, world.rules);
     out.push({ type: 'item.pego', playerId: player.id, itemId, x, y });
+    if (item?.effect === 'mount') {
+      out.push({ type: 'montaria.montou', playerId: player.id, mountId: item.mount });
+    }
   }
 }
 

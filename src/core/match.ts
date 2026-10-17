@@ -3,6 +3,7 @@ import type { Command } from './commands';
 import type { Direction } from './direction';
 import type { MapDefinition } from './grid';
 import type { ItemDef } from './items';
+import type { MountDef } from './mounts';
 import { createWorld, step, type Rules, type TerrainRules, type World } from './world';
 
 /** Regras da partida vindas de src/data/game.json (durações já em ticks). */
@@ -30,6 +31,7 @@ export interface MatchOptions {
   /** Catálogo de itens e distribuição padrão (ver `WorldOptions`). */
   items?: ReadonlyMap<string, ItemDef>;
   defaultItems?: Readonly<Record<string, number>>;
+  mounts?: ReadonlyMap<string, MountDef>;
 }
 
 export interface Match {
@@ -60,6 +62,7 @@ function roundWorld(options: MatchOptions, round: number): World {
     players: options.players,
     ...(options.items ? { items: options.items } : {}),
     ...(options.defaultItems ? { defaultItems: options.defaultItems } : {}),
+    ...(options.mounts ? { mounts: options.mounts } : {}),
   });
 }
 

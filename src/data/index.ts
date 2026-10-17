@@ -2,17 +2,20 @@
 import botsJson from './bots.json';
 import gameJson from './game.json';
 import itemsJson from './items.json';
+import mountsJson from './mounts.json';
 import soundsJson from './sounds.json';
 import stringsJson from './strings.pt-BR.json';
 import terrainsJson from './terrains.json';
 import type { BotConfig } from '../core/bots/bot';
 import type { ItemDef } from '../core/items';
 import { checkMapLayout } from '../core/mapCheck';
-import { botConfigsFromData } from './rules';
+import type { MountDef } from '../core/mounts';
+import { botConfigsFromData, mountDefFromData } from './rules';
 import {
   BotsSchema,
   GameConfigSchema,
   ItemsSchema,
+  MountsSchema,
   SoundsSchema,
   StringsSchema,
   TerrainsSchema,
@@ -33,6 +36,20 @@ const itemList = parseContent(ItemsSchema, itemsJson, 'src/data/items.json');
 
 /** Catálogo de itens por id (src/data/items.json). */
 export const items: ReadonlyMap<string, ItemDef> = new Map(itemList.map((i) => [i.id, i]));
+
+/** Montarias por id (src/data/mounts.json), com durações em ticks. */
+export const mounts: ReadonlyMap<string, MountDef> = new Map(
+  parseContent(MountsSchema, mountsJson, 'src/data/mounts.json').map((m) => [
+    m.id,
+    mountDefFromData(m, gameConfig.tickRate),
+  ]),
+);
+
+for (const item of items.values()) {
+  if (item.effect === 'mount' && !mounts.has(item.mount)) {
+    throw new Error(`src/data/items.json: ${item.id} usa montaria inexistente: ${item.mount}`);
+  }
+}
 
 for (const id of Object.keys(gameConfig.items.defaultDistribution)) {
   if (!items.has(id)) {

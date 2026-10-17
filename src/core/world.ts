@@ -5,6 +5,7 @@ import type { Direction } from './direction';
 import { generateGrid, type Grid, type MapDefinition } from './grid';
 import { collectItems, hideItems, type ItemDef } from './items';
 import { kickBombs } from './kick';
+import { advanceJump, loseMount, useMountAbility, type Jump, type MountDef } from './mounts';
 import { movePlayer } from './movement';
 import { createRng, type Rng } from './rng';
 
@@ -41,6 +42,8 @@ export interface Rules {
   maxSpeedLevel: number;
   /** Velocidade da bomba chutada, em tiles por segundo. */
   kickSpeed: number;
+  /** Invulnerabilidade depois de perder a montaria. */
+  mountInvulnerableTicks: number;
 }
 
 export interface Player {
@@ -62,6 +65,14 @@ export interface Player {
   speedLevel: number;
   /** Habilidades ganhas com itens (`perfurante`, `atravessa_bloco`). */
   abilities: Set<string>;
+  /** Montaria atual (id de src/data/mounts.json) ou null. */
+  mount: string | null;
+  /** Ticks de invulnerabilidade a chamas (depois de perder a montaria). */
+  invulnerableTicks: number;
+  /** Pulo em andamento (sapo): no ar não anda, não colide e não pega fogo. */
+  jump: Jump | null;
+  /** Ticks até poder usar a habilidade da montaria de novo. */
+  abilityCooldown: number;
 }
 
 export interface Bomb {
@@ -95,6 +106,7 @@ export interface World {
   /** Item escondido em cada bloco; aparece quando o bloco vira chão. */
   hiddenItems: (string | null)[];
   readonly itemDefs: ReadonlyMap<string, ItemDef>;
+  readonly mountDefs: ReadonlyMap<string, MountDef>;
   readonly terrains: ReadonlyMap<string, TerrainRules>;
   readonly rules: Rules;
   readonly rng: Rng;
@@ -110,6 +122,8 @@ export interface WorldOptions {
   items?: ReadonlyMap<string, ItemDef>;
   /** Itens escondidos quando a fase não tem `blocos.itens`. */
   defaultItems?: Readonly<Record<string, number>>;
+  /** Catálogo de montarias (src/data/mounts.json). */
+  mounts?: ReadonlyMap<string, MountDef>;
 }
 
 export function createWorld(options: WorldOptions): World {
@@ -131,6 +145,10 @@ export function createWorld(options: WorldOptions): World {
     range: rules.startRange,
     speedLevel: 0,
     abilities: new Set<string>(),
+    mount: null,
+    invulnerableTicks: 0,
+    jump: null,
+    abilityCooldown: 0,
   }));
   const itemDefs = options.items ?? new Map<string, ItemDef>();
   const counts = options.map.blocos.itens ?? options.defaultItems ?? {};
@@ -148,6 +166,7 @@ export function createWorld(options: WorldOptions): World {
     items: new Array<string | null>(grid.tiles.length).fill(null),
     hiddenItems,
     itemDefs,
+    mountDefs: options.mounts ?? new Map<string, MountDef>(),
     terrains: options.terrains,
     rules,
     rng,
@@ -169,16 +188,21 @@ export function step(
     if (!player?.alive) continue;
     if (cmd.type === 'move') player.moveDir = cmd.dir;
     else if (cmd.type === 'bomb') placeBomb(world, player, out);
-    // Ação: detona a remota mais antiga (a habilidade da montaria vem depois, no passo 7).
-    else if (cmd.type === 'action') detonateOldestRemote(world, player);
-    else if (cmd.type === 'debugItem' && world.itemDefs.has(cmd.itemId)) {
+    // Ação: detona a remota mais antiga; sem remota, usa a habilidade da montaria.
+    else if (cmd.type === 'action') {
+      if (!detonateOldestRemote(world, player)) useMountAbility(world, player, out);
+    } else if (cmd.type === 'debugItem' && world.itemDefs.has(cmd.itemId)) {
       // Painel de debug: põe o item no tile do jogador (coletado logo abaixo).
       world.items[Math.round(player.y) * world.grid.cols + Math.round(player.x)] = cmd.itemId;
     }
   }
 
   for (const player of world.players) {
-    if (player.alive) movePlayer(world, player);
+    if (!player.alive) continue;
+    if (player.abilityCooldown > 0) player.abilityCooldown--;
+    if (player.invulnerableTicks > 0) player.invulnerableTicks--;
+    if (player.jump) advanceJump(player);
+    else movePlayer(world, player);
   }
   collectItems(world, out);
   kickBombs(world, out);
@@ -204,8 +228,14 @@ function armOrphanRemotes(world: World): void {
 function killPlayersInFlames(world: World, out: GameEvent[]): void {
   for (const player of world.players) {
     if (!player.alive) continue;
+    // No ar (pulo) ou invulnerável, a chama não pega; montado, o escudo absorve.
+    if (player.jump || player.invulnerableTicks > 0) continue;
     const i = Math.round(player.y) * world.grid.cols + Math.round(player.x);
     if ((world.flames[i] ?? 0) > 0) {
+      if (player.mount !== null) {
+        loseMount(world, player, out);
+        continue;
+      }
       player.alive = false;
       player.moveDir = null;
       out.push({ type: 'jogador.morreu', playerId: player.id });

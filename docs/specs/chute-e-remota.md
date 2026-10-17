@@ -64,7 +64,7 @@ A detonação remota usa o `bomba.explodiu` existente.
 - Remota não explode sozinha; `action` detona a mais antiga; morte do dono reativa o pavio; `action` sem bomba remota não faz nada.
 - Entrada: `action` vem do botão/teclado, um por quadro.
 - Bots: detonam a remota com inimigo na cruz e eles fora dela; perigo imediato das remotas alheias.
-- Prioridade da ação: remota antes da montaria (a montaria entra no passo 7; o teste da prioridade vem com ela).
+- Prioridade da ação: remota antes da montaria (testado em [montarias](montarias.md)).
 
 ## Pendências
 

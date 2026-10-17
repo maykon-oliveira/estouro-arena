@@ -1,19 +1,16 @@
 import { bombAt } from './bombs';
 import { DIRECTION_VECTORS } from './direction';
 import { tileAt } from './grid';
-import { ABILITY_PASS_BLOCKS, playerSpeed } from './items';
-import { BLOCK } from './terrainIds';
+import { playerSpeed } from './items';
+import { canStand, terrainSpeed } from './mounts';
 import type { Player, World } from './world';
 
 /** Tolerância para considerar o jogador alinhado (absorve erro de ponto flutuante). */
 const EPSILON = 1e-6;
 
-/** O jogador pode entrar no tile? (`atravessa_bloco` deixa andar dentro de blocos.) */
+/** O jogador pode entrar no tile? (montaria e `atravessa_bloco` contam.) */
 export function isWalkableFor(world: World, player: Player, x: number, y: number): boolean {
-  const id = tileAt(world.grid, x, y);
-  if (id === undefined) return false;
-  if (id === BLOCK && player.abilities.has(ABILITY_PASS_BLOCKS)) return true;
-  return world.terrains.get(id)?.walkable === true;
+  return canStand(world, player, x, y);
 }
 
 function isSlippery(world: World, x: number, y: number): boolean {
@@ -44,8 +41,7 @@ export function movePlayer(world: World, player: Player): void {
     walkable(m, c) && !(horizontal ? bombAt(world, m, c) : bombAt(world, c, m));
 
   const here = tileAt(world.grid, Math.round(player.x), Math.round(player.y));
-  const speedMultiplier =
-    (here === undefined ? undefined : world.terrains.get(here)?.speedMultiplier) ?? 1;
+  const speedMultiplier = here === undefined ? 1 : terrainSpeed(world, player.mount, here);
   let budget = (playerSpeed(world, player) * speedMultiplier) / world.rules.tickRate;
 
   const mainTile = Math.round(main);

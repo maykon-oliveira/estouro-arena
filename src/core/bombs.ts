@@ -18,6 +18,7 @@ function findBomb(bombs: readonly Bomb[], x: number, y: number): Bomb | undefine
 
 /** Solta uma bomba no tile do jogador, se ele tiver bomba livre e o terreno permitir. */
 export function placeBomb(world: World, player: Player, out: GameEvent[]): void {
+  if (player.jump) return; // no ar não solta bomba
   const x = Math.round(player.x);
   const y = Math.round(player.y);
   const terrainId = tileAt(world.grid, x, y);

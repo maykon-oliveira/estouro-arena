@@ -1,10 +1,24 @@
 {
   "tickRate": 60,
   "maxTicksPerFrame": 5,
-  "map": { "default": "arena_01", "spawnSafeRadius": 1 },
-  "match": { "winsToWin": 2, "roundMs": 120000, "countdownMs": 3000, "roundEndDelayMs": 2000 },
-  "hud": { "goBannerMs": 800 },
-  "bomb": { "fuseMs": 2500, "explosionMs": 500, "kickSpeedTilesPerSecond": 8 },
+  "map": {
+    "default": "arena_01",
+    "spawnSafeRadius": 1
+  },
+  "match": {
+    "winsToWin": 2,
+    "roundMs": 120000,
+    "countdownMs": 3000,
+    "roundEndDelayMs": 2000
+  },
+  "hud": {
+    "goBannerMs": 800
+  },
+  "bomb": {
+    "fuseMs": 2500,
+    "explosionMs": 500,
+    "kickSpeedTilesPerSecond": 8
+  },
   "player": {
     "speedTilesPerSecond": 4,
     "cornerAssistTiles": 0.5,
@@ -24,7 +38,9 @@
       "remota": 1,
       "perfurante": 1,
       "atravessa_bloco": 1,
-      "fogo_max": 1
+      "fogo_max": 1,
+      "ovo_capivara": 1,
+      "ovo_sapo_saltador": 1
     }
   },
   "controls": {
@@ -39,5 +55,8 @@
     "width": 854,
     "height": 480,
     "playerColors": ["#e53935", "#1e88e5", "#43a047", "#fdd835"]
+  },
+  "mount": {
+    "invulnerableMs": 1000
   }
 }

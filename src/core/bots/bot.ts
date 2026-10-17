@@ -2,7 +2,9 @@ import { bombAt, explosionTiles } from '../bombs';
 import type { Command } from '../commands';
 import type { Direction } from '../direction';
 import { tileAt, type Point } from '../grid';
+import { DIRECTION_VECTORS } from '../direction';
 import { ABILITY_PIERCE, playerSpeed } from '../items';
+import { canStand } from '../mounts';
 import type { Match } from '../match';
 import { createRng, type Rng } from '../rng';
 import type { Bomb, Player, World } from '../world';
@@ -91,6 +93,8 @@ export function updateBot(bot: Bot, world: World, out: Command[]): void {
     bot.path.length = 0;
     return;
   }
+  // No ar (pulo do sapo) não há o que decidir nem para onde andar.
+  if (player.jump) return;
 
   if (bot.forceDecision || world.tick >= bot.nextDecisionTick) {
     bot.forceDecision = false;
@@ -149,6 +153,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
     const safe = (i: number): boolean => bot.danger.start[i] === SAFE;
     let goal = currentGoal(bot, (i) => safe(i));
     if (goal === -1) goal = nearest(world, bot.search, safe);
+    if (goal === -1 && jumpToSafety(bot, world, player, out)) return;
     if (goal === -1) goal = latestDanger(world, bot.search, bot.danger);
     follow(bot, bot.search, goal);
     return;
@@ -179,7 +184,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
 
   const isItemSpot = (i: number): boolean =>
     i !== hi &&
-    world.items[i] !== null &&
+    wants(world, player, world.items[i] ?? null) &&
     bot.danger.start[i] === SAFE &&
     Math.abs((i % cols) - here.x) + Math.abs(Math.floor(i / cols) - here.y) <=
       bot.config.level.itemSearchTiles;
@@ -240,6 +245,30 @@ function worthDetonating(world: World, player: Player): boolean {
   return explosionTiles(world, oldest).tiles.some(
     (t) => enemyAt(world, player, t) || isBreakable(world, t),
   );
+}
+
+/** O bot quer o item? Ovo só se não estiver montado (montado, o ovo nem é pego). */
+function wants(world: World, player: Player, itemId: string | null): boolean {
+  if (itemId === null) return false;
+  return !(world.itemDefs.get(itemId)?.effect === 'mount' && player.mount !== null);
+}
+
+/**
+ * Sem saída a pé: montado no sapo, com o pulo pronto e sem remota no mapa (o `action`
+ * detonaria a remota), pula se o pouso na direção em que está virado for seguro.
+ */
+function jumpToSafety(bot: Bot, world: World, player: Player, out: Command[]): boolean {
+  const mount = player.mount === null ? undefined : world.mountDefs.get(player.mount);
+  if (!mount || mount.ability !== 'jump' || player.abilityCooldown > 0) return false;
+  if (world.bombs.some((b) => b.remote && b.ownerId === player.id)) return false;
+  const { dx, dy } = DIRECTION_VECTORS[player.facing];
+  const x = Math.round(player.x) + dx * mount.jumpTiles;
+  const y = Math.round(player.y) + dy * mount.jumpTiles;
+  if (!canStand(world, player, x, y) || bombAt(world, x, y)) return false;
+  if (bot.danger.start[y * world.grid.cols + x] !== SAFE) return false;
+  out.push({ type: 'action', playerId: player.id });
+  bot.path.length = 0;
+  return true;
 }
 
 /** Vai para o tile seguro alcançável mais perto do inimigo vivo mais próximo. */

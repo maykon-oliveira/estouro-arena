@@ -5,7 +5,7 @@ import { createPathSearch, pathTo, searchPaths, UNREACHABLE } from '../../src/co
 import type { Command } from '../../src/core/commands';
 import { createMatch, stepMatch } from '../../src/core/match';
 import { createWorld, step, type Bomb, type World } from '../../src/core/world';
-import { botConfigs, gameConfig, items, maps, terrains } from '../../src/data';
+import { botConfigs, gameConfig, items, maps, mounts, terrains } from '../../src/data';
 import { matchRulesFromConfig, rulesFromConfig } from '../../src/data/rules';
 import type { GameEvent } from '../../src/events';
 import { testRules, worldFrom } from './helpers';
@@ -332,6 +332,7 @@ describe('sobrevivência (dados reais)', () => {
           players: 1,
           items,
           defaultItems: gameConfig.items.defaultDistribution,
+          mounts,
         });
         const bot = createBot(0, config, seed);
         const events = runWithBots(world, [bot], 60 * gameConfig.tickRate);

@@ -1,8 +1,9 @@
 import { msToTicks } from '../core/time';
 import type { BotConfig } from '../core/bots/bot';
 import type { MatchRules } from '../core/match';
+import type { MountDef } from '../core/mounts';
 import type { Rules } from '../core/world';
-import type { BotsData, GameConfig } from './schemas';
+import type { BotsData, GameConfig, MountData } from './schemas';
 
 /** Converte a config validada (game.json) nas regras da simulação, com durações em ticks. */
 export function rulesFromConfig(cfg: GameConfig): Rules {
@@ -20,6 +21,7 @@ export function rulesFromConfig(cfg: GameConfig): Rules {
     speedStep: cfg.player.speedStep,
     maxSpeedLevel: cfg.player.maxSpeedLevel,
     kickSpeed: cfg.bomb.kickSpeedTilesPerSecond,
+    mountInvulnerableTicks: msToTicks(cfg.mount.invulnerableMs, cfg.tickRate),
   };
 }
 
@@ -50,4 +52,17 @@ export function botConfigsFromData(data: BotsData, tickRate: number): Map<string
       },
     ]),
   );
+}
+
+/** Montaria com durações em ticks (pulo e recarga do sapo). */
+export function mountDefFromData(data: MountData, tickRate: number): MountDef {
+  if (data.ability === null) return data;
+  return {
+    id: data.id,
+    ability: 'jump',
+    jumpTiles: data.jumpTiles,
+    jumpTicks: Math.max(1, msToTicks(data.jumpMs, tickRate)),
+    cooldownTicks: msToTicks(data.cooldownMs, tickRate),
+    terrainOverrides: data.terrainOverrides,
+  };
 }

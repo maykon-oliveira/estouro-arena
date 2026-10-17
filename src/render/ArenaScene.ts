@@ -9,7 +9,7 @@ import { countSpawns } from '../core/grid';
 import { BLOCK } from '../core/terrainIds';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
-import { botConfigs, gameConfig, items, maps, sounds, terrains } from '../data';
+import { botConfigs, gameConfig, items, maps, mounts, sounds, terrains } from '../data';
 import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
@@ -47,6 +47,16 @@ const ITEM_COLORS: Readonly<Record<string, { bg: number; fg: number }>> = {
   atravessa_bloco: { bg: 0x8d6e63, fg: 0xd7ccc8 },
   chute: { bg: 0x43a047, fg: 0xffffff },
   remota: { bg: 0x37474f, fg: 0xff5252 },
+};
+/** Ovos: oval claro com a pinta da cor da montaria. */
+const EGG_COLORS: Readonly<Record<string, { bg: number; fg: number }>> = {
+  ovo_capivara: { bg: 0xefebe9, fg: 0x8d6e63 },
+  ovo_sapo_saltador: { bg: 0xf1f8e9, fg: 0x7cb342 },
+};
+/** Montaria: elipse sob o jogador (placeholder). */
+const MOUNT_COLORS: Readonly<Record<string, number>> = {
+  capivara: 0x8d6e63,
+  sapo_saltador: 0x7cb342,
 };
 
 const TILE = gameConfig.render.tileSize;
@@ -102,6 +112,7 @@ export class ArenaScene extends Phaser.Scene {
   private gridLayer!: Phaser.GameObjects.Graphics;
   private dynamicLayer!: Phaser.GameObjects.Graphics;
   private playerSprites: Phaser.GameObjects.Arc[] = [];
+  private mountSprites: Phaser.GameObjects.Ellipse[] = [];
   /** Posição de cada jogador no quadro anterior (x, y intercalados), para saber quem se mexeu. */
   private lastPositions: number[] = [];
   private origin = { x: 0, y: 0 };
@@ -146,6 +157,7 @@ export class ArenaScene extends Phaser.Scene {
         seed,
         items,
         defaultItems: gameConfig.items.defaultDistribution,
+        mounts,
         // Spawns limitam a partida: 1 jogador + até 3 bots.
         players: Math.min(1 + readBots(), countSpawns(map)),
       },
@@ -182,6 +194,12 @@ export class ArenaScene extends Phaser.Scene {
       ? new DebugOverlay(this.add.graphics(), this.origin, TILE)
       : null;
     this.drawGrid();
+    this.mountSprites = this.world.players.map(() =>
+      this.add
+        .ellipse(0, 0, TILE * 1.05, TILE * 0.62, 0xffffff)
+        .setStrokeStyle(2, 0x000000, 0.6)
+        .setVisible(false),
+    );
     this.playerSprites = this.world.players.map((p) =>
       this.add
         .circle(0, 0, TILE * 0.4, PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR)
@@ -210,13 +228,19 @@ export class ArenaScene extends Phaser.Scene {
 
     this.handleEvents();
     this.hud?.update(this.match, this.time.now);
-    // Botão de ação aceso só quando há o que fazer (hoje: bomba remota do jogador no mapa).
-    this.touch?.setActionAvailable(
-      this.world.bombs.some((b) => b.remote === true && b.ownerId === 0),
-    );
+    this.touch?.setActionAvailable(this.actionAvailable());
     this.syncPlayers();
     this.drawDynamic();
     this.drawDebug();
+  }
+
+  /** Botão de ação aceso: remota do jogador no mapa ou habilidade da montaria pronta. */
+  private actionAvailable(): boolean {
+    const me = this.world.players[0];
+    if (!me?.alive) return false;
+    if (this.world.bombs.some((b) => b.remote === true && b.ownerId === 0)) return true;
+    const mount = me.mount === null ? undefined : mounts.get(me.mount);
+    return mount?.ability === 'jump' && me.abilityCooldown === 0 && me.jump === null;
   }
 
   private drawDebug(): void {
@@ -291,7 +315,24 @@ export class ArenaScene extends Phaser.Scene {
         fill = 0;
         stroke = moved ? 0.8 : 0;
       }
-      sprite.setPosition(pos.x, pos.y).setAlpha(1);
+      // Pulo: cresce no meio do arco. Invulnerável: pisca.
+      const jump = p.jump;
+      const arc = jump ? Math.sin(Math.PI * (1 - jump.ticksLeft / jump.totalTicks)) : 0;
+      if (p.invulnerableTicks > 0 && Math.floor(this.world.tick / 4) % 2 === 0)
+        fill = stroke = 0.25;
+      sprite
+        .setPosition(pos.x, pos.y - arc * TILE * 0.4)
+        .setAlpha(1)
+        .setScale(1 + arc * 0.35);
+      const mountSprite = this.mountSprites[i];
+      if (mountSprite) {
+        const color = p.mount === null ? undefined : MOUNT_COLORS[p.mount];
+        mountSprite
+          .setVisible(p.alive && color !== undefined && !(hidden && p.id !== 0))
+          .setFillStyle(color ?? 0xffffff, hidden ? 0.5 : 1)
+          .setPosition(pos.x, pos.y + TILE * 0.32 - arc * TILE * 0.4)
+          .setScale(1 + arc * 0.35);
+      }
       sprite.setFillStyle(PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR, fill);
       sprite.setStrokeStyle(2, 0xffffff, stroke);
     });
@@ -355,6 +396,19 @@ export class ArenaScene extends Phaser.Scene {
 
     this.world.items.forEach((itemId, i) => {
       if (itemId === null) return;
+      const egg = EGG_COLORS[itemId];
+      if (egg) {
+        const cx = this.origin.x + (i % cols) * TILE + TILE / 2;
+        const cy = this.origin.y + Math.floor(i / cols) * TILE + TILE / 2;
+        g.fillStyle(egg.bg);
+        g.fillEllipse(cx, cy, TILE * 0.5, TILE * 0.66);
+        g.lineStyle(2, 0xffffff, 0.9);
+        g.strokeEllipse(cx, cy, TILE * 0.5, TILE * 0.66);
+        g.fillStyle(egg.fg);
+        g.fillCircle(cx - 3, cy - 3, 3);
+        g.fillCircle(cx + 4, cy + 4, 2);
+        return;
+      }
       const colors = ITEM_COLORS[itemId] ?? { bg: UNKNOWN_COLOR, fg: 0xffffff };
       const x = this.origin.x + (i % cols) * TILE;
       const y = this.origin.y + Math.floor(i / cols) * TILE;

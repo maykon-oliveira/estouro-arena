@@ -137,6 +137,26 @@ for (const mapId of ['pantanal_01', 'tundra_01']) {
   });
 }
 
+test('montaria: ovo de sapo acende o botão de ação e K pula 2 tiles', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&debug=1&ia=0&touch=1');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  const action = page.locator('.action-button');
+  await expect(action).toHaveClass(/unavailable/);
+  await page.getByRole('button', { name: '+ ovo_sapo_saltador', exact: true }).click();
+  await expect(action).not.toHaveClass(/unavailable/);
+
+  // Seed 0: spawn (1,1), chão em (1,2) e (1,3). Vira para baixo e pula de (1,1) para (1,3).
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(() => debugValue(page, 'tile')).toBe('1,1');
+  await page.keyboard.press('KeyK');
+  await expect.poll(() => debugValue(page, 'tile')).toBe('1,3');
+  await expect(action).toHaveClass(/unavailable/); // recarga
+  expect(errors).toEqual([]);
+});
+
 test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1&nivel=dificil');

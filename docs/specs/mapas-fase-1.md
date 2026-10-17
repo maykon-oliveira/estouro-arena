@@ -15,7 +15,7 @@ Três fases 15 × 13, retangulares, com anel de paredes na borda e 4 spawns nos 
 - **Legenda padrão** (cada fase repete na sua `legenda`): `#` parede, `.` chão, `P` spawn, `~` água rasa, `=` água funda, `"` mato alto, `*` gelo, `,` lama.
 - **Ovos** entram no `blocos.itens` das fases a partir da spec de [montarias](montarias.md) (`pantanal_01` com mais ovos de capivara).
 - **Escolha** da fase no menu de batalha; até lá, `?map=<id>` (id desconhecido → `map.default`).
-- **Itens:** `arena_01` traz `blocos.itens` explícito (igual à distribuição padrão); as outras usam a padrão até os ovos (passo 7).
+- **Itens:** `arena_01` traz `blocos.itens` igual à distribuição padrão; `pantanal_01` também, com 2 ovos de capivara; `tundra_01` usa a padrão (1 ovo de cada).
 - **Densidade de blocos:** `arena_01` 0,6; `pantanal_01` 0,5 e `tundra_01` 0,55 (os terrenos já ocupam espaço; blocos só nascem em `chao`).
 
 ## Validação nova (na carga dos dados)

@@ -2,6 +2,7 @@ import type { Command } from '../../src/core/commands';
 import type { Direction } from '../../src/core/direction';
 import type { MapDefinition } from '../../src/core/grid';
 import type { ItemDef } from '../../src/core/items';
+import type { MountDef } from '../../src/core/mounts';
 import {
   createWorld,
   step,
@@ -44,6 +45,7 @@ export const testRules: Rules = {
   speedStep: 3,
   maxSpeedLevel: 2,
   kickSpeed: 12,
+  mountInvulnerableTicks: 5,
 };
 
 /** Catálogo de itens dos testes (mesmos efeitos do src/data/items.json). */
@@ -56,6 +58,34 @@ export const testItems: ReadonlyMap<string, ItemDef> = new Map<string, ItemDef>(
   ['atravessa_bloco', { id: 'atravessa_bloco', effect: 'ability', ability: 'atravessa_bloco' }],
   ['chute', { id: 'chute', effect: 'ability', ability: 'chute' }],
   ['remota', { id: 'remota', effect: 'ability', ability: 'remota' }],
+  ['ovo_capivara', { id: 'ovo_capivara', effect: 'mount', mount: 'capivara' }],
+  ['ovo_sapo_saltador', { id: 'ovo_sapo_saltador', effect: 'mount', mount: 'sapo_saltador' }],
+]);
+
+/** Montarias dos testes (como em src/data/mounts.json, com durações curtas em ticks). */
+export const testMounts: ReadonlyMap<string, MountDef> = new Map<string, MountDef>([
+  [
+    'capivara',
+    {
+      id: 'capivara',
+      ability: null,
+      terrainOverrides: {
+        agua_rasa: { speedMultiplier: 1 },
+        agua_funda: { walkable: true, speedMultiplier: 1 },
+      },
+    },
+  ],
+  [
+    'sapo_saltador',
+    {
+      id: 'sapo_saltador',
+      ability: 'jump',
+      jumpTiles: 2,
+      jumpTicks: 4,
+      cooldownTicks: 10,
+      terrainOverrides: {},
+    },
+  ],
 ]);
 
 /**
@@ -91,6 +121,7 @@ export function worldFrom(
     seed: 1,
     players,
     items: testItems,
+    mounts: testMounts,
   });
 }
 

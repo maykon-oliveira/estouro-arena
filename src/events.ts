@@ -12,6 +12,11 @@ export type GameEvent =
   | { type: 'bomba.chutada'; bombId: number; playerId: number; dir: Direction }
   /** Bomba chutada parou no centro de um tile. */
   | { type: 'bomba.parou'; bombId: number; x: number; y: number }
+  | { type: 'montaria.montou'; playerId: number; mountId: string }
+  /** O escudo da montaria absorveu uma chama. */
+  | { type: 'montaria.perdida'; playerId: number; mountId: string }
+  /** Habilidade da montaria usada (pulo do sapo). */
+  | { type: 'montaria.acao'; playerId: number; mountId: string; from: Point; to: Point }
   /** Terreno destrutível que não barra fogo (mato) terminou de queimar e virou chão. */
   | { type: 'terreno.queimou'; x: number; y: number; terrainId: string }
   /** Bloco com item virou chão: o item aparece no tile. */
@@ -35,6 +40,9 @@ export const GAME_EVENT_TYPES = [
   'bomba.explodiu',
   'bloco.destruido',
   'jogador.morreu',
+  'montaria.montou',
+  'montaria.perdida',
+  'montaria.acao',
   'terreno.queimou',
   'bomba.chutada',
   'bomba.parou',

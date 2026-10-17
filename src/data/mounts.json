@@ -1,0 +1,23 @@
+[
+  {
+    "id": "capivara",
+    "ability": null,
+    "terrainOverrides": {
+      "agua_rasa": {
+        "speedMultiplier": 1
+      },
+      "agua_funda": {
+        "walkable": true,
+        "speedMultiplier": 1
+      }
+    }
+  },
+  {
+    "id": "sapo_saltador",
+    "ability": "jump",
+    "jumpTiles": 2,
+    "jumpMs": 400,
+    "cooldownMs": 1000,
+    "terrainOverrides": {}
+  }
+]

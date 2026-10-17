@@ -1,6 +1,7 @@
 import { bombAt } from '../bombs';
 import { ABILITY_PASS_BLOCKS, playerSpeed } from '../items';
 import { DIRECTION_VECTORS, type Direction } from '../direction';
+import { terrainSpeed, terrainWalkable, type MountDef } from '../mounts';
 import { BLOCK } from '../terrainIds';
 import type { Player, World } from '../world';
 import { SAFE, type DangerMap } from './dangerMap';
@@ -37,6 +38,8 @@ export interface Mover {
   passBlocks: boolean;
   /** Deslizando no gelo: o primeiro passo só pode seguir nessa direção. */
   slide?: Direction | null;
+  /** Montaria (muda terrenos: capivara nada na água). */
+  mount?: MountDef | null;
 }
 
 export function moverOf(world: World, player: Player): Mover {
@@ -46,6 +49,7 @@ export function moverOf(world: World, player: Player): Mover {
     speed: playerSpeed(world, player),
     passBlocks: player.abilities.has(ABILITY_PASS_BLOCKS),
     slide: player.iceSlide,
+    mount: player.mount === null ? null : (world.mountDefs.get(player.mount) ?? null),
   };
 }
 
@@ -55,7 +59,7 @@ export function moverOf(world: World, player: Player): Mover {
  */
 export function ticksPerTile(world: World, i: number, mover: Mover): number {
   const id = world.grid.tiles[i];
-  const multiplier = (id === undefined ? undefined : world.terrains.get(id)?.speedMultiplier) ?? 1;
+  const multiplier = id === undefined ? 1 : terrainSpeed(world, mover.mount?.id ?? null, id);
   const speed = mover.speed * multiplier;
   if (speed <= 0) return UNREACHABLE;
   const ticks = Math.ceil(world.rules.tickRate / speed);
@@ -178,7 +182,7 @@ function isEnterable(world: World, mover: Mover, x: number, y: number): boolean 
   if (x < 0 || y < 0 || x >= world.grid.cols || y >= world.grid.rows) return false;
   const id = world.grid.tiles[y * world.grid.cols + x];
   if (id === undefined || bombAt(world, x, y)) return false;
-  return world.terrains.get(id)?.walkable === true || (mover.passBlocks && id === BLOCK);
+  return terrainWalkable(world, mover.mount?.id ?? null, id) || (mover.passBlocks && id === BLOCK);
 }
 
 /** Gelo (ou outro terreno escorregadio). */

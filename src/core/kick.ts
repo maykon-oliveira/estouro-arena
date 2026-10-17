@@ -27,7 +27,9 @@ export function canSlideInto(world: World, x: number, y: number): boolean {
 export function kickBombs(world: World, out: GameEvent[]): void {
   for (const player of world.players) {
     const dir = player.moveDir;
-    if (!player.alive || dir === null || !player.abilities.has(ABILITY_KICK)) continue;
+    if (!player.alive || player.jump || dir === null || !player.abilities.has(ABILITY_KICK)) {
+      continue;
+    }
     const tx = Math.round(player.x);
     const ty = Math.round(player.y);
     if (Math.abs(player.x - tx) > EPSILON || Math.abs(player.y - ty) > EPSILON) continue;

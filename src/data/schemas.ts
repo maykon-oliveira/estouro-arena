@@ -67,6 +67,10 @@ export const GameConfigSchema = z
       /** Espera depois de sobrar ≤ 1 vivo, antes de dar a rodada (quem morrer nela empata). */
       roundEndDelayMs: z.number().positive(),
     }),
+    mount: z.strictObject({
+      /** Invulnerabilidade depois de perder a montaria (para a mesma explosão não matar). */
+      invulnerableMs: z.number().min(0),
+    }),
     hud: z.strictObject({
       /** Quanto tempo o "Já!" fica na tela depois da contagem. */
       goBannerMs: z.number().min(0),
@@ -157,7 +161,35 @@ export const ItemSchema = z.discriminatedUnion('effect', [
   z.strictObject({ id: ContentId, effect: z.literal('max_range') }),
   z.strictObject({ id: ContentId, effect: z.literal('extra_speed'), amount: Amount }),
   z.strictObject({ id: ContentId, effect: z.literal('ability'), ability: AbilityId }),
+  /** Ovo: monta na montaria `mount` (id de src/data/mounts.json). */
+  z.strictObject({ id: ContentId, effect: z.literal('mount'), mount: ContentId }),
 ]);
+
+const TerrainOverrideSchema = z.strictObject({
+  walkable: z.boolean().optional(),
+  speedMultiplier: z.number().min(0).max(3).optional(),
+});
+
+/** Montaria de src/data/mounts.json (ver docs/specs/montarias.md). */
+export const MountSchema = z.discriminatedUnion('ability', [
+  z.strictObject({
+    id: ContentId,
+    ability: z.null(),
+    terrainOverrides: z.record(ContentId, TerrainOverrideSchema),
+  }),
+  z.strictObject({
+    id: ContentId,
+    ability: z.literal('jump'),
+    /** Distância do pulo, em tiles. */
+    jumpTiles: z.number().int().min(1),
+    jumpMs: z.number().positive(),
+    cooldownMs: z.number().min(0),
+    terrainOverrides: z.record(ContentId, TerrainOverrideSchema),
+  }),
+]);
+
+export const MountsSchema = z.array(MountSchema);
+export type MountData = z.infer<typeof MountSchema>;
 
 export const ItemsSchema = z.array(ItemSchema).superRefine((items, ctx) => {
   const seen = new Set<string>();

@@ -32,7 +32,9 @@
       "remota": 1,
       "perfurante": 1,
       "atravessa_bloco": 1,
-      "fogo_max": 1
+      "fogo_max": 1,
+      "ovo_capivara": 1,
+      "ovo_sapo_saltador": 1
     }
   }
 }
