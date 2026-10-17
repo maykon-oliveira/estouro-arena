@@ -208,7 +208,7 @@ body {
   padding: 2px 10px;
   border-radius: 8px;
   font:
-    700 20px/1.2 ui-monospace,
+    700 18px/1.2 ui-monospace,
     monospace;
   text-align: center;
   background: rgb(0 0 0 / 55%);
@@ -266,4 +266,155 @@ body {
   font-weight: 600;
   font-size: 16px;
   opacity: 0.85;
+}
+
+/* Controles de toque só durante a partida. */
+body:not(.playing) #controls {
+  display: none;
+}
+
+/* Menus (Título, Batalha, Pausa, Resultado). */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(8px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+    calc(8px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  background: rgb(10 10 20 / 72%);
+}
+
+.menu[hidden] {
+  display: none;
+}
+
+.menu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  max-width: 560px;
+  max-height: 100%;
+  overflow: auto;
+  text-align: center;
+}
+
+.menu-title {
+  margin: 0 0 8px;
+  font-weight: 900;
+  font-size: clamp(32px, 9vh, 56px);
+  letter-spacing: 2px;
+  text-shadow:
+    0 3px 0 #c62828,
+    0 0 18px rgb(255 109 0 / 60%);
+}
+
+.menu h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.menu button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 16px;
+  border: 2px solid rgb(255 255 255 / 40%);
+  border-radius: 10px;
+  color: #fff;
+  font:
+    600 16px system-ui,
+    sans-serif;
+  background: rgb(255 255 255 / 10%);
+  touch-action: manipulation;
+}
+
+.menu button:focus-visible {
+  outline: 3px solid #4dd0e1;
+}
+
+.menu button.menu-primary {
+  min-width: 180px;
+  border-color: #ff7043;
+  background: linear-gradient(#ff7043, #c62828);
+}
+
+.menu-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.menu-row-title {
+  min-width: 90px;
+  opacity: 0.8;
+  text-align: right;
+}
+
+.menu-choices,
+.menu-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.menu [role='radio'][aria-checked='true'] {
+  border-color: #4dd0e1;
+  background: rgb(77 208 225 / 25%);
+}
+
+.menu-scores {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-scores li {
+  color: var(--player-color);
+  font-weight: 700;
+}
+
+/* Botão de pausa (canto superior direito, só na partida). */
+.pause-button {
+  position: fixed;
+  top: calc(6px + env(safe-area-inset-top));
+  right: calc(8px + env(safe-area-inset-right));
+  z-index: 6;
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgb(255 255 255 / 50%);
+  border-radius: 10px;
+  color: #fff;
+  font:
+    900 16px system-ui,
+    sans-serif;
+  background: rgb(0 0 0 / 55%);
+}
+
+.pause-button[hidden] {
+  display: none;
+}
+
+/* Painel do jogador: embaixo, no centro, entre os polegares. */
+.player-panel {
+  position: absolute;
+  bottom: calc(6px + env(safe-area-inset-bottom));
+  left: 50%;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font:
+    600 13px system-ui,
+    sans-serif;
+  white-space: pre;
+  background: rgb(0 0 0 / 55%);
+  transform: translateX(-50%);
+}
+
+.player-panel:empty {
+  display: none;
 }

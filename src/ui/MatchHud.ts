@@ -2,6 +2,7 @@ import type { Match } from '../core/match';
 import { gameConfig, t } from '../data';
 import type { GameEvent } from '../events';
 import { countdownLabel, formatClock, playerName, roundEndText } from './hudModel';
+import { panelChips } from './playerPanel';
 
 /**
  * HUD mínimo da partida (DOM sobre o canvas): relógio, vitórias por jogador e avisos centrais.
@@ -14,6 +15,7 @@ export class MatchHud {
   private readonly bannerNote: HTMLElement;
   private readonly bannerText: HTMLElement;
   private readonly bannerSub: HTMLElement;
+  private readonly panel: HTMLElement;
   /** Resultado da última rodada, mostrado acima da contagem da rodada seguinte. */
   private lastResult = '';
   /** Até quando o "Já!" fica na tela. */
@@ -55,7 +57,10 @@ export class MatchHud {
     this.bannerSub.className = 'hud-banner-sub';
     banner.append(this.bannerNote, this.bannerText, this.bannerSub);
 
-    this.root.append(top, banner);
+    this.panel = document.createElement('div');
+    this.panel.className = 'player-panel';
+
+    this.root.append(top, banner, this.panel);
     parent.append(this.root);
   }
 
@@ -99,12 +104,13 @@ export class MatchHud {
     } else if (match.phase === 'over') {
       note = this.lastResult;
       text = this.matchResult;
-      sub = t('match.restart');
     } else if (nowMs < this.suddenUntil) {
       text = t('round.sudden_death');
     } else if (nowMs < this.goUntil) {
       text = t('round.go');
     }
+    const me = match.world.players[0];
+    this.write(this.panel, me ? panelChips(me).join('   ') : '');
     this.write(this.bannerNote, note);
     this.write(this.bannerText, text);
     this.write(this.bannerSub, sub);

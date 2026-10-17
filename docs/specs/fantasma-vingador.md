@@ -54,4 +54,4 @@ Render (placeholder): círculo pequeno e translúcido na cor do jogador sobre a 
 ## Pendências
 
 - Variante clássica "acertar alguém revive o fantasma" — não está no GDD; avaliar no playtest.
-- O fantasma no lado de cima fica sob os placares do HUD no celular; resolver no passo 10 ([menus e HUD](menus-e-hud.md)).
+- ~~O fantasma no lado de cima fica sob os placares do HUD~~: resolvido no passo 10 (arena desenhada abaixo da barra do HUD, `render.boardTop`).

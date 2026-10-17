@@ -21,13 +21,70 @@ async function holdKey(page: Page, key: string, ms: number): Promise<void> {
   await page.keyboard.up(key);
 }
 
-test('carrega em paisagem sem erros, com canvas e botão de bomba', async ({ page }) => {
+test('menus: Título → Batalha → Começar; a escolha fica salva', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
+  await expect(page.locator('.menu-title')).toHaveText('ESTOURO ARENA');
+  await expect(page.locator('.bomb-button')).toBeHidden();
+  await page.getByRole('button', { name: 'Jogar' }).click();
+
+  await page.getByRole('radio', { name: 'Pantanal' }).click();
+  await page.getByRole('radiogroup', { name: 'Bots' }).getByRole('radio', { name: '1' }).click();
+  await page.getByRole('radio', { name: 'Fácil' }).click();
+  await page.getByRole('button', { name: 'Começar' }).click();
+
   await expect(page.locator('#game canvas')).toBeVisible();
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'countdown');
+  await expect(page.locator('.hud-score')).toHaveCount(2);
   await expect(page.locator('.bomb-button')).toBeVisible();
   await expect(page.locator('#rotate-warning')).toBeHidden();
-  await page.waitForTimeout(500);
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Jogar' }).click();
+  await expect(page.getByRole('radio', { name: 'Pantanal' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await expect(page.getByRole('radio', { name: 'Fácil' })).toHaveAttribute('aria-checked', 'true');
+  expect(errors).toEqual([]);
+});
+
+test('pausa: o botão e o Esc abrem e fecham o menu de pausa', async ({ page }) => {
+  await page.goto('/?seed=0&ia=0');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  await page.locator('.pause-button').click();
+  await expect(page.locator('.menu')).toHaveAttribute('data-screen', 'pause');
+  const clock = await page.locator('.hud-clock').textContent();
+  await page.waitForTimeout(1_200);
+  await expect(page.locator('.hud-clock')).toHaveText(clock ?? '');
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await expect(page.locator('.menu')).toBeHidden();
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.menu')).toHaveAttribute('data-screen', 'pause');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.menu')).toBeHidden();
+});
+
+test('resultado: o bot vence, aparecem Revanche e Menu', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&ia=0&bots=1&winsToWin=1');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  await page.keyboard.press('Space'); // bomba no próprio spawn: o jogador perde a rodada
+  await expect(page.locator('.menu')).toHaveAttribute('data-screen', 'result', {
+    timeout: 8_000,
+  });
+  await expect(page.locator('.menu-result')).toHaveText('Azul venceu!');
+
+  await page.getByRole('button', { name: 'Revanche' }).click();
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'countdown');
+  await page.locator('.pause-button').click();
+  await page.getByRole('button', { name: 'Sair para o menu' }).click();
+  await expect(page.locator('.menu-title')).toHaveText('ESTOURO ARENA');
   expect(errors).toEqual([]);
 });
 

@@ -28,6 +28,6 @@ Cada passo deixa o jogo jogável e testável; a ordem põe cedo o que destrava o
 | 7 | [Montarias: capivara e sapo](montarias.md) | 3, 4, 5 | Feita |
 | 8 | [Morte súbita](morte-subita.md) | 1 | Feita |
 | 9 | [Fantasma vingador](fantasma-vingador.md) | 1 | Feita |
-| 10 | [Menus e HUD](menus-e-hud.md) | todas | Planejada |
+| 10 | [Menus e HUD](menus-e-hud.md) | todas | Feita |
 
 Specs planejadas podem mudar: revise a spec antes de começar cada passo e marque como feita no commit da feature.

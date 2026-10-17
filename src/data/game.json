@@ -55,7 +55,8 @@
     "tileSize": 32,
     "width": 854,
     "height": 480,
-    "playerColors": ["#e53935", "#1e88e5", "#43a047", "#fdd835"]
+    "playerColors": ["#e53935", "#1e88e5", "#43a047", "#fdd835"],
+    "boardTop": 56
   },
   "mount": {
     "invulnerableMs": 1000

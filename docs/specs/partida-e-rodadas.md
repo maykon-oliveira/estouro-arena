@@ -14,7 +14,7 @@
 - **Direção segurada** fica na partida (`heldDirs`), não no mundo, e passa de uma rodada para a outra.
 - O estado da partida (`Match`, em [`src/core/match.ts`](../../src/core/match.ts)) fica no core: rodada atual, fase (`countdown | playing | ending | over`), ticks da fase, relógio, vitórias por jogador, mundo da rodada. `createMatch` emite a contagem da 1ª rodada; `stepMatch` avança 1 tick. Substitui o reinício automático da Fase 0 (`match.restartDelayMs` sai do `game.json`).
 - **Pausa** continua fora do core: a cena para de chamar `step` (botão de pausa, `visibilitychange`).
-- **HUD mínimo** (até o [menu e HUD](menus-e-hud.md)), em DOM (`src/ui/MatchHud.ts`): relógio `m:ss` no topo (segundos arredondados para cima: começa em 2:00, chega a 0:00 só no fim), vitórias de cada jogador em pontos na cor dele, avisos centrais: "3", "2", "1", "Já!" (por `hud.goBannerMs`), "Vermelho venceu a rodada!" / "Empate!", e no fim "Vermelho venceu a partida!" + "Toque para jogar de novo" (toque, clique ou Enter recomeça com seed nova). O HUD expõe `data-phase` e `data-round` para os testes e2e.
+- **HUD mínimo** (até o [menu e HUD](menus-e-hud.md)), em DOM (`src/ui/MatchHud.ts`): relógio `m:ss` no topo (segundos arredondados para cima: começa em 2:00, chega a 0:00 só no fim), vitórias de cada jogador em pontos na cor dele, avisos centrais: "3", "2", "1", "Já!" (por `hud.goBannerMs`), "Vermelho venceu a rodada!" / "Empate!", e no fim "Vermelho venceu a partida!" — a tela de Resultado ([menus e HUD](menus-e-hud.md)) oferece Revanche e Menu. O HUD expõe `data-phase` e `data-round` para os testes e2e.
 - Cores dos jogadores em `render.playerColors` (vermelho, azul, verde, amarelo); nomes das cores em `strings.pt-BR.json`.
 
 ## Casos de borda

@@ -130,6 +130,8 @@ export const GameConfigSchema = z
       tileSize: PositiveInt,
       width: PositiveInt,
       height: PositiveInt,
+      /** Distância (px do jogo) do topo até a arena, para a barra do HUD não cobri-la. */
+      boardTop: z.number().int().min(0),
       /** Cor de cada jogador por id (`#rrggbb`); precisa cobrir todos os spawns usados. */
       playerColors: z.array(z.string().regex(/^#[0-9a-f]{6}$/i, 'cor deve ser #rrggbb')).min(4),
     }),

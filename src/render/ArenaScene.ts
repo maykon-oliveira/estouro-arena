@@ -12,6 +12,7 @@ import { msToTicks } from '../core/time';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
 import { botConfigs, gameConfig, items, maps, mounts, sounds, terrains } from '../data';
+import type { BattleSettings } from '../ui/settings';
 import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
@@ -63,53 +64,25 @@ const MOUNT_COLORS: Readonly<Record<string, number>> = {
 
 const TILE = gameConfig.render.tileSize;
 
-const randomSeed = (): number => Math.floor(Math.random() * 2 ** 32);
-
-/** `?seed=N` fixa o sorteio dos blocos; sem ele, cada carga gera um mapa novo. */
-function readSeed(): number {
-  const param = new URLSearchParams(window.location.search).get('seed');
-  const seed = param === null ? NaN : Number(param);
-  return Number.isInteger(seed) ? seed : randomSeed();
-}
-
-/** `?map=<id>` escolhe a fase até existir o menu de batalha; id desconhecido → padrão. */
-function readMapId(): string {
-  const id = new URLSearchParams(window.location.search).get('map');
-  return id !== null && maps.has(id) ? id : gameConfig.map.default;
-}
-
-/** `?roundMs=N` encurta a rodada (testes e depuração da morte súbita); inválido → game.json. */
-function readRoundMs(): number | null {
-  const ms = Number(new URLSearchParams(window.location.search).get('roundMs'));
-  return Number.isFinite(ms) && ms >= 1000 ? ms : null;
-}
-
-/** `?bots=N` (1–3, padrão 3) até existir o menu de batalha. */
-function readBots(): number {
-  const bots = Number(new URLSearchParams(window.location.search).get('bots') ?? 3);
-  return Number.isInteger(bots) ? Math.min(3, Math.max(1, bots)) : 3;
-}
-
-/** `?nivel=facil|medio|dificil` (padrão `medio`) até existir o menu de batalha. */
-function readBotLevel(): string {
-  const level = new URLSearchParams(window.location.search).get('nivel');
-  return level !== null && botConfigs.has(level) ? level : 'medio';
-}
-
-/** `?ia=0` deixa os adversários parados (para testes e depuração). */
-function botsEnabled(): boolean {
-  return new URLSearchParams(window.location.search).get('ia') !== '0';
-}
-
-interface ArenaSceneData {
-  /** Seed da partida; ausente na primeira carga (vem da URL ou é sorteada). */
-  seed?: number;
+/** Como começar uma partida (vem dos menus ou dos atalhos de URL). */
+export interface ArenaStart {
+  settings: BattleSettings;
+  seed: number;
+  /** false (`?ia=0`): adversários parados. */
+  botsEnabled: boolean;
+  /** Encurta a rodada (testes da morte súbita). */
+  roundMs: number | null;
+  /** Vitórias para vencer (testes do Resultado). */
+  winsToWin: number | null;
 }
 
 export class ArenaScene extends Phaser.Scene {
   private match!: Match;
   private hud: MatchHud | null = null;
-  private requestedSeed: number | undefined;
+  private start!: ArenaStart;
+  private paused = false;
+  /** Avisa o fim da partida (o main mostra o Resultado). */
+  onMatchOver: (winnerId: number, wins: readonly number[]) => void = () => undefined;
   private stepper!: FixedStep;
   private readonly commands: Command[] = [];
   /** Comandos de um tick (jogador local + bots), reaproveitado para não alocar por tick. */
@@ -142,16 +115,31 @@ export class ArenaScene extends Phaser.Scene {
     return this.match.world;
   }
 
-  init(data: ArenaSceneData): void {
-    this.requestedSeed = data.seed;
+  init(data: ArenaStart): void {
+    this.start = data;
+    this.paused = false;
+  }
+
+  /** Pausa: a simulação para (o menu de pausa está aberto). */
+  pause(): void {
+    this.paused = true;
+  }
+
+  /** Continua sem rajada de ticks: o passo fixo recomeça do zero. */
+  resume(): void {
+    this.paused = false;
+    this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
+  }
+
+  get isPaused(): boolean {
+    return this.paused;
   }
 
   create(): void {
-    const mapId = readMapId();
-    const map = maps.get(mapId);
-    if (!map) throw new Error(`Mapa não encontrado: ${mapId}`);
+    const { settings, seed, botsEnabled, roundMs, winsToWin } = this.start;
+    const map = maps.get(settings.mapId) ?? maps.get(gameConfig.map.default);
+    if (!map) throw new Error(`Mapa não encontrado: ${settings.mapId}`);
 
-    const seed = this.requestedSeed ?? readSeed();
     this.seed = seed;
     this.mapId = map.id;
     this.commands.length = 0;
@@ -163,16 +151,15 @@ export class ArenaScene extends Phaser.Scene {
         rules: rulesFromConfig(gameConfig),
         matchRules: {
           ...matchRulesFromConfig(gameConfig),
-          ...(readRoundMs() === null
-            ? {}
-            : { roundTicks: msToTicks(readRoundMs() ?? 0, gameConfig.tickRate) }),
+          ...(roundMs === null ? {} : { roundTicks: msToTicks(roundMs, gameConfig.tickRate) }),
+          ...(winsToWin === null ? {} : { winsToWin }),
         },
         seed,
         items,
         defaultItems: gameConfig.items.defaultDistribution,
         mounts,
         // Spawns limitam a partida: 1 jogador + até 3 bots.
-        players: Math.min(1 + readBots(), countSpawns(map)),
+        players: Math.min(1 + settings.bots, countSpawns(map)),
       },
       this.gameEvents,
     );
@@ -180,10 +167,10 @@ export class ArenaScene extends Phaser.Scene {
     // Só em dev: inspeção pelo console e pelos testes e2e. Nunca escrever na partida por aqui.
     if (import.meta.env.DEV) Object.assign(window, { __arena: this.match });
 
-    const botConfig = botConfigs.get(readBotLevel());
+    const botConfig = botConfigs.get(settings.level) ?? botConfigs.get('medio');
     if (!botConfig) throw new Error('nível de bot não encontrado');
     // Jogador local = id 0; os demais são bots.
-    this.bots = botsEnabled()
+    this.bots = botsEnabled
       ? this.world.players.slice(1).map((p) => createBot(p.id, botConfig, seed))
       : [];
 
@@ -192,13 +179,13 @@ export class ArenaScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.hud?.destroy();
       this.hud = null;
-      this.stopWaitingRestart();
     });
 
     const { width, height } = this.scale.gameSize;
     this.origin = {
       x: Math.floor((width - this.world.grid.cols * TILE) / 2),
-      y: Math.floor((height - this.world.grid.rows * TILE) / 2),
+      // Abaixo da barra do HUD (não centralizada), se couber.
+      y: Math.min(gameConfig.render.boardTop, height - this.world.grid.rows * TILE),
     };
 
     this.gridLayer = this.add.graphics();
@@ -224,6 +211,11 @@ export class ArenaScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     this.playerInput.poll(this.commands);
+    if (this.paused) {
+      // Pausado: descarta a entrada (nada de bomba "guardada" para depois) e não simula.
+      this.commands.length = 0;
+      return;
+    }
     // Painel de debug: cada clique num item vira um comando (o painel não escreve no mundo).
     for (const itemId of this.debug?.takeItemRequests() ?? []) {
       this.commands.push({ type: 'debugItem', playerId: 0, itemId });
@@ -283,31 +275,10 @@ export class ArenaScene extends Phaser.Scene {
       ) {
         gridChanged = true;
       }
-      if (e.type === 'partida.terminou') this.waitRestart();
+      if (e.type === 'partida.terminou') this.onMatchOver(e.winnerId, e.wins);
     }
     if (gridChanged) this.drawGrid();
     this.gameEvents.length = 0;
-  }
-
-  /** Fim da partida: toque, clique ou Enter recomeça com seed nova (até existir o menu). */
-  private readonly onRestartKey = (e: KeyboardEvent): void => {
-    if (e.code === 'Enter') this.restartMatch();
-  };
-  private readonly onRestartPointer = (): void => this.restartMatch();
-
-  private waitRestart(): void {
-    window.addEventListener('keydown', this.onRestartKey);
-    window.addEventListener('pointerdown', this.onRestartPointer);
-  }
-
-  private stopWaitingRestart(): void {
-    window.removeEventListener('keydown', this.onRestartKey);
-    window.removeEventListener('pointerdown', this.onRestartPointer);
-  }
-
-  private restartMatch(): void {
-    this.stopWaitingRestart();
-    this.scene.restart({ seed: randomSeed() } satisfies ArenaSceneData);
   }
 
   private toScreen(x: number, y: number): { x: number; y: number } {
