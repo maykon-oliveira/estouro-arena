@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.2.0...v0.3.0) (2026-10-17)
+
+### Funcionalidades
+
+* **bots:** Adiciona bots com mapa de perigo, rotas e 3 níveis ([2f77653](https://github.com/maykon-oliveira/estouro-arena/commit/2f776530767e4f19ef96d216881d429ceaa359ed))
+
 ## [0.2.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.1.0...v0.2.0) (2026-10-17)
 
 ### Funcionalidades
