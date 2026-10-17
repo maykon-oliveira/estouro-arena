@@ -23,7 +23,7 @@
 - **Bloco atingido** continua `bloco` (bloqueia andar e fogo) enquanto queima; só vira chão quando a chama apaga. Assim, duas explosões simultâneas não atravessam o mesmo bloco.
 - **Movimento:** bomba barra quem tenta *entrar* no tile; quem está em cima sai normalmente. Depois que o jogador sai do tile (posição arredondada mudou), não volta.
 - **Morte:** jogador vivo cujo tile tem chama morre (`alive = false`, direção zerada) e passa a ignorar comandos.
-- **Fase 0:** após `jogador.morreu`, a cena reinicia a arena em `match.restartDelayMs`.
+- O fim da rodada (vitória, empate) é da [partida e rodadas](partida-e-rodadas.md); a Fase 0 reiniciava a arena sozinha após a morte.
 
 ## Casos de borda
 
@@ -46,7 +46,7 @@ Sons: [`src/data/sounds.json`](../../src/data/sounds.json) → `EventSounds` →
 
 ## Dados
 
-`bomb.fuseMs` (2500), `bomb.explosionMs` (500), `player.startBombs` (1), `player.startRange` (2), `match.restartDelayMs` (1500).
+`bomb.fuseMs` (2500), `bomb.explosionMs` (500), `player.startBombs` (1), `player.startRange` (2).
 
 ## Testes
 

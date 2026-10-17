@@ -19,7 +19,7 @@ Cada passo deixa o jogo jogável e testável; a ordem põe cedo o que destrava o
 
 | # | Spec | Depende de | Status |
 | --- | --- | --- | --- |
-| 1 | [Partida e rodadas](partida-e-rodadas.md) | — | Planejada |
+| 1 | [Partida e rodadas](partida-e-rodadas.md) | — | Feita |
 | 2 | [Bots](bots.md) | 1 | Planejada |
 | 3 | [Itens e power-ups](itens-e-power-ups.md) | — | Planejada |
 | 4 | [Chute, remota e botão de ação](chute-e-remota.md) | 3 | Planejada |

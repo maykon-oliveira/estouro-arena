@@ -30,7 +30,7 @@ Nenhum novo no core. A UI escuta `rodada.*`, `partida.terminou`, `morte_subita.i
 
 ## Dados
 
-Textos em `strings.pt-BR.json` (`menu.*`, `hud.*`, `pause.*`, `result.*`, `player.*`); cores dos jogadores em `game.json` (`players.colors`).
+Textos em `strings.pt-BR.json` (`menu.*`, `hud.*`, `pause.*`, `result.*`, `player.*`); cores dos jogadores em `game.json` (`render.playerColors`, já criado no passo 1). O HUD mínimo do passo 1 ([`MatchHud`](../../src/ui/MatchHud.ts)) é a base desta spec.
 
 ## Testes
 

@@ -2,7 +2,8 @@
   "tickRate": 60,
   "maxTicksPerFrame": 5,
   "map": { "default": "arena_01", "spawnSafeRadius": 1 },
-  "match": { "restartDelayMs": 1500 },
+  "match": { "winsToWin": 2, "roundMs": 120000, "countdownMs": 3000, "roundEndDelayMs": 2000 },
+  "hud": { "goBannerMs": 800 },
   "bomb": { "fuseMs": 2500, "explosionMs": 500 },
   "player": {
     "speedTilesPerSecond": 4,
@@ -16,5 +17,10 @@
     "joystickHysteresis": 0.2,
     "bombButtonPx": 88
   },
-  "render": { "tileSize": 32, "width": 854, "height": 480 }
+  "render": {
+    "tileSize": 32,
+    "width": 854,
+    "height": 480,
+    "playerColors": ["#e53935", "#1e88e5", "#43a047", "#fdd835"]
+  }
 }

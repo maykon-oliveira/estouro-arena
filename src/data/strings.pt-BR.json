@@ -1,5 +1,15 @@
 {
   "rotate_warning": "Gire o aparelho para jogar",
   "controls.bomb": "Bomba",
-  "controls.joystick": "Joystick de movimento"
+  "controls.joystick": "Joystick de movimento",
+  "round.label": "Rodada {round}",
+  "round.go": "Já!",
+  "round.win": "{player} venceu a rodada!",
+  "round.draw": "Empate!",
+  "match.win": "{player} venceu a partida!",
+  "match.restart": "Toque para jogar de novo",
+  "player.color.0": "Vermelho",
+  "player.color.1": "Azul",
+  "player.color.2": "Verde",
+  "player.color.3": "Amarelo"
 }

@@ -3,14 +3,17 @@ import { SilentAudio } from '../audio/AudioService';
 import { EventSounds } from '../audio/EventSounds';
 import type { Command } from '../core/commands';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
+import { countSpawns } from '../core/grid';
 import { BLOCK } from '../core/terrainIds';
-import { createWorld, step, type World } from '../core/world';
+import { createMatch, stepMatch, type Match } from '../core/match';
+import type { World } from '../core/world';
 import { gameConfig, maps, sounds, terrains } from '../data';
-import { rulesFromConfig } from '../data/rules';
+import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { debugInfo } from '../ui/debugInfo';
+import { MatchHud } from '../ui/MatchHud';
 import { DebugOverlay } from './DebugOverlay';
 
 // Placeholder da Fase 0: formas coloridas até existir o manifest do tema.
@@ -21,7 +24,7 @@ const PLACEHOLDER_COLORS: Readonly<Record<string, number>> = {
 };
 const UNKNOWN_COLOR = 0xff00ff;
 const SPAWN_COLOR = 0xffeb3b;
-const PLAYER_COLOR = 0xe53935; // gorro do Saci
+const PLAYER_COLORS = gameConfig.render.playerColors.map((hex) => parseInt(hex.slice(1), 16));
 const BOMB_COLOR = 0x111111;
 const BOMB_FUSE_COLOR = 0xffa000;
 const FLAME_OUTER = 0xff6d00;
@@ -29,15 +32,30 @@ const FLAME_INNER = 0xffe082;
 
 const TILE = gameConfig.render.tileSize;
 
+const randomSeed = (): number => Math.floor(Math.random() * 2 ** 32);
+
 /** `?seed=N` fixa o sorteio dos blocos; sem ele, cada carga gera um mapa novo. */
 function readSeed(): number {
   const param = new URLSearchParams(window.location.search).get('seed');
   const seed = param === null ? NaN : Number(param);
-  return Number.isInteger(seed) ? seed : Math.floor(Math.random() * 2 ** 32);
+  return Number.isInteger(seed) ? seed : randomSeed();
+}
+
+/** `?bots=N` (1–3, padrão 3) até existir o menu de batalha. */
+function readBots(): number {
+  const bots = Number(new URLSearchParams(window.location.search).get('bots') ?? 3);
+  return Number.isInteger(bots) ? Math.min(3, Math.max(1, bots)) : 3;
+}
+
+interface ArenaSceneData {
+  /** Seed da partida; ausente na primeira carga (vem da URL ou é sorteada). */
+  seed?: number;
 }
 
 export class ArenaScene extends Phaser.Scene {
-  private world!: World;
+  private match!: Match;
+  private hud: MatchHud | null = null;
+  private requestedSeed: number | undefined;
   private stepper!: FixedStep;
   private readonly commands: Command[] = [];
   private readonly gameEvents: GameEvent[] = [];
@@ -58,27 +76,47 @@ export class ArenaScene extends Phaser.Scene {
     super('arena');
   }
 
+  /** Mundo da rodada atual (a partida troca de mundo a cada rodada). */
+  private get world(): World {
+    return this.match.world;
+  }
+
+  init(data: ArenaSceneData): void {
+    this.requestedSeed = data.seed;
+  }
+
   create(): void {
     const map = maps.get(gameConfig.map.default);
     if (!map) throw new Error(`Mapa não encontrado: ${gameConfig.map.default}`);
 
-    const seed = readSeed();
+    const seed = this.requestedSeed ?? readSeed();
     this.seed = seed;
     this.mapId = map.id;
-    this.world = createWorld({
-      map,
-      terrains,
-      seed,
-      players: 1,
-      rules: rulesFromConfig(gameConfig),
-    });
-    console.info(`[arena] mapa ${map.id}, seed ${seed}`);
-    // Só em dev: inspeção pelo console e pelos testes e2e. Nunca escrever no mundo por aqui.
-    if (import.meta.env.DEV) Object.assign(window, { __arena: this.world });
-
-    this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
     this.commands.length = 0;
     this.gameEvents.length = 0;
+    this.match = createMatch(
+      {
+        map,
+        terrains,
+        rules: rulesFromConfig(gameConfig),
+        matchRules: matchRulesFromConfig(gameConfig),
+        seed,
+        // Spawns limitam a partida: 1 jogador + até 3 bots.
+        players: Math.min(1 + readBots(), countSpawns(map)),
+      },
+      this.gameEvents,
+    );
+    console.info(`[arena] mapa ${map.id}, seed ${seed}`);
+    // Só em dev: inspeção pelo console e pelos testes e2e. Nunca escrever na partida por aqui.
+    if (import.meta.env.DEV) Object.assign(window, { __arena: this.match });
+
+    this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
+    this.hud = new MatchHud(document.body, this.world.players.length);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.hud?.destroy();
+      this.hud = null;
+      this.stopWaitingRestart();
+    });
 
     const { width, height } = this.scale.gameSize;
     this.origin = {
@@ -92,9 +130,12 @@ export class ArenaScene extends Phaser.Scene {
       ? new DebugOverlay(this.add.graphics(), this.origin, TILE)
       : null;
     this.drawGrid();
-    this.playerSprites = this.world.players.map(() =>
-      this.add.circle(0, 0, TILE * 0.4, PLAYER_COLOR).setStrokeStyle(2, 0xffffff),
+    this.playerSprites = this.world.players.map((p) =>
+      this.add
+        .circle(0, 0, TILE * 0.4, PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR)
+        .setStrokeStyle(2, 0xffffff),
     );
+    this.handleEvents();
     this.syncPlayers();
   }
 
@@ -103,11 +144,12 @@ export class ArenaScene extends Phaser.Scene {
     const ticks = this.stepper.advance(deltaMs);
     for (let i = 0; i < ticks; i++) {
       // Comandos entram no primeiro tick do quadro; os demais ticks seguem com a direção segurada.
-      step(this.world, i === 0 ? this.commands : [], this.gameEvents);
+      stepMatch(this.match, i === 0 ? this.commands : [], this.gameEvents);
     }
     if (ticks > 0) this.commands.length = 0;
 
     this.handleEvents();
+    this.hud?.update(this.match, this.time.now);
     this.syncPlayers();
     this.drawDynamic();
     this.drawDebug();
@@ -124,16 +166,36 @@ export class ArenaScene extends Phaser.Scene {
   private handleEvents(): void {
     if (this.gameEvents.length === 0) return;
     this.eventSounds.handle(this.gameEvents);
+    this.hud?.handle(this.gameEvents, this.time.now);
     let gridChanged = false;
     for (const e of this.gameEvents) {
-      if (e.type === 'bloco.destruido') gridChanged = true;
-      // Fase 0: sem menus ainda; a arena recomeça sozinha após a morte.
-      if (e.type === 'jogador.morreu') {
-        this.time.delayedCall(gameConfig.match.restartDelayMs, () => this.scene.restart());
-      }
+      // Rodada nova = mundo novo: redesenha a grade e volta os jogadores ao spawn.
+      if (e.type === 'bloco.destruido' || e.type === 'rodada.contagem') gridChanged = true;
+      if (e.type === 'partida.terminou') this.waitRestart();
     }
     if (gridChanged) this.drawGrid();
     this.gameEvents.length = 0;
+  }
+
+  /** Fim da partida: toque, clique ou Enter recomeça com seed nova (até existir o menu). */
+  private readonly onRestartKey = (e: KeyboardEvent): void => {
+    if (e.code === 'Enter') this.restartMatch();
+  };
+  private readonly onRestartPointer = (): void => this.restartMatch();
+
+  private waitRestart(): void {
+    window.addEventListener('keydown', this.onRestartKey);
+    window.addEventListener('pointerdown', this.onRestartPointer);
+  }
+
+  private stopWaitingRestart(): void {
+    window.removeEventListener('keydown', this.onRestartKey);
+    window.removeEventListener('pointerdown', this.onRestartPointer);
+  }
+
+  private restartMatch(): void {
+    this.stopWaitingRestart();
+    this.scene.restart({ seed: randomSeed() } satisfies ArenaSceneData);
   }
 
   private toScreen(x: number, y: number): { x: number; y: number } {

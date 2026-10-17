@@ -2,5 +2,7 @@
   "bomba.colocada": "sfx_bomba_colocada",
   "bomba.explodiu": "sfx_explosao",
   "bloco.destruido": "sfx_bloco",
-  "jogador.morreu": "sfx_morte"
+  "jogador.morreu": "sfx_morte",
+  "rodada.iniciou": "sfx_largada",
+  "partida.terminou": "sfx_vitoria"
 }

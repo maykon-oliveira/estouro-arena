@@ -34,6 +34,13 @@ export function setTile(grid: Grid, x: number, y: number, terrainId: string): vo
   if (inBounds(grid, x, y)) grid.tiles[y * grid.cols + x] = terrainId;
 }
 
+/** Quantos spawns o mapa tem (máximo de jogadores numa partida nele). */
+export function countSpawns(map: MapDefinition): number {
+  let count = 0;
+  for (const line of map.mapa) for (const char of line) if (map.legenda[char] === SPAWN) count++;
+  return count;
+}
+
 /**
  * Monta a grade a partir do mapa: terrenos fixos do ASCII e blocos quebráveis sorteados
  * sobre o chão, com a densidade do mapa, poupando a área segura em volta de cada spawn.

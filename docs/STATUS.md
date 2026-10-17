@@ -2,32 +2,25 @@
 
 > **Leia isto primeiro ao começar uma sessão.** Reescrito ao fechar cada spec ou fase, no mesmo commit.
 
-**Atualizado em:** 2026-10-17 · **Último commit de feature:** `2f5a7b2` (painel de debug + smoke Playwright) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público)
+**Atualizado em:** 2026-10-17 · **Última feature:** Fase 1, passo 1 — [partida e rodadas](specs/partida-e-rodadas.md) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
 
-## Fase 0 — Fundação (GDD §9): concluída em 2026-10-17
+## Fase atual: 1 — MVP: Batalha (GDD §9)
 
-| Item da fase | Situação |
-| --- | --- |
-| Vite + Phaser 3 + TS strict, scripts bun | Feito |
-| Testes | Feito: Vitest (113, core/dados/entrada/ui/áudio) + Playwright (3 smoke contra o build) |
-| Grade e mapa | Feito: [spec](specs/grade-e-mapa.md) |
-| Movimento + joystick | Feito: [movimento](specs/movimento.md), [controles de toque](specs/controles-touch.md) |
-| Bomba e explosão em cruz | Feito: [spec](specs/bomba-e-explosao.md) |
-| Placeholders | Feito com formas coloridas no código; ainda sem Kenney nem `manifest.json` |
-| Painel de debug | Feito: [spec](specs/painel-debug.md); falta spawn de itens (não há itens ainda) |
-| Deploy | Feito: Coolify, `Dockerfile` multi-stage (nginx, porta 80). No ar em <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (só HTTP por enquanto) |
+Escopo: 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. **Portão para a Fase 2:** amigos jogam 10 partidas seguidas sem bug grave.
 
-**Portão para a Fase 1:** "um jogador explode blocos rodando num celular real". **Cumprido em 2026-10-17**: testado num celular de verdade via `bun run dev --host` + QR code.
+| # | Passo ([ordem e specs](specs/README.md)) | Situação |
+| --- | --- | --- |
+| 1 | [Partida e rodadas](specs/partida-e-rodadas.md) | **Feito:** `src/core/match.ts`, HUD mínimo (`src/ui/MatchHud.ts`), toque/Enter recomeça no fim |
+| 2 | [Bots](specs/bots.md) | **Próximo** |
+| 3–10 | Itens, chute/remota, terrenos, mapas, montarias, morte súbita, fantasma, menus/HUD | Planejados |
 
-## Próximo passo: Fase 1 — MVP: Batalha (specs prontas)
+Fase 0 (Fundação) concluída em 2026-10-17: tag `fase-0` = `v0.1.0`.
 
-Escopo (GDD §9): 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. Portão para a Fase 2: amigos jogam 10 partidas seguidas sem bug grave.
+## Próximo passo
 
-As 10 specs estão escritas e ordenadas em [`specs/README.md`](specs/README.md) (escopo decidido em [DECISIONS](DECISIONS.md), 2026-10-17).
-
-1. **Começar pelo passo 1, [partida e rodadas](specs/partida-e-rodadas.md):** revisar a spec, escrever os testes do core, implementar, ligar o HUD mínimo. Remove `match.restartDelayMs`.
-2. Seguir a ordem da tabela, uma feature por vez, no ciclo do CLAUDE.md; marcar cada spec como feita no commit dela.
-3. Ajustes de controle no `game.json` (joystick, assistência de curva, botão de bomba) só se aparecer queixa; no teste no celular não houve.
+1. **Passo 2, [bots](specs/bots.md):** revisar a spec, escrever os testes do mapa de perigo e das decisões, implementar em `src/core/bots/`, ligar na cena (os bots 1–3 hoje ficam parados no spawn).
+2. Hoje a rodada só termina por tempo (empate) ou se o jogador explodir os bots parados — com bots de verdade a partida fica jogável.
+3. Ao fechar o passo: marcar a spec, reescrever este arquivo e escrever o roteiro `roteiros/post-30-…`.
 
 **Para confirmar ao chegar no passo:** efeito do gelo sobre a bomba ([terrenos](specs/terrenos.md)); prioridade remota → montaria no botão de ação ([chute e remota](specs/chute-e-remota.md)).
 
@@ -35,9 +28,9 @@ As 10 specs estão escritas e ordenadas em [`specs/README.md`](specs/README.md) 
 
 - Deploy só em HTTP (domínio sslip.io da Coolify). Ligar HTTPS (domínio próprio + Let's Encrypt) antes da PWA: service worker exige HTTPS.
 - Assistência de curva pode deslizar lateralmente para dentro de uma bomba alheia (caso raro). Ver [movimento](specs/movimento.md).
-- Sem `manifest.json` de tema: as cores dos placeholders estão em `src/render/ArenaScene.ts`. Criar quando entrarem sprites (Kenney/PixelLab).
+- Sem `manifest.json` de tema: as cores dos placeholders estão em `src/render/ArenaScene.ts` (cores dos jogadores já em `render.playerColors`). Criar quando entrarem sprites (Kenney/PixelLab).
+- O HUD de topo cobre a fileira de paredes de cima no celular (não atrapalha o jogo); revisar no passo de menus e HUD.
 - Sem botão de ação, vibração, gamepad e PWA (fases seguintes).
-- Fase 0 reinicia a arena sozinha após a morte (`match.restartDelayMs`); substituir por fluxo de rodada na Fase 1.
 - Perguntas em aberto do GDD §10 (estilo visual, dinâmicas-marca, multiplayer) seguem abertas.
 
 ## Como retomar
@@ -52,8 +45,10 @@ docker build -t estouro-arena . && docker run --rm -p 8080:80 estouro-arena   # 
 
 - Commits: `feat(<spec>): Assunto` (ver CLAUDE.md, passo 8); o push na `main` gera a versão e o `CHANGELOG.md` sozinho. Fase fechada = tag `fase-N`.
 - Regras de cada feature: [`docs/specs/`](specs/README.md). Decisões e motivos: [`DECISIONS.md`](DECISIONS.md).
-- Em dev, `window.__arena` expõe o mundo para inspeção no console (só leitura).
-- `?seed=N` fixa o mapa; `?touch=1` força os controles de toque; `?debug=1` liga o painel.
+- Testes: Vitest (136) + Playwright (4 smoke contra o build, viewport 812 × 375).
+- Em dev, `window.__arena` expõe a partida (`Match`; o mundo da rodada em `.world`) para inspeção no console (só leitura).
+- `?seed=N` fixa o mapa da 1ª rodada; `?bots=N` (1–3); `?touch=1` força os controles de toque; `?debug=1` liga o painel.
+- Roteiros dos posts: `roteiros/` (fora do git), um por feature.
 
 ## Ambiente conhecido
 

@@ -53,8 +53,18 @@ export const GameConfigSchema = z
       spawnSafeRadius: z.number().int().min(0),
     }),
     match: z.strictObject({
-      /** Fase 0: espera após a morte antes de reiniciar a arena. */
-      restartDelayMs: z.number().min(0),
+      /** Vitórias de rodada para vencer a partida (melhor de 3 = 2). */
+      winsToWin: PositiveInt,
+      /** Relógio de cada rodada. */
+      roundMs: z.number().positive(),
+      /** Contagem "3, 2, 1" antes de cada rodada. */
+      countdownMs: z.number().positive(),
+      /** Espera depois de sobrar ≤ 1 vivo, antes de dar a rodada (quem morrer nela empata). */
+      roundEndDelayMs: z.number().positive(),
+    }),
+    hud: z.strictObject({
+      /** Quanto tempo o "Já!" fica na tela depois da contagem. */
+      goBannerMs: z.number().min(0),
     }),
     bomb: z.strictObject({
       fuseMs: z.number().positive(),
@@ -81,12 +91,23 @@ export const GameConfigSchema = z
       tileSize: PositiveInt,
       width: PositiveInt,
       height: PositiveInt,
+      /** Cor de cada jogador por id (`#rrggbb`); precisa cobrir todos os spawns usados. */
+      playerColors: z.array(z.string().regex(/^#[0-9a-f]{6}$/i, 'cor deve ser #rrggbb')).min(4),
     }),
   })
   .superRefine((cfg, ctx) => {
     for (const key of ['fuseMs', 'explosionMs'] as const) {
       if (msToTicks(cfg.bomb[key], cfg.tickRate) < 1) {
         ctx.addIssue({ code: 'custom', message: 'duração menor que um tick', path: ['bomb', key] });
+      }
+    }
+    for (const key of ['roundMs', 'countdownMs', 'roundEndDelayMs'] as const) {
+      if (msToTicks(cfg.match[key], cfg.tickRate) < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'duração menor que um tick',
+          path: ['match', key],
+        });
       }
     }
   });

@@ -1,4 +1,5 @@
 import { msToTicks } from '../core/time';
+import type { MatchRules } from '../core/match';
 import type { Rules } from '../core/world';
 import type { GameConfig } from './schemas';
 
@@ -13,5 +14,15 @@ export function rulesFromConfig(cfg: GameConfig): Rules {
     explosionTicks: msToTicks(cfg.bomb.explosionMs, cfg.tickRate),
     startBombs: cfg.player.startBombs,
     startRange: cfg.player.startRange,
+  };
+}
+
+/** Regras da partida (melhor de 3, relógio, contagem), com durações em ticks. */
+export function matchRulesFromConfig(cfg: GameConfig): MatchRules {
+  return {
+    winsToWin: cfg.match.winsToWin,
+    roundTicks: msToTicks(cfg.match.roundMs, cfg.tickRate),
+    countdownTicks: msToTicks(cfg.match.countdownMs, cfg.tickRate),
+    roundEndDelayTicks: msToTicks(cfg.match.roundEndDelayMs, cfg.tickRate),
   };
 }

@@ -41,7 +41,10 @@ test('em retrato mostra o aviso de girar o aparelho', async ({ page }) => {
 test('portão da Fase 0: o jogador explode um bloco e sobrevive', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1');
-  // Espera a simulação começar a rodar.
+  // Espera o fim da contagem ("3, 2, 1, Já!") e a simulação começar a rodar.
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
   await expect.poll(async () => Number(await debugValue(page, 'tick'))).toBeGreaterThan(5);
   const blocksBefore = Number(await debugValue(page, 'blocks'));
 
@@ -59,5 +62,21 @@ test('portão da Fase 0: o jogador explode um bloco e sobrevive', async ({ page 
     .poll(async () => Number(await debugValue(page, 'blocks')), { timeout: 6_000 })
     .toBeLessThan(blocksBefore);
   expect(await debugValue(page, 'alive')).toBe('vivo');
+  expect(errors).toEqual([]);
+});
+
+test('partida: contagem, "Já!" e relógio correndo', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0');
+  const hud = page.locator('.match-hud');
+  await expect(hud).toHaveAttribute('data-phase', 'countdown');
+  await expect(hud).toHaveAttribute('data-round', '1');
+  await expect(page.locator('.hud-banner-sub')).toHaveText('Rodada 1');
+  await expect(page.locator('.hud-clock')).toHaveText('2:00');
+  await expect(page.locator('.hud-score')).toHaveCount(4);
+
+  await expect(hud).toHaveAttribute('data-phase', 'playing', { timeout: 6_000 });
+  await expect(page.locator('.hud-banner-text')).toHaveText('Já!');
+  await expect(page.locator('.hud-clock')).toHaveText('1:59', { timeout: 3_000 });
   expect(errors).toEqual([]);
 });

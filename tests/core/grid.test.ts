@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { generateGrid, inBounds, setTile, tileAt, type MapDefinition } from '../../src/core/grid';
+import {
+  countSpawns,
+  generateGrid,
+  inBounds,
+  setTile,
+  tileAt,
+  type MapDefinition,
+} from '../../src/core/grid';
 import { createRng } from '../../src/core/rng';
 import { BLOCK, FLOOR, WALL } from '../../src/core/terrainIds';
 
@@ -105,5 +112,12 @@ describe('helpers da grade', () => {
     const g = generateGrid(classic, createRng(1), 1);
     setTile(g, 4, 1, FLOOR);
     expect(tileAt(g, 4, 1)).toBe(FLOOR);
+  });
+});
+
+describe('countSpawns', () => {
+  it('conta os caracteres da legenda que são spawn', () => {
+    expect(countSpawns(makeMap(['#####', '#P.P#', '#####'], 0))).toBe(2);
+    expect(countSpawns(makeMap(['#####', '#...#', '#####'], 0))).toBe(0);
   });
 });

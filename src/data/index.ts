@@ -41,9 +41,16 @@ const strings = parseContent(StringsSchema, stringsJson, 'src/data/strings.pt-BR
 
 export type StringKey = keyof typeof stringsJson;
 
-/** Texto do jogo pela chave (pronto para trocar de idioma depois). */
-export function t(key: StringKey): string {
-  return strings[key] ?? key;
+/**
+ * Texto do jogo pela chave (pronto para trocar de idioma depois).
+ * `{nome}` no texto é trocado por `vars.nome` (ex.: `t('round.win', { player: 'Azul' })`).
+ */
+export function t(key: StringKey, vars: Readonly<Record<string, string | number>> = {}): string {
+  const text = strings[key] ?? key;
+  return text.replace(/\{(\w+)\}/g, (match, name: string) => {
+    const value = vars[name];
+    return value === undefined ? match : String(value);
+  });
 }
 
 export type { GameConfig, MapData, Terrain } from './schemas';
