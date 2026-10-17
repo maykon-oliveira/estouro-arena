@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.7.0...v0.8.0) (2026-10-17)
+
+### Funcionalidades
+
+* **montarias:** Adiciona capivara e sapo-saltador com ovos e escudo ([f3807d2](https://github.com/maykon-oliveira/estouro-arena/commit/f3807d2fa859dc34c5cc1f6b90e8adafb06a47a1))
+
 ## [0.7.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.6.0...v0.7.0) (2026-10-17)
 
 ### Funcionalidades
