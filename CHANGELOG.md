@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.1.0...v0.2.0) (2026-10-17)
+
+### Funcionalidades
+
+* **partida-e-rodadas:** Adiciona partida melhor de 3 com rodadas, contagem e HUD ([de39842](https://github.com/maykon-oliveira/estouro-arena/commit/de39842fe89f627769b58ad871271062b8135922))
+
+### Documentação
+
+* Adiciona roteiros dos posts ao ciclo por feature ([b7bac9b](https://github.com/maykon-oliveira/estouro-arena/commit/b7bac9b8f9cde65712e17af7cad5622b296b695f))
+
 ## 0.1.0 (2026-10-17) — Fase 0: Fundação
 
 Tag da fase: `fase-0`. Versão escrita à mão: os commits da Fase 0 são anteriores ao Conventional Commits. Daqui em diante o `semantic-release` gera as entradas.
