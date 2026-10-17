@@ -96,3 +96,10 @@ describe('parseContent', () => {
     ).toThrow(/src\/data\/game\.json[\s\S]*tickRate/);
   });
 });
+
+describe('controles', () => {
+  it('rejeita botão de bomba menor que 72 px (GDD)', () => {
+    const bad = { ...gameJson, controls: { ...gameJson.controls, bombButtonPx: 60 } };
+    expect(GameConfigSchema.safeParse(bad).success).toBe(false);
+  });
+});

@@ -4,7 +4,7 @@ import { createFixedStep, type FixedStep } from '../core/fixedStep';
 import { BLOCK } from '../core/terrainIds';
 import { createWorld, step, type World } from '../core/world';
 import { gameConfig, maps, terrains } from '../data';
-import { KeyboardInput } from '../input/KeyboardInput';
+import type { PlayerInput } from '../input/PlayerInput';
 
 // Placeholder da Fase 0: formas coloridas por terreno até existir o manifest do tema.
 const PLACEHOLDER_COLORS: Readonly<Record<string, number>> = {
@@ -17,7 +17,6 @@ const SPAWN_COLOR = 0xffeb3b;
 const PLAYER_COLOR = 0xe53935; // gorro do Saci
 
 const TILE = gameConfig.render.tileSize;
-const LOCAL_PLAYER = 0;
 
 /** `?seed=N` fixa o sorteio dos blocos; sem ele, cada carga gera um mapa novo. */
 function readSeed(): number {
@@ -29,12 +28,12 @@ function readSeed(): number {
 export class ArenaScene extends Phaser.Scene {
   private world!: World;
   private stepper!: FixedStep;
-  private keyboard!: KeyboardInput;
   private readonly commands: Command[] = [];
   private playerSprites: Phaser.GameObjects.Arc[] = [];
   private origin = { x: 0, y: 0 };
 
-  constructor() {
+  /** `playerInput` gera os comandos do jogador local (id 0). */
+  constructor(private readonly playerInput: PlayerInput) {
     super('arena');
   }
 
@@ -60,7 +59,6 @@ export class ArenaScene extends Phaser.Scene {
     if (import.meta.env.DEV) Object.assign(window, { __arena: this.world });
 
     this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
-    this.keyboard = new KeyboardInput(LOCAL_PLAYER);
 
     const { width, height } = this.scale.gameSize;
     this.origin = {
@@ -76,7 +74,7 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.keyboard.poll(this.commands);
+    this.playerInput.poll(this.commands);
     const ticks = this.stepper.advance(deltaMs);
     for (let i = 0; i < ticks; i++) {
       // Comandos entram no primeiro tick do quadro; os demais ticks seguem com a direção segurada.

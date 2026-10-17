@@ -1,8 +1,10 @@
 // Ponto único de carga do conteúdo: todo JSON passa pelo schema Zod aqui.
 import gameJson from './game.json';
+import stringsJson from './strings.pt-BR.json';
 import terrainsJson from './terrains.json';
 import {
   GameConfigSchema,
+  StringsSchema,
   TerrainsSchema,
   createMapSchema,
   parseContent,
@@ -29,6 +31,15 @@ export const maps: ReadonlyMap<string, MapData> = new Map(
 
 if (!maps.has(gameConfig.map.default)) {
   throw new Error(`src/data/game.json: map.default '${gameConfig.map.default}' não existe`);
+}
+
+const strings = parseContent(StringsSchema, stringsJson, 'src/data/strings.pt-BR.json');
+
+export type StringKey = keyof typeof stringsJson;
+
+/** Texto do jogo pela chave (pronto para trocar de idioma depois). */
+export function t(key: StringKey): string {
+  return strings[key] ?? key;
 }
 
 export type { GameConfig, MapData, Terrain } from './schemas';

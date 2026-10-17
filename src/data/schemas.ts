@@ -62,6 +62,16 @@ export const GameConfigSchema = z
       startBombs: PositiveInt,
       startRange: PositiveInt,
     }),
+    controls: z.strictObject({
+      /** Raio do joystick virtual, em px de CSS. */
+      joystickRadiusPx: PositiveInt,
+      /** Fração do raio sem direção. */
+      joystickDeadZone: z.number().min(0).max(0.9),
+      /** Folga (fração) para trocar de eixo perto da diagonal. */
+      joystickHysteresis: z.number().min(0).max(1),
+      /** Diâmetro do botão de bomba; o GDD exige pelo menos 72 px. */
+      bombButtonPx: z.number().int().min(72),
+    }),
     render: z.strictObject({
       tileSize: PositiveInt,
       width: PositiveInt,
@@ -138,6 +148,9 @@ export function createMapSchema(terrainIds: ReadonlySet<string>) {
 export type Terrain = z.infer<typeof TerrainSchema>;
 export type GameConfig = z.infer<typeof GameConfigSchema>;
 export type MapData = z.infer<ReturnType<typeof createMapSchema>>;
+
+/** Textos do jogo: chave → texto. */
+export const StringsSchema = z.record(z.string().min(1), z.string().min(1));
 
 /** Valida um JSON de conteúdo e falha com mensagem legível, indicando o arquivo. */
 export function parseContent<T>(schema: z.ZodType<T>, raw: unknown, source: string): T {

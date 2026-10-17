@@ -1,6 +1,6 @@
-import type { Command } from '../core/commands';
 import type { Direction } from '../core/direction';
 import { DirectionStack } from './DirectionStack';
+import type { DirectionSource } from './PlayerInput';
 
 const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
   ArrowUp: 'up',
@@ -13,27 +13,19 @@ const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
   KeyD: 'right',
 };
 
-/** Teclado (setas e WASD) → comandos de movimento para um jogador. */
-export class KeyboardInput {
+/** Teclado (setas e WASD) como fonte de direção. */
+export class KeyboardInput implements DirectionSource {
   private readonly stack = new DirectionStack();
-  private lastSent: Direction | null = null;
 
-  constructor(
-    private readonly playerId: number,
-    target: Window = window,
-  ) {
+  constructor(target: Window = window) {
     target.addEventListener('keydown', (e) => this.onKey(e, true));
     target.addEventListener('keyup', (e) => this.onKey(e, false));
     // Sem isso, a tecla fica "presa" se o keyup acontecer fora da janela.
     target.addEventListener('blur', () => this.stack.clear());
   }
 
-  /** Comandos desde a última chamada (só quando a direção muda). */
-  poll(out: Command[]): void {
-    const dir = this.stack.current();
-    if (dir === this.lastSent) return;
-    this.lastSent = dir;
-    out.push({ type: 'move', playerId: this.playerId, dir });
+  current(): Direction | null {
+    return this.stack.current();
   }
 
   private onKey(e: KeyboardEvent, down: boolean): void {

@@ -11,3 +11,10 @@ describe('carga do conteúdo', () => {
     expect(gameConfig.tickRate).toBe(60);
   });
 });
+
+describe('textos', () => {
+  it('t() devolve o texto em português', async () => {
+    const { t } = await import('../../src/data');
+    expect(t('rotate_warning')).toBe('Gire o aparelho para jogar');
+  });
+});

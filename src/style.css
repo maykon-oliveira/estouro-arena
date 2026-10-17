@@ -34,3 +34,70 @@ body {
     display: flex;
   }
 }
+
+/* Controles de toque (camada DOM sobre o canvas; tamanhos em px de CSS). */
+#controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+}
+
+.joystick-zone {
+  position: absolute;
+  inset: 0 50% 0 0;
+  pointer-events: auto;
+}
+
+.joystick-base {
+  position: absolute;
+  display: none;
+  box-sizing: border-box;
+  border: 2px solid rgb(255 255 255 / 35%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 10%);
+  transform: translate(-50%, -50%);
+}
+
+.joystick-base.active {
+  display: block;
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44%;
+  height: 44%;
+  margin: -22% 0 0 -22%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+}
+
+.bomb-button {
+  position: absolute;
+  display: none;
+  right: calc(24px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  padding: 0;
+  border: 3px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff7043, #c62828);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bomb-button.pressed {
+  transform: translateY(3px) scale(0.95);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
+}
+
+#controls.touch .bomb-button {
+  display: block;
+}
+
+#rotate-warning {
+  z-index: 10;
+}
