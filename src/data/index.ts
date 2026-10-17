@@ -1,14 +1,17 @@
 // Ponto único de carga do conteúdo: todo JSON passa pelo schema Zod aqui.
 import botsJson from './bots.json';
 import gameJson from './game.json';
+import itemsJson from './items.json';
 import soundsJson from './sounds.json';
 import stringsJson from './strings.pt-BR.json';
 import terrainsJson from './terrains.json';
 import type { BotConfig } from '../core/bots/bot';
+import type { ItemDef } from '../core/items';
 import { botConfigsFromData } from './rules';
 import {
   BotsSchema,
   GameConfigSchema,
+  ItemsSchema,
   SoundsSchema,
   StringsSchema,
   TerrainsSchema,
@@ -25,7 +28,18 @@ const terrainList = parseContent(TerrainsSchema, terrainsJson, 'src/data/terrain
 export const terrains: ReadonlyMap<string, Terrain> = new Map(terrainList.map((t) => [t.id, t]));
 
 // Toda fase em src/data/maps/ é carregada e validada; o id vem do conteúdo, não do nome do arquivo.
-const mapSchema = createMapSchema(new Set(terrains.keys()));
+const itemList = parseContent(ItemsSchema, itemsJson, 'src/data/items.json');
+
+/** Catálogo de itens por id (src/data/items.json). */
+export const items: ReadonlyMap<string, ItemDef> = new Map(itemList.map((i) => [i.id, i]));
+
+for (const id of Object.keys(gameConfig.items.defaultDistribution)) {
+  if (!items.has(id)) {
+    throw new Error(`src/data/game.json: items.defaultDistribution usa item inexistente: ${id}`);
+  }
+}
+
+const mapSchema = createMapSchema(new Set(terrains.keys()), new Set(items.keys()));
 const mapFiles = import.meta.glob<unknown>('./maps/*.json', { eager: true, import: 'default' });
 
 export const maps: ReadonlyMap<string, MapData> = new Map(

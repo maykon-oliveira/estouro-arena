@@ -13,5 +13,12 @@ export interface BombCommand {
   playerId: number;
 }
 
-/** Tudo que a entrada (teclado, joystick, bot, rede) pode pedir à simulação. */
-export type Command = MoveCommand | BombCommand;
+/** Painel de debug (`?debug=1`): põe um item no tile do jogador. */
+export interface DebugItemCommand {
+  type: 'debugItem';
+  playerId: number;
+  itemId: string;
+}
+
+/** Tudo que a entrada (teclado, joystick, bot, rede, debug) pode pedir à simulação. */
+export type Command = MoveCommand | BombCommand | DebugItemCommand;

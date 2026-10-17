@@ -1,14 +1,19 @@
 import { bombAt } from './bombs';
 import { DIRECTION_VECTORS } from './direction';
 import { tileAt } from './grid';
+import { ABILITY_PASS_BLOCKS, playerSpeed } from './items';
+import { BLOCK } from './terrainIds';
 import type { Player, World } from './world';
 
 /** Tolerância para considerar o jogador alinhado (absorve erro de ponto flutuante). */
 const EPSILON = 1e-6;
 
-function isWalkable(world: World, x: number, y: number): boolean {
+/** O jogador pode entrar no tile? (`atravessa_bloco` deixa andar dentro de blocos.) */
+export function isWalkableFor(world: World, player: Player, x: number, y: number): boolean {
   const id = tileAt(world.grid, x, y);
-  return id !== undefined && world.terrains.get(id)?.walkable === true;
+  if (id === undefined) return false;
+  if (id === BLOCK && player.abilities.has(ABILITY_PASS_BLOCKS)) return true;
+  return world.terrains.get(id)?.walkable === true;
 }
 
 /**
@@ -28,7 +33,7 @@ export function movePlayer(world: World, player: Player): void {
   let main = horizontal ? player.x : player.y;
   let cross = horizontal ? player.y : player.x;
   const walkable = (m: number, c: number): boolean =>
-    horizontal ? isWalkable(world, m, c) : isWalkable(world, c, m);
+    horizontal ? isWalkableFor(world, player, m, c) : isWalkableFor(world, player, c, m);
   // Bomba só barra quem tenta entrar no tile; quem está em cima dela consegue sair.
   const canEnter = (m: number, c: number): boolean =>
     walkable(m, c) && !(horizontal ? bombAt(world, m, c) : bombAt(world, c, m));
@@ -36,7 +41,7 @@ export function movePlayer(world: World, player: Player): void {
   const here = tileAt(world.grid, Math.round(player.x), Math.round(player.y));
   const speedMultiplier =
     (here === undefined ? undefined : world.terrains.get(here)?.speedMultiplier) ?? 1;
-  let budget = (world.rules.playerSpeed * speedMultiplier) / world.rules.tickRate;
+  let budget = (playerSpeed(world, player) * speedMultiplier) / world.rules.tickRate;
 
   const mainTile = Math.round(main);
 

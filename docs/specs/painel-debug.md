@@ -42,5 +42,5 @@ Roda contra o **build de produção** (`vite preview`), em viewport de celular n
 
 ## Pendências
 
-- Spawn de itens pelo painel: quando existirem itens (Fase 1).
+- ~~Spawn de itens pelo painel~~: feito no passo 3 da Fase 1 (botões `+ <item>` → comando `debugItem`, ver [itens](itens-e-power-ups.md)).
 - Botão de invencibilidade/câmera lenta: exigiriam comandos de debug no core; avaliar quando houver necessidade.

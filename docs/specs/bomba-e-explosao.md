@@ -54,6 +54,6 @@ Sons: [`src/data/sounds.json`](../../src/data/sounds.json) → `EventSounds` →
 
 ## Pendências
 
-- Itens soltos pelo bloco destruído; power-ups de bomba e fogo — Fase 1.
+- ~~Itens soltos pelo bloco destruído; power-ups de bomba e fogo~~: feito em [itens e power-ups](itens-e-power-ups.md) (inclui perfurante).
 - Chute, luva, bomba remota e perfurante.
 - Vibração ao explodir e ao morrer — Fase 3.

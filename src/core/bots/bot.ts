@@ -2,11 +2,19 @@ import { bombAt, explosionTiles } from '../bombs';
 import type { Command } from '../commands';
 import type { Direction } from '../direction';
 import { tileAt, type Point } from '../grid';
+import { ABILITY_PIERCE, playerSpeed } from '../items';
 import type { Match } from '../match';
 import { createRng, type Rng } from '../rng';
 import type { Bomb, Player, World } from '../world';
 import { computeDanger, createDangerMap, SAFE, type DangerMap } from './dangerMap';
-import { createPathSearch, pathTo, searchPaths, UNREACHABLE, type PathSearch } from './paths';
+import {
+  createPathSearch,
+  moverOf,
+  pathTo,
+  searchPaths,
+  UNREACHABLE,
+  type PathSearch,
+} from './paths';
 
 /** Parâmetros de um nível de bot (src/data/bots.json, durações já em ticks). */
 export interface BotLevel {
@@ -117,7 +125,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   const margin = bot.config.escapeMarginTicks;
 
   computeDanger(world, bot.danger);
-  searchPaths(world, bot.danger, player, margin, bot.search);
+  searchPaths(world, bot.danger, moverOf(world, player), margin, bot.search);
 
   // 1. Fugir.
   if ((bot.danger.start[hi] ?? SAFE) !== SAFE) {
@@ -136,6 +144,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
     y: here.y,
     fuse: world.rules.fuseTicks,
     range: player.range,
+    pierce: player.abilities.has(ABILITY_PIERCE),
   };
   const canBomb = canPlaceBomb(world, player, here);
   const cross = canBomb
@@ -147,9 +156,22 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
     if (tryBomb(bot, world, player, hypothetical, out)) return;
   }
 
-  // 4/5. Abrir caminho ou caçar (a agressividade decide quem tenta primeiro).
+  // 3/4/5. Item, abrir caminho ou caçar (a agressividade decide se caça primeiro).
   const huntFirst = bot.rng.next() < bot.config.level.aggression;
   if (huntFirst && hunt(bot, world, player, hi)) return;
+
+  const isItemSpot = (i: number): boolean =>
+    i !== hi &&
+    world.items[i] !== null &&
+    bot.danger.start[i] === SAFE &&
+    Math.abs((i % cols) - here.x) + Math.abs(Math.floor(i / cols) - here.y) <=
+      bot.config.level.itemSearchTiles;
+  let itemSpot = currentGoal(bot, isItemSpot);
+  if (itemSpot === -1) itemSpot = nearest(bot.search, isItemSpot);
+  if (itemSpot !== -1) {
+    follow(bot, bot.search, itemSpot);
+    return;
+  }
 
   if (cross && cross.tiles.some((t) => isBreakable(world, t))) {
     if (tryBomb(bot, world, player, hypothetical, out)) return;
@@ -171,7 +193,13 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
 function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Command[]): boolean {
   const mistake = bot.rng.next() < bot.config.level.mistakeChance;
   computeDanger(world, bot.dangerWithBomb, bomb);
-  searchPaths(world, bot.dangerWithBomb, player, bot.config.escapeMarginTicks, bot.searchWithBomb);
+  searchPaths(
+    world,
+    bot.dangerWithBomb,
+    moverOf(world, player),
+    bot.config.escapeMarginTicks,
+    bot.searchWithBomb,
+  );
   const escape = nearest(bot.searchWithBomb, (i) => bot.dangerWithBomb.start[i] === SAFE);
   if (escape === -1 && !mistake) return false;
 
@@ -304,7 +332,7 @@ function steer(bot: Bot, world: World, player: Player): Direction | null {
     // Destino: anda até perto do centro e para.
     const dx = gx - player.x;
     const dy = gy - player.y;
-    const budget = world.rules.playerSpeed / world.rules.tickRate;
+    const budget = playerSpeed(world, player) / world.rules.tickRate;
     if (Math.abs(dx) + Math.abs(dy) <= budget) {
       bot.path.length = 0;
       return null;

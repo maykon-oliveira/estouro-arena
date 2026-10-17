@@ -8,6 +8,11 @@ export type GameEvent =
   /** Emitido quando o bloco termina de queimar e vira chão. */
   | { type: 'bloco.destruido'; x: number; y: number }
   | { type: 'jogador.morreu'; playerId: number }
+  /** Bloco com item virou chão: o item aparece no tile. */
+  | { type: 'item.revelado'; itemId: string; x: number; y: number }
+  | { type: 'item.pego'; playerId: number; itemId: string; x: number; y: number }
+  /** Explosão atingiu um item visível. */
+  | { type: 'item.destruido'; itemId: string; x: number; y: number }
   /** Começa a contagem antes da rodada (grade nova, jogadores no spawn). */
   | { type: 'rodada.contagem'; round: number }
   /** Fim da contagem: o relógio começa a correr. */
@@ -24,6 +29,9 @@ export const GAME_EVENT_TYPES = [
   'bomba.explodiu',
   'bloco.destruido',
   'jogador.morreu',
+  'item.revelado',
+  'item.pego',
+  'item.destruido',
   'rodada.contagem',
   'rodada.iniciou',
   'rodada.terminou',

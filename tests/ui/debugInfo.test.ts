@@ -18,6 +18,7 @@ describe('debugInfo', () => {
       alive: 'vivo',
       bombs: '1/1',
       range: '2',
+      speed: '0',
       blocks: '2',
     });
   });

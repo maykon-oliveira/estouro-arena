@@ -9,7 +9,21 @@
     "speedTilesPerSecond": 4,
     "cornerAssistTiles": 0.5,
     "startBombs": 1,
-    "startRange": 2
+    "startRange": 2,
+    "maxBombs": 8,
+    "maxRange": 8,
+    "speedStep": 0.5,
+    "maxSpeedLevel": 4
+  },
+  "items": {
+    "defaultDistribution": {
+      "bomba": 6,
+      "fogo": 6,
+      "patins": 3,
+      "perfurante": 1,
+      "atravessa_bloco": 1,
+      "fogo_max": 1
+    }
   },
   "controls": {
     "joystickRadiusPx": 60,

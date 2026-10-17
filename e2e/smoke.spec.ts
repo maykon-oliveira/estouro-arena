@@ -82,6 +82,20 @@ test('partida: contagem, "Já!" e relógio correndo', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('itens: o botão de debug dá fogo +1 e patins ao jogador', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&debug=1&ia=0');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  await expect.poll(() => debugValue(page, 'range')).toBe('2');
+  await page.getByRole('button', { name: '+ fogo', exact: true }).click();
+  await expect.poll(() => debugValue(page, 'range')).toBe('3');
+  await page.getByRole('button', { name: '+ patins', exact: true }).click();
+  await expect.poll(() => debugValue(page, 'speed')).toBe('1');
+  expect(errors).toEqual([]);
+});
+
 test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1&nivel=dificil');

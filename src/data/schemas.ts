@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ABILITY_PASS_BLOCKS, ABILITY_PIERCE } from '../core/items';
 import { BLOCK, FLOOR, SPAWN, WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
 import { GAME_EVENT_TYPES } from '../events';
@@ -76,6 +77,16 @@ export const GameConfigSchema = z
       cornerAssistTiles: z.number().min(0).max(1),
       startBombs: PositiveInt,
       startRange: PositiveInt,
+      /** Limites dos power-ups. */
+      maxBombs: PositiveInt,
+      maxRange: PositiveInt,
+      /** Tiles/s a mais por nível de patins. */
+      speedStep: z.number().min(0),
+      maxSpeedLevel: z.number().int().min(0),
+    }),
+    items: z.strictObject({
+      /** Itens escondidos nos blocos quando a fase não define `blocos.itens`. */
+      defaultDistribution: z.record(ContentId, z.number().int().min(0)),
     }),
     controls: z.strictObject({
       /** Raio do joystick virtual, em px de CSS. */
@@ -96,6 +107,20 @@ export const GameConfigSchema = z
     }),
   })
   .superRefine((cfg, ctx) => {
+    if (cfg.player.maxBombs < cfg.player.startBombs) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'maxBombs < startBombs',
+        path: ['player', 'maxBombs'],
+      });
+    }
+    if (cfg.player.maxRange < cfg.player.startRange) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'maxRange < startRange',
+        path: ['player', 'maxRange'],
+      });
+    }
     for (const key of ['fuseMs', 'explosionMs'] as const) {
       if (msToTicks(cfg.bomb[key], cfg.tickRate) < 1) {
         ctx.addIssue({ code: 'custom', message: 'duração menor que um tick', path: ['bomb', key] });
@@ -112,8 +137,52 @@ export const GameConfigSchema = z
     }
   });
 
-/** Schema de fase (GDD §4). Recebe os ids de terreno conhecidos para validar a legenda. */
-export function createMapSchema(terrainIds: ReadonlySet<string>) {
+const Amount = z.number().int().positive();
+
+/** Habilidades que o core conhece (dadas pelo efeito `ability`). */
+const AbilityId = z.enum([ABILITY_PIERCE, ABILITY_PASS_BLOCKS]);
+
+/** Um item de src/data/items.json; `effect` escolhe o handler do core (src/core/items.ts). */
+export const ItemSchema = z.discriminatedUnion('effect', [
+  z.strictObject({ id: ContentId, effect: z.literal('extra_bomb'), amount: Amount }),
+  z.strictObject({ id: ContentId, effect: z.literal('extra_range'), amount: Amount }),
+  z.strictObject({ id: ContentId, effect: z.literal('max_range') }),
+  z.strictObject({ id: ContentId, effect: z.literal('extra_speed'), amount: Amount }),
+  z.strictObject({ id: ContentId, effect: z.literal('ability'), ability: AbilityId }),
+]);
+
+export const ItemsSchema = z.array(ItemSchema).superRefine((items, ctx) => {
+  const seen = new Set<string>();
+  items.forEach((item, i) => {
+    if (seen.has(item.id)) {
+      ctx.addIssue({ code: 'custom', message: `item duplicado: ${item.id}`, path: [i, 'id'] });
+    }
+    seen.add(item.id);
+  });
+});
+
+/** Valida que toda chave de uma distribuição de itens existe no catálogo. */
+export function checkItemIds(
+  counts: Readonly<Record<string, number>> | undefined,
+  itemIds: ReadonlySet<string>,
+  ctx: z.RefinementCtx,
+  path: (string | number)[],
+): void {
+  for (const id of Object.keys(counts ?? {})) {
+    if (!itemIds.has(id)) {
+      ctx.addIssue({ code: 'custom', message: `item inexistente: ${id}`, path: [...path, id] });
+    }
+  }
+}
+
+/**
+ * Schema de fase (GDD §4). Recebe os ids de terreno conhecidos para validar a legenda e, se
+ * houver, os ids de item para validar `blocos.itens`.
+ */
+export function createMapSchema(
+  terrainIds: ReadonlySet<string>,
+  itemIds: ReadonlySet<string> = new Set(),
+) {
   return z
     .strictObject({
       id: ContentId,
@@ -168,6 +237,7 @@ export function createMapSchema(terrainIds: ReadonlySet<string>) {
         });
       });
       if (spawns === 0) ctx.addIssue({ code: 'custom', message: 'mapa sem spawn', path: ['mapa'] });
+      checkItemIds(map.blocos.itens, itemIds, ctx, ['blocos', 'itens']);
     });
 }
 

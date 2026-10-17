@@ -2,6 +2,7 @@ import type { GameEvent } from '../events';
 import type { Command } from './commands';
 import type { Direction } from './direction';
 import type { MapDefinition } from './grid';
+import type { ItemDef } from './items';
 import { createWorld, step, type Rules, type TerrainRules, type World } from './world';
 
 /** Regras da partida vindas de src/data/game.json (durações já em ticks). */
@@ -26,6 +27,9 @@ export interface MatchOptions {
   /** Seed da partida; a rodada r usa `seed + (r − 1)`. */
   seed: number;
   players: number;
+  /** Catálogo de itens e distribuição padrão (ver `WorldOptions`). */
+  items?: ReadonlyMap<string, ItemDef>;
+  defaultItems?: Readonly<Record<string, number>>;
 }
 
 export interface Match {
@@ -54,6 +58,8 @@ function roundWorld(options: MatchOptions, round: number): World {
     rules: options.rules,
     seed: options.seed + (round - 1),
     players: options.players,
+    ...(options.items ? { items: options.items } : {}),
+    ...(options.defaultItems ? { defaultItems: options.defaultItems } : {}),
   });
 }
 

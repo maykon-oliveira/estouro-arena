@@ -1,6 +1,7 @@
 import type { Command } from '../../src/core/commands';
 import type { Direction } from '../../src/core/direction';
 import type { MapDefinition } from '../../src/core/grid';
+import type { ItemDef } from '../../src/core/items';
 import {
   createWorld,
   step,
@@ -32,18 +33,37 @@ export const testRules: Rules = {
   explosionTicks: 3,
   startBombs: 1,
   startRange: 2,
+  maxBombs: 3,
+  maxRange: 5,
+  speedStep: 3,
+  maxSpeedLevel: 2,
 };
+
+/** Catálogo de itens dos testes (mesmos efeitos do src/data/items.json). */
+export const testItems: ReadonlyMap<string, ItemDef> = new Map<string, ItemDef>([
+  ['bomba', { id: 'bomba', effect: 'extra_bomb', amount: 1 }],
+  ['fogo', { id: 'fogo', effect: 'extra_range', amount: 1 }],
+  ['fogo_max', { id: 'fogo_max', effect: 'max_range' }],
+  ['patins', { id: 'patins', effect: 'extra_speed', amount: 1 }],
+  ['perfurante', { id: 'perfurante', effect: 'ability', ability: 'perfurante' }],
+  ['atravessa_bloco', { id: 'atravessa_bloco', effect: 'ability', ability: 'atravessa_bloco' }],
+]);
 
 /**
  * Mapa ASCII sem blocos sorteados: `#` parede, `.` chão, `B` bloco, `~` lama,
  * `w` água rasa, `P` spawn.
  */
-export function worldFrom(mapa: string[], players = 1, rules: Partial<Rules> = {}): World {
+export function worldFrom(
+  mapa: string[],
+  players = 1,
+  rules: Partial<Rules> = {},
+  itens?: Record<string, number>,
+): World {
   const map: MapDefinition = {
     tamanho: [mapa[0]?.length ?? 0, mapa.length],
     legenda: { '#': 'parede', '.': 'chao', B: 'bloco', '~': 'lama', w: 'agua_rasa', P: 'spawn' },
     mapa,
-    blocos: { densidade: 0 },
+    blocos: itens ? { densidade: 0, itens } : { densidade: 0 },
   };
   return createWorld({
     map,
@@ -51,6 +71,7 @@ export function worldFrom(mapa: string[], players = 1, rules: Partial<Rules> = {
     rules: { ...testRules, ...rules },
     seed: 1,
     players,
+    items: testItems,
   });
 }
 

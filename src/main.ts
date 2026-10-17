@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { gameConfig, t } from './data';
+import { gameConfig, items, t } from './data';
 import { KeyboardInput } from './input/KeyboardInput';
 import { PlayerInput } from './input/PlayerInput';
 import { TouchControls } from './input/TouchControls';
@@ -17,7 +17,7 @@ function byId(id: string): HTMLElement {
 byId('rotate-warning').textContent = t('rotate_warning');
 
 const touch = new TouchControls(byId('controls'));
-const debug = isDebugEnabled() ? new DebugPanel(document.body) : null;
+const debug = isDebugEnabled() ? new DebugPanel(document.body, [...items.keys()]) : null;
 
 const keyboard = new KeyboardInput();
 // Joystick ativo tem prioridade sobre o teclado.

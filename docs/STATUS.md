@@ -2,7 +2,7 @@
 
 > **Leia isto primeiro ao começar uma sessão.** Reescrito ao fechar cada spec ou fase, no mesmo commit.
 
-**Atualizado em:** 2026-10-17 · **Última feature:** Fase 1, passo 2 — [bots](specs/bots.md) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
+**Atualizado em:** 2026-10-17 · **Última feature:** Fase 1, passo 3 — [itens e power-ups](specs/itens-e-power-ups.md) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
 
 ## Fase atual: 1 — MVP: Batalha (GDD §9)
 
@@ -12,24 +12,25 @@ Escopo: 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montaria
 | --- | --- | --- |
 | 1 | [Partida e rodadas](specs/partida-e-rodadas.md) | **Feito:** `src/core/match.ts`, HUD mínimo (`src/ui/MatchHud.ts`), toque/Enter recomeça no fim |
 | 2 | [Bots](specs/bots.md) | **Feito:** `src/core/bots/` (mapa de perigo, rotas, decisões), 3 níveis em `src/data/bots.json`, `?nivel=` |
-| 3 | [Itens e power-ups](specs/itens-e-power-ups.md) | **Próximo** |
-| 4–10 | Chute/remota, terrenos, mapas, montarias, morte súbita, fantasma, menus/HUD | Planejados |
+| 3 | [Itens e power-ups](specs/itens-e-power-ups.md) | **Feito:** `src/core/items.ts`, `src/data/items.json` (6 itens), coleta, perfurante, atravessar blocos, bots buscam itens, `+ item` no painel de debug |
+| 4 | [Chute, remota e botão de ação](specs/chute-e-remota.md) | **Próximo** |
+| 5–10 | Terrenos, mapas, montarias, morte súbita, fantasma, menus/HUD | Planejados |
 
 Fase 0 (Fundação) concluída em 2026-10-17: tag `fase-0` = `v0.1.0`.
 
 ## Próximo passo
 
-1. **Passo 3, [itens e power-ups](specs/itens-e-power-ups.md):** sorteio de itens nos blocos, revelação no `bloco.destruido`, coleta e os 6 power-ups de atributo/passivos (bomba, fogo, fogo máximo, patins, perfurante, atravessar blocos). Inclui a prioridade "Item" dos bots (seção "Bots" da spec) e o spawn de itens no painel de debug.
-2. A partida já é jogável contra 3 bots; muitas rodadas terminam empatadas por tempo até a morte súbita (passo 8).
-3. Ao fechar o passo: marcar a spec, reescrever este arquivo e escrever o roteiro `roteiros/post-31-…`.
+1. **Passo 4, [chute, remota e botão de ação](specs/chute-e-remota.md):** comando `action`, botão de ação no toque (e `Shift`/`K`), chute (bomba deslizando) e bomba remota; itens `chute` e `remota` no catálogo e na distribuição padrão. **Confirmar antes:** prioridade remota → montaria no botão de ação.
+2. Muitas rodadas ainda terminam empatadas por tempo até a morte súbita (passo 8).
+3. Ao fechar o passo: marcar a spec, reescrever este arquivo e escrever o roteiro `roteiros/post-32-…`.
 
-**Para confirmar ao chegar no passo:** efeito do gelo sobre a bomba ([terrenos](specs/terrenos.md)); prioridade remota → montaria no botão de ação ([chute e remota](specs/chute-e-remota.md)).
+**Para confirmar ao chegar no passo:** prioridade remota → montaria no botão de ação ([chute e remota](specs/chute-e-remota.md), passo 4); efeito do gelo sobre a bomba ([terrenos](specs/terrenos.md), passo 5).
 
 ## Pendências conhecidas
 
 - Deploy só em HTTP (domínio sslip.io da Coolify). Ligar HTTPS (domínio próprio + Let's Encrypt) antes da PWA: service worker exige HTTPS.
 - Assistência de curva pode deslizar lateralmente para dentro de uma bomba alheia (caso raro). Ver [movimento](specs/movimento.md).
-- Sem `manifest.json` de tema: as cores dos placeholders estão em `src/render/ArenaScene.ts` (cores dos jogadores já em `render.playerColors`). Criar quando entrarem sprites (Kenney/PixelLab).
+- Sem `manifest.json` de tema: as cores dos placeholders (terrenos, itens) estão em `src/render/ArenaScene.ts` (cores dos jogadores já em `render.playerColors`). Itens ainda sem ícone próprio: quadrado colorido por id. Criar quando entrarem sprites (Kenney/PixelLab).
 - Muitas rodadas entre bots terminam empatadas por tempo (sem morte súbita ainda). Ver [bots](specs/bots.md).
 - O HUD de topo cobre a fileira de paredes de cima no celular (não atrapalha o jogo); revisar no passo de menus e HUD.
 - Sem botão de ação, vibração, gamepad e PWA (fases seguintes).
@@ -47,9 +48,9 @@ docker build -t estouro-arena . && docker run --rm -p 8080:80 estouro-arena   # 
 
 - Commits: `feat(<spec>): Assunto` (ver CLAUDE.md, passo 8); o push na `main` gera a versão e o `CHANGELOG.md` sozinho. Fase fechada = tag `fase-N`.
 - Regras de cada feature: [`docs/specs/`](specs/README.md). Decisões e motivos: [`DECISIONS.md`](DECISIONS.md).
-- Testes: Vitest (154) + Playwright (5 smoke contra o build, viewport 812 × 375).
+- Testes: Vitest (175) + Playwright (6 smoke contra o build, viewport 812 × 375).
 - Em dev, `window.__arena` expõe a partida (`Match`; o mundo da rodada em `.world`) para inspeção no console (só leitura).
-- `?seed=N` fixa o mapa da 1ª rodada; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?ia=0` deixa os bots parados; `?touch=1` força os controles de toque; `?debug=1` liga o painel.
+- `?seed=N` fixa o mapa da 1ª rodada; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?ia=0` deixa os bots parados; `?touch=1` força os controles de toque; `?debug=1` liga o painel (com botões `+ <item>`).
 - Roteiros dos posts: `roteiros/` (fora do git), um por feature.
 
 ## Ambiente conhecido

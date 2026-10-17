@@ -8,7 +8,7 @@ import { countSpawns } from '../core/grid';
 import { BLOCK } from '../core/terrainIds';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
-import { botConfigs, gameConfig, maps, sounds, terrains } from '../data';
+import { botConfigs, gameConfig, items, maps, sounds, terrains } from '../data';
 import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
 import type { PlayerInput } from '../input/PlayerInput';
@@ -30,6 +30,15 @@ const BOMB_COLOR = 0x111111;
 const BOMB_FUSE_COLOR = 0xffa000;
 const FLAME_OUTER = 0xff6d00;
 const FLAME_INNER = 0xffe082;
+/** Itens: fundo e símbolo por id (placeholder até o manifest do tema). */
+const ITEM_COLORS: Readonly<Record<string, { bg: number; fg: number }>> = {
+  bomba: { bg: 0xeceff1, fg: 0x111111 },
+  fogo: { bg: 0xff7043, fg: 0xffe082 },
+  fogo_max: { bg: 0xc62828, fg: 0xffe082 },
+  patins: { bg: 0x26c6da, fg: 0xffffff },
+  perfurante: { bg: 0x8e24aa, fg: 0xffffff },
+  atravessa_bloco: { bg: 0x8d6e63, fg: 0xd7ccc8 },
+};
 
 const TILE = gameConfig.render.tileSize;
 
@@ -116,6 +125,8 @@ export class ArenaScene extends Phaser.Scene {
         rules: rulesFromConfig(gameConfig),
         matchRules: matchRulesFromConfig(gameConfig),
         seed,
+        items,
+        defaultItems: gameConfig.items.defaultDistribution,
         // Spawns limitam a partida: 1 jogador + até 3 bots.
         players: Math.min(1 + readBots(), countSpawns(map)),
       },
@@ -163,6 +174,10 @@ export class ArenaScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     this.playerInput.poll(this.commands);
+    // Painel de debug: cada clique num item vira um comando (o painel não escreve no mundo).
+    for (const itemId of this.debug?.takeItemRequests() ?? []) {
+      this.commands.push({ type: 'debugItem', playerId: 0, itemId });
+    }
     const ticks = this.stepper.advance(deltaMs);
     for (let i = 0; i < ticks; i++) {
       // Comandos do jogador entram no primeiro tick do quadro; os bots decidem a cada tick.
@@ -279,6 +294,19 @@ export class ArenaScene extends Phaser.Scene {
         TILE / 2 - inset,
         TILE / 2 - inset,
       );
+    });
+
+    this.world.items.forEach((itemId, i) => {
+      if (itemId === null) return;
+      const colors = ITEM_COLORS[itemId] ?? { bg: UNKNOWN_COLOR, fg: 0xffffff };
+      const x = this.origin.x + (i % cols) * TILE;
+      const y = this.origin.y + Math.floor(i / cols) * TILE;
+      g.fillStyle(colors.bg);
+      g.fillRoundedRect(x + 5, y + 5, TILE - 10, TILE - 10, 5);
+      g.lineStyle(2, 0xffffff, 0.9);
+      g.strokeRoundedRect(x + 5, y + 5, TILE - 10, TILE - 10, 5);
+      g.fillStyle(colors.fg);
+      g.fillCircle(x + TILE / 2, y + TILE / 2, TILE / 7);
     });
 
     for (const bomb of this.world.bombs) {

@@ -3,6 +3,7 @@ import { placeBomb, updateBombs } from './bombs';
 import type { Command } from './commands';
 import type { Direction } from './direction';
 import { generateGrid, type Grid, type MapDefinition } from './grid';
+import { collectItems, hideItems, type ItemDef } from './items';
 import { movePlayer } from './movement';
 import { createRng, type Rng } from './rng';
 
@@ -27,6 +28,12 @@ export interface Rules {
   explosionTicks: number;
   startBombs: number;
   startRange: number;
+  /** Limites dos power-ups. */
+  maxBombs: number;
+  maxRange: number;
+  /** Tiles/s a mais por nível de patins. */
+  speedStep: number;
+  maxSpeedLevel: number;
 }
 
 export interface Player {
@@ -42,6 +49,10 @@ export interface Player {
   maxBombs: number;
   /** Alcance da explosão em tiles. */
   range: number;
+  /** Níveis de velocidade ganhos com patins. */
+  speedLevel: number;
+  /** Habilidades ganhas com itens (`perfurante`, `atravessa_bloco`). */
+  abilities: Set<string>;
 }
 
 export interface Bomb {
@@ -52,6 +63,8 @@ export interface Bomb {
   /** Ticks até explodir. */
   fuse: number;
   range: number;
+  /** O fogo atravessa blocos quebráveis (dono com `perfurante` ao soltar). */
+  pierce?: boolean;
 }
 
 export interface World {
@@ -62,6 +75,11 @@ export interface World {
   /** Ticks restantes de chama por tile (0 = sem chama), mesmo índice de `grid.tiles`. */
   flames: number[];
   nextBombId: number;
+  /** Item visível por tile (mesmo índice de `grid.tiles`); null = nenhum. */
+  items: (string | null)[];
+  /** Item escondido em cada bloco; aparece quando o bloco vira chão. */
+  hiddenItems: (string | null)[];
+  readonly itemDefs: ReadonlyMap<string, ItemDef>;
   readonly terrains: ReadonlyMap<string, TerrainRules>;
   readonly rules: Rules;
   readonly rng: Rng;
@@ -73,6 +91,10 @@ export interface WorldOptions {
   rules: Rules;
   seed: number;
   players: number;
+  /** Catálogo de itens (src/data/items.json); sem ele, nenhum item é sorteado. */
+  items?: ReadonlyMap<string, ItemDef>;
+  /** Itens escondidos quando a fase não tem `blocos.itens`. */
+  defaultItems?: Readonly<Record<string, number>>;
 }
 
 export function createWorld(options: WorldOptions): World {
@@ -91,7 +113,15 @@ export function createWorld(options: WorldOptions): World {
     alive: true,
     maxBombs: rules.startBombs,
     range: rules.startRange,
+    speedLevel: 0,
+    abilities: new Set<string>(),
   }));
+  const itemDefs = options.items ?? new Map<string, ItemDef>();
+  const counts = options.map.blocos.itens ?? options.defaultItems ?? {};
+  const hiddenItems =
+    itemDefs.size > 0
+      ? hideItems(grid, counts, rng)
+      : new Array<string | null>(grid.tiles.length).fill(null);
   return {
     tick: 0,
     grid,
@@ -99,6 +129,9 @@ export function createWorld(options: WorldOptions): World {
     bombs: [],
     flames: new Array<number>(grid.tiles.length).fill(0),
     nextBombId: 0,
+    items: new Array<string | null>(grid.tiles.length).fill(null),
+    hiddenItems,
+    itemDefs,
     terrains: options.terrains,
     rules,
     rng,
@@ -106,7 +139,7 @@ export function createWorld(options: WorldOptions): World {
 }
 
 /**
- * Avança a simulação em exatamente um tick: comandos → movimento → bombas/chamas → mortes.
+ * Avança a simulação em exatamente um tick: comandos → movimento → coleta → bombas/chamas → mortes.
  * Os eventos do tick são acrescentados em `out` (também devolvido).
  */
 export function step(
@@ -119,11 +152,16 @@ export function step(
     if (!player?.alive) continue;
     if (cmd.type === 'move') player.moveDir = cmd.dir;
     else if (cmd.type === 'bomb') placeBomb(world, player, out);
+    else if (cmd.type === 'debugItem' && world.itemDefs.has(cmd.itemId)) {
+      // Painel de debug: põe o item no tile do jogador (coletado logo abaixo).
+      world.items[Math.round(player.y) * world.grid.cols + Math.round(player.x)] = cmd.itemId;
+    }
   }
 
   for (const player of world.players) {
     if (player.alive) movePlayer(world, player);
   }
+  collectItems(world, out);
 
   updateBombs(world, out);
   killPlayersInFlames(world, out);

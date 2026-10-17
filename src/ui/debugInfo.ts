@@ -9,7 +9,17 @@ export interface DebugContext {
 
 /** Valores mostrados no painel de debug (e expostos em `data-*` para os testes e2e). */
 export type DebugInfo = Record<
-  'fps' | 'tick' | 'seed' | 'map' | 'pos' | 'tile' | 'alive' | 'bombs' | 'range' | 'blocks',
+  | 'fps'
+  | 'tick'
+  | 'seed'
+  | 'map'
+  | 'pos'
+  | 'tile'
+  | 'alive'
+  | 'bombs'
+  | 'range'
+  | 'speed'
+  | 'blocks',
   string
 >;
 
@@ -30,6 +40,7 @@ export function debugInfo(world: World, ctx: DebugContext, playerId = 0): DebugI
     alive: p?.alive ? 'vivo' : 'morto',
     bombs: p ? `${active}/${p.maxBombs}` : '-',
     range: p ? p.range.toString() : '-',
+    speed: p ? p.speedLevel.toString() : '-',
     blocks: blocks.toString(),
   };
 }

@@ -33,5 +33,5 @@ Nenhum.
 
 ## Pendências
 
-- Itens escondidos nos blocos (`blocos.itens`) — Fase 1.
+- ~~Itens escondidos nos blocos (`blocos.itens`)~~: feito em [itens e power-ups](itens-e-power-ups.md).
 - Mapas maiores com câmera e formas irregulares (`vazio`).

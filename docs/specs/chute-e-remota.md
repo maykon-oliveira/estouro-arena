@@ -1,6 +1,6 @@
 # Chute, bomba remota e botão de ação
 
-**Status:** planejada (Fase 1, passo 4). GDD §2 (power-ups, botão de ação especial). Depende de [itens e power-ups](itens-e-power-ups.md).
+**Status:** planejada (Fase 1, passo 4). Este passo acrescenta `chute` e `remota` ao `src/data/items.json` (efeito `ability`, com handler novo onde precisar) e à `items.defaultDistribution` (2 e 1). GDD §2 (power-ups, botão de ação especial). Depende de [itens e power-ups](itens-e-power-ups.md).
 
 ## Regras
 

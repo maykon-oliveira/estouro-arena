@@ -21,7 +21,7 @@ Cada passo deixa o jogo jogável e testável; a ordem põe cedo o que destrava o
 | --- | --- | --- | --- |
 | 1 | [Partida e rodadas](partida-e-rodadas.md) | — | Feita |
 | 2 | [Bots](bots.md) | 1 | Feita |
-| 3 | [Itens e power-ups](itens-e-power-ups.md) | — | Planejada |
+| 3 | [Itens e power-ups](itens-e-power-ups.md) | — | Feita |
 | 4 | [Chute, remota e botão de ação](chute-e-remota.md) | 3 | Planejada |
 | 5 | [Terrenos: água, mato, gelo, lama](terrenos.md) | — | Planejada |
 | 6 | [Mapas da Fase 1](mapas-fase-1.md) | 3, 5 | Planejada |

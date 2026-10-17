@@ -6,7 +6,8 @@ export interface MapDefinition {
   tamanho: readonly [number, number];
   legenda: Readonly<Record<string, string>>;
   mapa: readonly string[];
-  blocos: { densidade: number };
+  /** `itens`: quantos de cada item esconder nos blocos (ids de src/data/items.json). */
+  blocos: { densidade: number; itens?: Readonly<Record<string, number>> };
 }
 
 export interface Point {

@@ -15,6 +15,10 @@ export function rulesFromConfig(cfg: GameConfig): Rules {
     explosionTicks: msToTicks(cfg.bomb.explosionMs, cfg.tickRate),
     startBombs: cfg.player.startBombs,
     startRange: cfg.player.startRange,
+    maxBombs: cfg.player.maxBombs,
+    maxRange: cfg.player.maxRange,
+    speedStep: cfg.player.speedStep,
+    maxSpeedLevel: cfg.player.maxSpeedLevel,
   };
 }
 

@@ -3,6 +3,7 @@
   "bomba.explodiu": "sfx_explosao",
   "bloco.destruido": "sfx_bloco",
   "jogador.morreu": "sfx_morte",
+  "item.pego": "sfx_item",
   "rodada.iniciou": "sfx_largada",
   "partida.terminou": "sfx_vitoria"
 }

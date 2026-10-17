@@ -17,6 +17,7 @@ const LABELS: Readonly<Record<keyof DebugInfo, string>> = {
   alive: 'estado',
   bombs: 'bombas',
   range: 'alcance',
+  speed: 'patins',
   blocks: 'blocos',
 };
 
@@ -25,6 +26,8 @@ const LAYER_LABELS: Readonly<Record<keyof DebugLayers, string>> = {
   hitbox: 'hitbox',
   radius: 'raio',
 };
+
+const NO_REQUESTS: readonly string[] = [];
 
 /** Atualizações de texto por segundo (o painel não precisa de 60 fps). */
 const REFRESH_PER_SECOND = 10;
@@ -40,8 +43,11 @@ export class DebugPanel {
   private readonly root: HTMLElement;
   private readonly values = new Map<keyof DebugInfo, HTMLElement>();
   private lastRefresh = -Infinity;
+  /** Itens pedidos pelos botões desde a última leitura (viram comandos `debugItem`). */
+  private readonly itemRequests: string[] = [];
 
-  constructor(parent: HTMLElement) {
+  /** `itemIds`: um botão por item, que põe o item no tile do jogador local. */
+  constructor(parent: HTMLElement, itemIds: readonly string[] = []) {
     this.root = document.createElement('div');
     this.root.className = 'debug-panel';
 
@@ -75,8 +81,21 @@ export class DebugPanel {
       }),
     );
 
-    this.root.append(table, toggles, actions);
+    const itemButtons = document.createElement('div');
+    itemButtons.className = 'debug-items';
+    for (const id of itemIds) {
+      itemButtons.append(this.button(`+ ${id}`, () => this.itemRequests.push(id)));
+    }
+
+    this.root.append(table, toggles, actions, itemButtons);
     parent.append(this.root);
+  }
+
+  /** Devolve e esvazia os pedidos de item feitos pelos botões. */
+  takeItemRequests(): readonly string[] {
+    // Sem pedidos (quase sempre): não aloca um array novo por quadro.
+    if (this.itemRequests.length === 0) return NO_REQUESTS;
+    return this.itemRequests.splice(0, this.itemRequests.length);
   }
 
   /** Chamada a cada quadro; redesenha o texto no máximo REFRESH_PER_SECOND vezes por segundo. */

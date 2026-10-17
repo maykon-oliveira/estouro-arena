@@ -5,12 +5,15 @@ import { createPathSearch, pathTo, searchPaths, UNREACHABLE } from '../../src/co
 import type { Command } from '../../src/core/commands';
 import { createMatch, stepMatch } from '../../src/core/match';
 import { createWorld, step, type Bomb, type World } from '../../src/core/world';
-import { botConfigs, gameConfig, maps, terrains } from '../../src/data';
+import { botConfigs, gameConfig, items, maps, terrains } from '../../src/data';
 import { matchRulesFromConfig, rulesFromConfig } from '../../src/data/rules';
 import type { GameEvent } from '../../src/events';
 import { testRules, worldFrom } from './helpers';
 
 const idx = (world: World, x: number, y: number) => y * world.grid.cols + x;
+
+/** Quem anda nas rotas dos testes: velocidade padrão dos testes, sem atravessar blocos. */
+const at = (x: number, y: number) => ({ x, y, speed: testRules.playerSpeed, passBlocks: false });
 
 function bomb(world: World, x: number, y: number, fuse: number, range: number, ownerId = 0): Bomb {
   const b: Bomb = { id: world.nextBombId++, ownerId, x, y, fuse, range };
@@ -106,7 +109,7 @@ describe('rotas', () => {
     const d = createDangerMap(world.grid.tiles.length);
     computeDanger(world, d);
     const s = createPathSearch(world.grid.tiles.length);
-    searchPaths(world, d, { x: 1, y: 1 }, 0, s);
+    searchPaths(world, d, at(1, 1), 0, s);
     expect(s.time[idx(world, 1, 1)]).toBe(0);
     expect(s.time[idx(world, 2, 1)]).toBe(5);
     expect(s.time[idx(world, 4, 1)]).toBe(25);
@@ -122,11 +125,11 @@ describe('rotas', () => {
     computeDanger(world, d);
     const s = createPathSearch(world.grid.tiles.length);
 
-    searchPaths(world, d, { x: 1, y: 1 }, 0, s);
+    searchPaths(world, d, at(1, 1), 0, s);
     expect(s.time[idx(world, 3, 1)]).toBe(15);
     expect(s.time[idx(world, 4, 1)]).toBe(25);
 
-    searchPaths(world, d, { x: 1, y: 1 }, 5, s);
+    searchPaths(world, d, at(1, 1), 5, s);
     expect(s.time[idx(world, 3, 1)]).toBe(UNREACHABLE);
     expect(s.time[idx(world, 4, 1)]).toBe(UNREACHABLE);
   });
@@ -136,7 +139,7 @@ describe('rotas', () => {
     const d = createDangerMap(world.grid.tiles.length);
     computeDanger(world, d);
     const s = createPathSearch(world.grid.tiles.length);
-    searchPaths(world, d, { x: 1.3, y: 1 }, 0, s);
+    searchPaths(world, d, at(1.3, 1), 0, s);
     expect(s.time[idx(world, 2, 1)]).toBe(2);
     expect(s.time[idx(world, 3, 1)]).toBe(12);
   });
@@ -148,7 +151,7 @@ describe('rotas', () => {
     const d = createDangerMap(world.grid.tiles.length);
     computeDanger(world, d);
     const s = createPathSearch(world.grid.tiles.length);
-    searchPaths(world, d, { x: 1, y: 1 }, 0, s);
+    searchPaths(world, d, at(1, 1), 0, s);
     expect(s.time[idx(world, 3, 1)]).toBe(15);
     expect(s.time[idx(world, 4, 1)]).toBe(UNREACHABLE);
   });
@@ -220,6 +223,45 @@ describe('decisões do bot', () => {
   });
 });
 
+describe('bots e itens', () => {
+  it('vai buscar um item visível perto', () => {
+    const world = worldFrom(['#######', '#P....#', '#######']);
+    world.items[idx(world, 4, 1)] = 'fogo';
+    const bot = createBot(0, sharp, 1);
+    const events = runWithBots(world, [bot], 60);
+    expect(events).toContainEqual({ type: 'item.pego', playerId: 0, itemId: 'fogo', x: 4, y: 1 });
+    expect(world.players[0]?.range).toBe(testRules.startRange + 1);
+  });
+
+  it('ignora item além de itemSearchTiles', () => {
+    const world = worldFrom(['#######', '#P....#', '#######']);
+    world.items[idx(world, 5, 1)] = 'fogo';
+    const near: BotConfig = { ...sharp, level: { ...sharp.level, itemSearchTiles: 2 } };
+    const events = runWithBots(world, [createBot(0, near, 1)], 60);
+    expect(events.some((e) => e.type === 'item.pego')).toBe(false);
+  });
+
+  it('o mapa de perigo segue o perfurante', () => {
+    const world = worldFrom(['#######', '#P.BB.#', '#######']);
+    bomb(world, 1, 1, 10, 5).pierce = true;
+    const d = createDangerMap(world.grid.tiles.length);
+    computeDanger(world, d);
+    expect(d.start[idx(world, 5, 1)]).toBe(10);
+  });
+
+  it('com atravessa_bloco, a rota passa por dentro de bloco (custo dobrado)', () => {
+    const world = worldFrom(['######', '#PB..#', '######']);
+    const d = createDangerMap(world.grid.tiles.length);
+    computeDanger(world, d);
+    const s = createPathSearch(world.grid.tiles.length);
+    searchPaths(world, d, at(1, 1), 0, s);
+    expect(s.time[idx(world, 3, 1)]).toBe(UNREACHABLE);
+    searchPaths(world, d, { ...at(1, 1), passBlocks: true }, 0, s);
+    expect(s.time[idx(world, 2, 1)]).toBe(5);
+    expect(s.time[idx(world, 3, 1)]).toBe(25);
+  });
+});
+
 describe('bots na partida', () => {
   it('não agem na contagem', () => {
     const map = maps.get('arena_01');
@@ -271,7 +313,7 @@ describe('partida só de bots (dados reais)', () => {
 });
 
 describe('sobrevivência (dados reais)', () => {
-  it('bot difícil sozinho na arena_01 sobrevive 60 s em ≥ 90 % das seeds e quebra blocos', () => {
+  it('bot difícil sozinho na arena_01 (com itens) sobrevive 60 s em ≥ 90 % das seeds', () => {
     const map = maps.get('arena_01');
     const config = botConfigs.get('dificil');
     if (!map || !config) throw new Error('dados');
@@ -280,7 +322,15 @@ describe('sobrevivência (dados reais)', () => {
     let destroyed = 0;
     const seeds = 20;
     for (let seed = 0; seed < seeds; seed++) {
-      const world = createWorld({ map, terrains, rules, seed, players: 1 });
+      const world = createWorld({
+        map,
+        terrains,
+        rules,
+        seed,
+        players: 1,
+        items,
+        defaultItems: gameConfig.items.defaultDistribution,
+      });
       const bot = createBot(0, config, seed);
       const events = runWithBots(world, [bot], 60 * gameConfig.tickRate);
       if (world.players[0]?.alive) survived++;

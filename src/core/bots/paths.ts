@@ -1,6 +1,7 @@
 import { bombAt } from '../bombs';
-import type { Point } from '../grid';
-import type { World } from '../world';
+import { ABILITY_PASS_BLOCKS, playerSpeed } from '../items';
+import { BLOCK } from '../terrainIds';
+import type { Player, World } from '../world';
 import { SAFE, type DangerMap } from './dangerMap';
 
 /** Tempo de um tile não alcançado. */
@@ -27,12 +28,34 @@ const NEIGHBORS = [
   [-1, 0],
 ] as const;
 
-/** Ticks para atravessar um tile, pela velocidade do jogador e o terreno do tile. */
-export function ticksPerTile(world: World, i: number): number {
+/** Quem anda pela rota: posição contínua, velocidade (tiles/s) e se atravessa blocos. */
+export interface Mover {
+  x: number;
+  y: number;
+  speed: number;
+  passBlocks: boolean;
+}
+
+export function moverOf(world: World, player: Player): Mover {
+  return {
+    x: player.x,
+    y: player.y,
+    speed: playerSpeed(world, player),
+    passBlocks: player.abilities.has(ABILITY_PASS_BLOCKS),
+  };
+}
+
+/**
+ * Ticks para atravessar um tile, pela velocidade e o terreno do tile. Dentro de bloco (com
+ * `atravessa_bloco`) custa o dobro, para o bot não passear por dentro dos blocos à toa.
+ */
+export function ticksPerTile(world: World, i: number, mover: Mover): number {
   const id = world.grid.tiles[i];
   const multiplier = (id === undefined ? undefined : world.terrains.get(id)?.speedMultiplier) ?? 1;
-  const speed = world.rules.playerSpeed * multiplier;
-  return speed > 0 ? Math.ceil(world.rules.tickRate / speed) : UNREACHABLE;
+  const speed = mover.speed * multiplier;
+  if (speed <= 0) return UNREACHABLE;
+  const ticks = Math.ceil(world.rules.tickRate / speed);
+  return id === BLOCK ? ticks * 2 : ticks;
 }
 
 /** O bot pode ficar no tile `i` de `from` até `to` sem cruzar o perigo (alargado por `margin`)? */
@@ -59,7 +82,7 @@ export function canOccupy(
 export function searchPaths(
   world: World,
   danger: DangerMap,
-  from: Point,
+  from: Mover,
   margin: number,
   search: PathSearch,
 ): void {
@@ -77,12 +100,12 @@ export function searchPaths(
   done[origin] = 1;
 
   // Primeiro passo pela posição real: o bot pode já estar perto da borda (ou fora do eixo).
-  const perTick = 1 / ticksPerTile(world, origin);
+  const perTick = 1 / ticksPerTile(world, origin, from);
   for (const [dx, dy] of NEIGHBORS) {
     const along = dx !== 0 ? (from.x - ox) * dx : (from.y - oy) * dy;
     const cross = dx !== 0 ? Math.abs(from.y - oy) : Math.abs(from.x - ox);
     const entry = Math.max(0, Math.ceil((0.5 - along + cross) / perTick - 1e-9));
-    relax(world, danger, search, origin, ox + dx, oy + dy, entry, margin);
+    relax(world, danger, search, from, origin, ox + dx, oy + dy, entry, margin);
   }
 
   for (;;) {
@@ -99,11 +122,11 @@ export function searchPaths(
     if (u === -1) break;
     done[u] = 1;
 
-    const leave = best + ticksPerTile(world, u);
+    const leave = best + ticksPerTile(world, u, from);
     const ux = u % grid.cols;
     const uy = Math.floor(u / grid.cols);
     for (const [dx, dy] of NEIGHBORS)
-      relax(world, danger, search, u, ux + dx, uy + dy, leave, margin);
+      relax(world, danger, search, from, u, ux + dx, uy + dy, leave, margin);
   }
 }
 
@@ -112,6 +135,7 @@ function relax(
   world: World,
   danger: DangerMap,
   search: PathSearch,
+  mover: Mover,
   from: number,
   x: number,
   y: number,
@@ -123,8 +147,10 @@ function relax(
   const v = y * grid.cols + x;
   if (search.done[v] || at >= (search.time[v] ?? UNREACHABLE)) return;
   const id = grid.tiles[v];
-  if (id === undefined || terrains.get(id)?.walkable !== true || bombAt(world, x, y)) return;
-  if (!canOccupy(danger, v, at, at + ticksPerTile(world, v), margin)) return;
+  if (id === undefined || bombAt(world, x, y)) return;
+  const walkable = terrains.get(id)?.walkable === true || (mover.passBlocks && id === BLOCK);
+  if (!walkable) return;
+  if (!canOccupy(danger, v, at, at + ticksPerTile(world, v, mover), margin)) return;
   search.time[v] = at;
   search.prev[v] = from;
 }

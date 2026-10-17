@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createMapSchema } from '../../src/data/schemas';
 import { maps } from '../../src/data';
 
-const schema = createMapSchema(new Set(['chao', 'parede', 'bloco']));
+const schema = createMapSchema(new Set(['chao', 'parede', 'bloco']), new Set(['bomba']));
 
 const valid = {
   id: 'teste_01',
@@ -21,6 +21,11 @@ describe('schema de mapa', () => {
   it('aceita itens e música opcionais do formato do GDD', () => {
     const full = { ...valid, blocos: { densidade: 0.6, itens: { bomba: 6 } }, musica: 'tema' };
     expect(schema.safeParse(full).success).toBe(true);
+  });
+
+  it('rejeita item que não existe no catálogo', () => {
+    const bad = { ...valid, blocos: { densidade: 0.6, itens: { nao_existe: 1 } } };
+    expect(schema.safeParse(bad).success).toBe(false);
   });
 
   it('rejeita número de linhas diferente do tamanho', () => {

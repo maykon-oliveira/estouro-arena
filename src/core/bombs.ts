@@ -1,6 +1,7 @@
 import type { GameEvent } from '../events';
 import { DIRECTION_VECTORS, type Direction } from './direction';
 import { inBounds, setTile, tileAt, type Point } from './grid';
+import { ABILITY_PIERCE } from './items';
 import { FLOOR } from './terrainIds';
 import type { Bomb, Player, World } from './world';
 
@@ -32,6 +33,7 @@ export function placeBomb(world: World, player: Player, out: GameEvent[]): void 
     y,
     fuse: world.rules.fuseTicks,
     range: player.range,
+    pierce: player.abilities.has(ABILITY_PIERCE),
   };
   world.bombs.push(bomb);
   out.push({ type: 'bomba.colocada', bombId: bomb.id, playerId: player.id, x, y });
@@ -55,6 +57,12 @@ export function updateBombs(world: World, out: GameEvent[]): void {
         const y = Math.floor(i / grid.cols);
         setTile(grid, x, y, FLOOR);
         out.push({ type: 'bloco.destruido', x, y });
+        const hidden = world.hiddenItems[i];
+        if (hidden !== null && hidden !== undefined) {
+          world.hiddenItems[i] = null;
+          world.items[i] = hidden;
+          out.push({ type: 'item.revelado', itemId: hidden, x, y });
+        }
       }
     }
   }
@@ -100,7 +108,10 @@ export function explosionTiles(
       const terrain = id === undefined ? undefined : world.terrains.get(id);
       if (terrain?.blocksFire) {
         // Bloco quebrável pega fogo (vira chão quando a chama apagar); parede só barra.
-        if (terrain.destructible) tiles.push({ x, y });
+        if (!terrain.destructible) break;
+        tiles.push({ x, y });
+        // Perfurante: o fogo segue depois do bloco.
+        if (bomb.pierce) continue;
         break;
       }
       tiles.push({ x, y });
@@ -118,6 +129,11 @@ function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): voi
   for (const t of tiles) {
     const i = t.y * world.grid.cols + t.x;
     world.flames[i] = Math.max(world.flames[i] ?? 0, world.rules.explosionTicks);
+    const itemId = world.items[i];
+    if (itemId !== null && itemId !== undefined) {
+      world.items[i] = null;
+      out.push({ type: 'item.destruido', itemId, x: t.x, y: t.y });
+    }
   }
   out.push({ type: 'bomba.explodiu', bombId: bomb.id, x: bomb.x, y: bomb.y, tiles });
 }
