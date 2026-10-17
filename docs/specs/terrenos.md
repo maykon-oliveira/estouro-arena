@@ -1,6 +1,6 @@
 # Terrenos: água, mato, gelo e lama
 
-**Status:** feita (Fase 1, passo 5). A conferência visual dos terrenos no navegador fica para o passo 6, com as fases que os usam. GDD §4 (tipos de terreno).
+**Status:** feita (Fase 1, passo 5). Conferência visual feita no passo 6, com as fases [`pantanal_01` e `tundra_01`](mapas-fase-1.md). GDD §4 (tipos de terreno).
 
 Cinco terrenos novos, todos como entradas em `src/data/terrains.json`. O que não cabe nos campos atuais vira campo novo no schema (nunca `if (id === ...)` no core).
 

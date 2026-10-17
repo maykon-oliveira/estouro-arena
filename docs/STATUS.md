@@ -2,7 +2,7 @@
 
 > **Leia isto primeiro ao começar uma sessão.** Reescrito ao fechar cada spec ou fase, no mesmo commit.
 
-**Atualizado em:** 2026-10-17 · **Última feature:** Fase 1, passo 5 — [terrenos](specs/terrenos.md) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
+**Atualizado em:** 2026-10-17 · **Última feature:** Fase 1, passo 6 — [mapas](specs/mapas-fase-1.md) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
 
 ## Fase atual: 1 — MVP: Batalha (GDD §9)
 
@@ -15,16 +15,17 @@ Escopo: 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montaria
 | 3 | [Itens e power-ups](specs/itens-e-power-ups.md) | **Feito:** `src/core/items.ts`, `src/data/items.json` (6 itens), coleta, perfurante, atravessar blocos, bots buscam itens, `+ item` no painel de debug |
 | 4 | [Chute, remota e botão de ação](specs/chute-e-remota.md) | **Feito:** `src/core/kick.ts`, remota (`action` detona a mais antiga), botão de ação no toque e `Shift`/`K`, bots detonam remotas |
 | 5 | [Terrenos: água, mato, gelo, lama](specs/terrenos.md) | **Feito:** 5 terrenos em `terrains.json` (`hides`, `slippery`), mato queima, deslize no gelo, bots no gelo e no mato; ainda sem fase que os use |
-| 6 | [Mapas da Fase 1](specs/mapas-fase-1.md) | **Próximo** |
-| 7–10 | Montarias, morte súbita, fantasma, menus/HUD | Planejados |
+| 6 | [Mapas da Fase 1](specs/mapas-fase-1.md) | **Feito:** `pantanal_01`, `tundra_01`, `arena_01` com itens, `?map=`, `checkMapLayout` na carga; bots 20/20 nas três fases |
+| 7 | [Montarias: capivara e sapo](specs/montarias.md) | **Próximo** |
+| 8–10 | Morte súbita, fantasma, menus/HUD | Planejados |
 
 Fase 0 (Fundação) concluída em 2026-10-17: tag `fase-0` = `v0.1.0`.
 
 ## Próximo passo
 
-1. **Passo 6, [mapas](specs/mapas-fase-1.md):** desenhar `pantanal_01` e `tundra_01`, `blocos.itens` em `arena_01`, `?map=<id>`, validações novas (spawns ligados, área segura que aceita bomba) e smoke por fase. **Fazer aqui a conferência visual dos terrenos** (cores, touceiras do mato, brilho do gelo, jogador escondido) no navegador, em paisagem.
+1. **Passo 7, [montarias](specs/montarias.md):** ovos (`ovo_capivara`, `ovo_sapo_saltador`) como itens com efeito `mount`, escudo + invulnerabilidade, capivara (sobreposição de terreno: nada na água funda), sapo (pulo pelo `action`, com a prioridade remota → montaria), ovos no `blocos.itens` das fases (pantanal com mais capivaras), bots montados.
 2. Muitas rodadas ainda terminam empatadas por tempo até a morte súbita (passo 8).
-3. Ao fechar o passo: marcar a spec, reescrever este arquivo e escrever o roteiro `roteiros/post-34-…`.
+3. Ao fechar o passo: marcar a spec, reescrever este arquivo e escrever o roteiro `roteiros/post-35-…`.
 
 ## Pendências conhecidas
 
@@ -49,9 +50,9 @@ docker build -t estouro-arena . && docker run --rm -p 8080:80 estouro-arena   # 
 
 - Commits: `feat(<spec>): Assunto` (ver CLAUDE.md, passo 8); o push na `main` gera a versão e o `CHANGELOG.md` sozinho. Fase fechada = tag `fase-N`.
 - Regras de cada feature: [`docs/specs/`](specs/README.md). Decisões e motivos: [`DECISIONS.md`](DECISIONS.md).
-- Testes: Vitest (205) + Playwright (7 smoke contra o build, viewport 812 × 375).
+- Testes: Vitest (216) + Playwright (9 smoke contra o build, viewport 812 × 375).
 - Em dev, `window.__arena` expõe a partida (`Match`; o mundo da rodada em `.world`) para inspeção no console (só leitura).
-- `?seed=N` fixa o mapa da 1ª rodada; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?ia=0` deixa os bots parados; `?touch=1` força os controles de toque; `?debug=1` liga o painel (com botões `+ <item>`).
+- `?map=arena_01|pantanal_01|tundra_01`; `?seed=N` fixa o mapa da 1ª rodada; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?ia=0` deixa os bots parados; `?touch=1` força os controles de toque; `?debug=1` liga o painel (com botões `+ <item>`).
 - Roteiros dos posts: `roteiros/` (fora do git), um por feature.
 
 ## Ambiente conhecido

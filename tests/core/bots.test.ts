@@ -313,30 +313,33 @@ describe('partida só de bots (dados reais)', () => {
 });
 
 describe('sobrevivência (dados reais)', () => {
-  it('bot difícil sozinho na arena_01 (com itens) sobrevive 60 s em ≥ 90 % das seeds', () => {
-    const map = maps.get('arena_01');
-    const config = botConfigs.get('dificil');
-    if (!map || !config) throw new Error('dados');
-    const rules = rulesFromConfig(gameConfig);
-    let survived = 0;
-    let destroyed = 0;
-    const seeds = 20;
-    for (let seed = 0; seed < seeds; seed++) {
-      const world = createWorld({
-        map,
-        terrains,
-        rules,
-        seed,
-        players: 1,
-        items,
-        defaultItems: gameConfig.items.defaultDistribution,
-      });
-      const bot = createBot(0, config, seed);
-      const events = runWithBots(world, [bot], 60 * gameConfig.tickRate);
-      if (world.players[0]?.alive) survived++;
-      destroyed += events.filter((e) => e.type === 'bloco.destruido').length;
-    }
-    expect(survived / seeds).toBeGreaterThanOrEqual(0.9);
-    expect(destroyed / seeds).toBeGreaterThan(5);
-  });
+  it.each(['arena_01', 'pantanal_01', 'tundra_01'])(
+    'bot difícil sozinho em %s (com itens) sobrevive 60 s em ≥ 90 % das seeds',
+    (mapId) => {
+      const map = maps.get(mapId);
+      const config = botConfigs.get('dificil');
+      if (!map || !config) throw new Error('dados');
+      const rules = rulesFromConfig(gameConfig);
+      let survived = 0;
+      let destroyed = 0;
+      const seeds = 20;
+      for (let seed = 0; seed < seeds; seed++) {
+        const world = createWorld({
+          map,
+          terrains,
+          rules,
+          seed,
+          players: 1,
+          items,
+          defaultItems: gameConfig.items.defaultDistribution,
+        });
+        const bot = createBot(0, config, seed);
+        const events = runWithBots(world, [bot], 60 * gameConfig.tickRate);
+        if (world.players[0]?.alive) survived++;
+        destroyed += events.filter((e) => e.type === 'bloco.destruido').length;
+      }
+      expect(survived / seeds).toBeGreaterThanOrEqual(0.9);
+      expect(destroyed / seeds).toBeGreaterThan(5);
+    },
+  );
 });

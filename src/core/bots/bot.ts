@@ -44,6 +44,8 @@ export interface Bot {
   world: World | null;
   nextDecisionTick: number;
   forceDecision: boolean;
+  /** Apertou o `action` nesta decisão (as próprias remotas contam como explodindo agora). */
+  detonating: boolean;
   /** Rota atual (índices de tile, do primeiro passo ao destino). */
   path: number[];
   pathStep: number;
@@ -64,6 +66,7 @@ export function createBot(playerId: number, config: BotConfig, seed: number): Bo
     world: null,
     nextDecisionTick: 0,
     forceDecision: false,
+    detonating: false,
     path: [],
     pathStep: 0,
     lastDir: null,
@@ -128,10 +131,16 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   computeDanger(world, bot.danger, { viewerId: player.id });
   // Remota: se vale detonar, planeja esta decisão como se as próprias remotas explodissem agora
   // (as chamas duram; a rota precisa desviar delas). Só detona se o tile atual ficar fora.
-  if (worthDetonating(world, player)) {
+  bot.detonating = false;
+  // Deslizando no gelo o bot não controla para onde vai: não detona agora.
+  if (player.iceSlide === null && worthDetonating(world, player)) {
     computeDanger(world, bot.danger, { viewerId: player.id, detonateOwn: true });
-    if (bot.danger.start[hi] === SAFE) out.push({ type: 'action', playerId: player.id });
-    else computeDanger(world, bot.danger, { viewerId: player.id });
+    if (bot.danger.start[hi] === SAFE) {
+      out.push({ type: 'action', playerId: player.id });
+      bot.detonating = true;
+    } else {
+      computeDanger(world, bot.danger, { viewerId: player.id });
+    }
   }
   searchPaths(world, bot.danger, moverOf(world, player), margin, bot.search);
 
@@ -200,7 +209,12 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
 /** Checa a fuga com a bomba hipotética; se houver (ou se o bot "errar"), solta e já foge. */
 function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Command[]): boolean {
   const mistake = bot.rng.next() < bot.config.level.mistakeChance;
-  computeDanger(world, bot.dangerWithBomb, { extra: bomb, viewerId: bot.playerId });
+  // Se acabou de apertar o `action`, as próprias remotas explodem agora também nesta checagem.
+  computeDanger(world, bot.dangerWithBomb, {
+    extra: bomb,
+    viewerId: bot.playerId,
+    detonateOwn: bot.detonating,
+  });
   searchPaths(
     world,
     bot.dangerWithBomb,

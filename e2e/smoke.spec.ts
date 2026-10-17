@@ -124,6 +124,19 @@ test('remota: a bomba espera; K detona e o botão de ação acende', async ({ pa
   expect(errors).toEqual([]);
 });
 
+for (const mapId of ['pantanal_01', 'tundra_01']) {
+  test(`fase ${mapId} carrega por ?map= sem erros`, async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto(`/?map=${mapId}&debug=1&seed=1`);
+    await expect.poll(() => debugValue(page, 'map')).toBe(mapId);
+    await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+      timeout: 6_000,
+    });
+    await page.waitForTimeout(1_000);
+    expect(errors).toEqual([]);
+  });
+}
+
 test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1&nivel=dificil');

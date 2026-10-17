@@ -1,5 +1,6 @@
 import { bombAt } from '../bombs';
 import { ABILITY_PASS_BLOCKS, playerSpeed } from '../items';
+import { DIRECTION_VECTORS, type Direction } from '../direction';
 import { BLOCK } from '../terrainIds';
 import type { Player, World } from '../world';
 import { SAFE, type DangerMap } from './dangerMap';
@@ -34,6 +35,8 @@ export interface Mover {
   y: number;
   speed: number;
   passBlocks: boolean;
+  /** Deslizando no gelo: o primeiro passo só pode seguir nessa direção. */
+  slide?: Direction | null;
 }
 
 export function moverOf(world: World, player: Player): Mover {
@@ -42,6 +45,7 @@ export function moverOf(world: World, player: Player): Mover {
     y: player.y,
     speed: playerSpeed(world, player),
     passBlocks: player.abilities.has(ABILITY_PASS_BLOCKS),
+    slide: player.iceSlide,
   };
 }
 
@@ -101,7 +105,13 @@ export function searchPaths(
 
   // Primeiro passo pela posição real: o bot pode já estar perto da borda (ou fora do eixo).
   const perTick = 1 / ticksPerTile(world, origin, from);
-  for (const [dx, dy] of NEIGHBORS) {
+  // Deslizando no gelo, não dá para virar agora: só segue na direção do deslize (se puder).
+  const slide = from.slide ? DIRECTION_VECTORS[from.slide] : null;
+  const firstSteps =
+    slide && isEnterable(world, from, ox + slide.dx, oy + slide.dy)
+      ? [[slide.dx, slide.dy] as const]
+      : NEIGHBORS;
+  for (const [dx, dy] of firstSteps) {
     const along = dx !== 0 ? (from.x - ox) * dx : (from.y - oy) * dy;
     const cross = dx !== 0 ? Math.abs(from.y - oy) : Math.abs(from.x - ox);
     const entry = Math.max(0, Math.ceil((0.5 - along + cross) / perTick - 1e-9));

@@ -7,6 +7,7 @@ import stringsJson from './strings.pt-BR.json';
 import terrainsJson from './terrains.json';
 import type { BotConfig } from '../core/bots/bot';
 import type { ItemDef } from '../core/items';
+import { checkMapLayout } from '../core/mapCheck';
 import { botConfigsFromData } from './rules';
 import {
   BotsSchema,
@@ -48,6 +49,14 @@ export const maps: ReadonlyMap<string, MapData> = new Map(
     return [map.id, map];
   }),
 );
+
+// Fase jogável: spawns, área segura e ligação (ver docs/specs/mapas-fase-1.md).
+for (const map of maps.values()) {
+  const errors = checkMapLayout(map, terrains, gameConfig.map.spawnSafeRadius);
+  if (errors.length > 0) {
+    throw new Error(`src/data/maps/${map.id}.json:\n- ${errors.join('\n- ')}`);
+  }
+}
 
 if (!maps.has(gameConfig.map.default)) {
   throw new Error(`src/data/game.json: map.default '${gameConfig.map.default}' não existe`);

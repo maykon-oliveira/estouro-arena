@@ -2,7 +2,11 @@
   "id": "arena_01",
   "bioma": "arena",
   "tamanho": [15, 13],
-  "legenda": { "#": "parede", ".": "chao", "P": "spawn" },
+  "legenda": {
+    "#": "parede",
+    ".": "chao",
+    "P": "spawn"
+  },
   "mapa": [
     "###############",
     "#P...........P#",
@@ -18,5 +22,17 @@
     "#P...........P#",
     "###############"
   ],
-  "blocos": { "densidade": 0.6 }
+  "blocos": {
+    "densidade": 0.6,
+    "itens": {
+      "bomba": 6,
+      "fogo": 6,
+      "patins": 3,
+      "chute": 2,
+      "remota": 1,
+      "perfurante": 1,
+      "atravessa_bloco": 1,
+      "fogo_max": 1
+    }
+  }
 }

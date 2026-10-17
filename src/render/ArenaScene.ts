@@ -60,6 +60,12 @@ function readSeed(): number {
   return Number.isInteger(seed) ? seed : randomSeed();
 }
 
+/** `?map=<id>` escolhe a fase até existir o menu de batalha; id desconhecido → padrão. */
+function readMapId(): string {
+  const id = new URLSearchParams(window.location.search).get('map');
+  return id !== null && maps.has(id) ? id : gameConfig.map.default;
+}
+
 /** `?bots=N` (1–3, padrão 3) até existir o menu de batalha. */
 function readBots(): number {
   const bots = Number(new URLSearchParams(window.location.search).get('bots') ?? 3);
@@ -122,8 +128,9 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   create(): void {
-    const map = maps.get(gameConfig.map.default);
-    if (!map) throw new Error(`Mapa não encontrado: ${gameConfig.map.default}`);
+    const mapId = readMapId();
+    const map = maps.get(mapId);
+    if (!map) throw new Error(`Mapa não encontrado: ${mapId}`);
 
     const seed = this.requestedSeed ?? readSeed();
     this.seed = seed;

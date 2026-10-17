@@ -162,6 +162,18 @@ describe('bots e terrenos', () => {
     expect(s.time[idx(world, 4, 1)]).not.toBe(UNREACHABLE);
   });
 
+  it('deslizando no gelo, a rota não vira no primeiro passo', () => {
+    const world = worldFrom(['#######', '#P***.#', '#.#.#.#', '#######']);
+    const d = createDangerMap(world.grid.tiles.length);
+    computeDanger(world, d);
+    const s = createPathSearch(world.grid.tiles.length);
+    // Sobre o gelo em (3,1), deslizando para a direita: (3,2) não é alcançável virando agora.
+    searchPaths(world, d, { ...at(3, 1), slide: 'right' }, 0, s);
+    expect(s.time[idx(world, 3, 2)]).toBe(UNREACHABLE);
+    searchPaths(world, d, at(3, 1), 0, s);
+    expect(s.time[idx(world, 3, 2)]).not.toBe(UNREACHABLE);
+  });
+
   it('não caça inimigo escondido no mato a mais de 1 tile', () => {
     const world = worldFrom(['########', '#P...."P#', '########'], 2);
     // O 1 fica no mato em (6,1); o 0 é o bot.
