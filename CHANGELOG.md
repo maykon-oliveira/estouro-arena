@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.4.0...v0.5.0) (2026-10-17)
+
+### Funcionalidades
+
+* **chute-e-remota:** Adiciona chute, bomba remota e botão de ação ([a27cedc](https://github.com/maykon-oliveira/estouro-arena/commit/a27cedcf098a116d531cba9cfafb7dd94b6a536d))
+
 ## [0.4.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.3.0...v0.4.0) (2026-10-17)
 
 ### Funcionalidades
