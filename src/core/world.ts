@@ -7,6 +7,7 @@ import { collectItems, hideItems, type ItemDef } from './items';
 import { kickBombs } from './kick';
 import { advanceJump, loseMount, useMountAbility, type Jump, type MountDef } from './mounts';
 import { movePlayer } from './movement';
+import type { Collapse } from './suddenDeath';
 import { createRng, type Rng } from './rng';
 
 /** Propriedades de terreno que a simulação consulta (subconjunto de src/data/terrains.json). */
@@ -105,6 +106,8 @@ export interface World {
   items: (string | null)[];
   /** Item escondido em cada bloco; aparece quando o bloco vira chão. */
   hiddenItems: (string | null)[];
+  /** Morte súbita: queda dos tiles em andamento (null antes de começar). */
+  collapse: Collapse | null;
   readonly itemDefs: ReadonlyMap<string, ItemDef>;
   readonly mountDefs: ReadonlyMap<string, MountDef>;
   readonly terrains: ReadonlyMap<string, TerrainRules>;
@@ -165,6 +168,7 @@ export function createWorld(options: WorldOptions): World {
     nextBombId: 0,
     items: new Array<string | null>(grid.tiles.length).fill(null),
     hiddenItems,
+    collapse: null,
     itemDefs,
     mountDefs: options.mounts ?? new Map<string, MountDef>(),
     terrains: options.terrains,
@@ -238,7 +242,7 @@ function killPlayersInFlames(world: World, out: GameEvent[]): void {
       }
       player.alive = false;
       player.moveDir = null;
-      out.push({ type: 'jogador.morreu', playerId: player.id });
+      out.push({ type: 'jogador.morreu', playerId: player.id, cause: 'fogo' });
     }
   }
 }

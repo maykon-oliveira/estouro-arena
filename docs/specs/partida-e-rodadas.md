@@ -5,7 +5,7 @@
 ## Regras
 
 - **Partida:** 1 jogador humano (id 0) + 1 a 3 bots (ids 1–3), escolhidos no menu (até lá, `?bots=N`, padrão 3, limitado pelos spawns do mapa). Cada jogador nasce num spawn, na ordem de `grid.spawns`. Os bots são controlados pelos [bots](bots.md) (passo 2); `?ia=0` os deixa parados.
-- **Melhor de 3:** vence a partida quem chegar a `match.winsToWin` (2) vitórias de rodada. Empates não contam e não têm limite (a morte súbita garante que a rodada termina).
+- **Melhor de 3:** vence a partida quem chegar a `match.winsToWin` (2) vitórias de rodada. Empates não contam e não têm limite (a [morte súbita](morte-subita.md) faz a rodada terminar).
 - **Rodada:**
   1. **Contagem** (`match.countdownMs`, 3 s): grade nova, jogadores no spawn, mundo parado (não roda `step`), relógio parado. `bomb` é ignorado; `move` só registra a direção segurada, que passa a valer no "Já!" — assim quem já segura uma direção sai andando sem precisar soltar e apertar de novo.
   2. **Jogo:** relógio de `match.roundMs` (120 s) descendo. Nos últimos `suddenDeath.durationMs` começa a [morte súbita](morte-subita.md).

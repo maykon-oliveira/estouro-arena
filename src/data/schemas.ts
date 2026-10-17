@@ -67,6 +67,10 @@ export const GameConfigSchema = z
       /** Espera depois de sobrar ≤ 1 vivo, antes de dar a rodada (quem morrer nela empata). */
       roundEndDelayMs: z.number().positive(),
     }),
+    suddenDeath: z.strictObject({
+      /** Últimos ms da rodada em que os tiles caem em espiral (0 = desligada). */
+      durationMs: z.number().min(0),
+    }),
     mount: z.strictObject({
       /** Invulnerabilidade depois de perder a montaria (para a mesma explosão não matar). */
       invulnerableMs: z.number().min(0),
@@ -74,6 +78,8 @@ export const GameConfigSchema = z
     hud: z.strictObject({
       /** Quanto tempo o "Já!" fica na tela depois da contagem. */
       goBannerMs: z.number().min(0),
+      /** Quanto tempo o aviso "Morte súbita!" fica na tela. */
+      suddenDeathBannerMs: z.number().min(0),
     }),
     bomb: z.strictObject({
       fuseMs: z.number().positive(),
@@ -294,6 +300,8 @@ const Chance = z.number().min(0).max(1);
 export const BotsSchema = z.strictObject({
   /** Folga, dos dois lados do perigo previsto, que as rotas dos bots respeitam. */
   escapeMarginMs: z.number().min(0),
+  /** Morte súbita: quantos ms à frente o bot enxerga a queda dos tiles. */
+  collapseHorizonMs: z.number().min(0),
   levels: z.record(
     ContentId,
     z.strictObject({

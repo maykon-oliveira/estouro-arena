@@ -8,7 +8,11 @@ export type GameEvent =
   | { type: 'bomba.explodiu'; bombId: number; x: number; y: number; tiles: Point[] }
   /** Emitido quando o bloco termina de queimar e vira chão. */
   | { type: 'bloco.destruido'; x: number; y: number }
-  | { type: 'jogador.morreu'; playerId: number }
+  /** `cause`: chama (`fogo`) ou tile da morte súbita caindo em cima (`esmagado`). */
+  | { type: 'jogador.morreu'; playerId: number; cause: 'fogo' | 'esmagado' }
+  /** Começou a morte súbita: tiles caem em espiral até o relógio zerar. */
+  | { type: 'morte_subita.iniciou'; round: number }
+  | { type: 'morte_subita.bloco_caiu'; x: number; y: number }
   | { type: 'bomba.chutada'; bombId: number; playerId: number; dir: Direction }
   /** Bomba chutada parou no centro de um tile. */
   | { type: 'bomba.parou'; bombId: number; x: number; y: number }
@@ -40,6 +44,8 @@ export const GAME_EVENT_TYPES = [
   'bomba.explodiu',
   'bloco.destruido',
   'jogador.morreu',
+  'morte_subita.iniciou',
+  'morte_subita.bloco_caiu',
   'montaria.montou',
   'montaria.perdida',
   'montaria.acao',

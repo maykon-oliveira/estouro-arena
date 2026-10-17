@@ -181,7 +181,9 @@ describe('morte', () => {
     dropBomb(world);
     const events = run(world, 9);
     expect(player(world).alive).toBe(false);
-    expect(ofType(events, 'jogador.morreu')).toEqual([{ type: 'jogador.morreu', playerId: 0 }]);
+    expect(ofType(events, 'jogador.morreu')).toEqual([
+      { type: 'jogador.morreu', playerId: 0, cause: 'fogo' },
+    ]);
   });
 
   it('jogador fora da cruz sobrevive', () => {

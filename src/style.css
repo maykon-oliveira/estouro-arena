@@ -214,6 +214,22 @@ body {
   background: rgb(0 0 0 / 55%);
 }
 
+/* Morte súbita: relógio vermelho pulsando. */
+.match-hud[data-sudden='1'] .hud-clock {
+  color: #ff5252;
+  animation: hud-pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes hud-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.12);
+  }
+}
+
 .hud-score {
   padding: 2px 8px;
   border-radius: 8px;

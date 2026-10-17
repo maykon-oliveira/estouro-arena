@@ -7,6 +7,7 @@
   "round.go": "Já!",
   "round.win": "{player} venceu a rodada!",
   "round.draw": "Empate!",
+  "round.sudden_death": "Morte súbita!",
   "match.win": "{player} venceu a partida!",
   "match.restart": "Toque para jogar de novo",
   "player.color.0": "Vermelho",

@@ -12,7 +12,8 @@
     "roundEndDelayMs": 2000
   },
   "hud": {
-    "goBannerMs": 800
+    "goBannerMs": 800,
+    "suddenDeathBannerMs": 1500
   },
   "bomb": {
     "fuseMs": 2500,
@@ -58,5 +59,8 @@
   },
   "mount": {
     "invulnerableMs": 1000
+  },
+  "suddenDeath": {
+    "durationMs": 30000
   }
 }

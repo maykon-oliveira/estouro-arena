@@ -24,6 +24,8 @@ export interface DangerOptions {
   viewerId?: number;
   /** Trata as próprias remotas como explodindo agora (o bot vai apertar o `action`). */
   detonateOwn?: boolean;
+  /** Morte súbita: tiles que caem dentro deste horizonte viram perigo desde a queda, sem fim. */
+  collapseHorizonTicks?: number;
 }
 
 /**
@@ -33,7 +35,7 @@ export interface DangerOptions {
 export function computeDanger(
   world: World,
   danger: DangerMap,
-  { extra, viewerId, detonateOwn = false }: DangerOptions = {},
+  { extra, viewerId, detonateOwn = false, collapseHorizonTicks = 0 }: DangerOptions = {},
 ): void {
   const { start, end } = danger;
   start.fill(SAFE);
@@ -43,6 +45,17 @@ export function computeDanger(
   world.flames.forEach((left, i) => {
     if (left > 0) mark(danger, i, 0, left);
   });
+
+  // Tiles que vão cair (morte súbita): a partir da queda, perigo para sempre.
+  const collapse = world.collapse;
+  if (collapse) {
+    for (let k = collapse.next; k < collapse.order.length; k++) {
+      const tile = collapse.order[k] ?? -1;
+      const inTicks = (collapse.dropAt[tile] ?? SAFE) - world.tick;
+      if (inTicks > collapseHorizonTicks) break;
+      mark(danger, tile, Math.max(0, inTicks), SAFE);
+    }
+  }
 
   const bombs = extra ? [...world.bombs, extra] : world.bombs;
   if (bombs.length === 0) return;

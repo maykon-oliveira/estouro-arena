@@ -4,6 +4,7 @@ import type { Direction } from './direction';
 import type { MapDefinition } from './grid';
 import type { ItemDef } from './items';
 import type { MountDef } from './mounts';
+import { advanceCollapse, startCollapse } from './suddenDeath';
 import { createWorld, step, type Rules, type TerrainRules, type World } from './world';
 
 /** Regras da partida vindas de src/data/game.json (durações já em ticks). */
@@ -16,6 +17,8 @@ export interface MatchRules {
   countdownTicks: number;
   /** Espera depois de sobrar ≤ 1 vivo, antes de dar a rodada. */
   roundEndDelayTicks: number;
+  /** Morte súbita nos últimos ticks do relógio (0 = desligada). */
+  suddenDeathTicks: number;
 }
 
 export type MatchPhase = 'countdown' | 'playing' | 'ending' | 'over';
@@ -108,6 +111,7 @@ export function stepMatch(
 
   step(match.world, commands, out);
   match.clockTicks = Math.max(0, match.clockTicks - 1);
+  updateSuddenDeath(match, out);
   const alive = match.world.players.filter((p) => p.alive);
 
   if (match.phase === 'playing') {
@@ -125,6 +129,23 @@ export function stepMatch(
   if (match.phaseTicks <= 0)
     endRound(match, alive.length === 1 ? (alive[0]?.id ?? null) : null, out);
   return out;
+}
+
+/** Começa a morte súbita quando o relógio chega ao limite e derruba os tiles da vez. */
+function updateSuddenDeath(match: Match, out: GameEvent[]): void {
+  const { suddenDeathTicks } = match.options.matchRules;
+  const { world } = match;
+  if (
+    !world.collapse &&
+    suddenDeathTicks > 0 &&
+    match.clockTicks > 0 &&
+    match.clockTicks <= suddenDeathTicks
+  ) {
+    // Dura o que falta no relógio: a espiral termina quando ele zera.
+    startCollapse(world, match.clockTicks);
+    out.push({ type: 'morte_subita.iniciou', round: match.round });
+  }
+  advanceCollapse(world, out);
 }
 
 function startPlaying(match: Match, out: GameEvent[]): void {

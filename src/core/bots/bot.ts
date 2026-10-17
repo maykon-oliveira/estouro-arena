@@ -8,7 +8,13 @@ import { canStand } from '../mounts';
 import type { Match } from '../match';
 import { createRng, type Rng } from '../rng';
 import type { Bomb, Player, World } from '../world';
-import { computeDanger, createDangerMap, SAFE, type DangerMap } from './dangerMap';
+import {
+  computeDanger,
+  createDangerMap,
+  SAFE,
+  type DangerMap,
+  type DangerOptions,
+} from './dangerMap';
 import {
   createPathSearch,
   moverOf,
@@ -35,6 +41,8 @@ export interface BotConfig {
   level: BotLevel;
   /** Folga, dos dois lados do perigo previsto, que as rotas respeitam. */
   escapeMarginTicks: number;
+  /** Morte súbita: quantos ticks à frente o bot enxerga a queda dos tiles. */
+  collapseHorizonTicks?: number;
 }
 
 /** Cérebro de um bot: só lê o mundo e gera comandos para o próprio jogador. */
@@ -132,18 +140,18 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   const hi = here.y * cols + here.x;
   const margin = bot.config.escapeMarginTicks;
 
-  computeDanger(world, bot.danger, { viewerId: player.id });
+  computeDanger(world, bot.danger, view(bot, player));
   // Remota: se vale detonar, planeja esta decisão como se as próprias remotas explodissem agora
   // (as chamas duram; a rota precisa desviar delas). Só detona se o tile atual ficar fora.
   bot.detonating = false;
   // Deslizando no gelo o bot não controla para onde vai: não detona agora.
   if (player.iceSlide === null && worthDetonating(world, player)) {
-    computeDanger(world, bot.danger, { viewerId: player.id, detonateOwn: true });
+    computeDanger(world, bot.danger, { ...view(bot, player), detonateOwn: true });
     if (bot.danger.start[hi] === SAFE) {
       out.push({ type: 'action', playerId: player.id });
       bot.detonating = true;
     } else {
-      computeDanger(world, bot.danger, { viewerId: player.id });
+      computeDanger(world, bot.danger, view(bot, player));
     }
   }
   searchPaths(world, bot.danger, moverOf(world, player), margin, bot.search);
@@ -177,6 +185,9 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   if (cross && cross.tiles.some((t) => enemyAt(world, player, t))) {
     if (tryBomb(bot, world, player, hypothetical, out)) return;
   }
+
+  // Morte súbita: sai da borda que vai cair antes de pensar em item, bloco ou caça.
+  if (retreat(bot, world, hi)) return;
 
   // 3/4/5. Item, abrir caminho ou caçar (a agressividade decide se caça primeiro).
   const huntFirst = bot.rng.next() < bot.config.level.aggression;
@@ -216,8 +227,8 @@ function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Comman
   const mistake = bot.rng.next() < bot.config.level.mistakeChance;
   // Se acabou de apertar o `action`, as próprias remotas explodem agora também nesta checagem.
   computeDanger(world, bot.dangerWithBomb, {
+    ...view(bot, player),
     extra: bomb,
-    viewerId: bot.playerId,
     detonateOwn: bot.detonating,
   });
   searchPaths(
@@ -232,6 +243,38 @@ function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Comman
 
   out.push({ type: 'bomb', playerId: bot.playerId });
   follow(bot, bot.searchWithBomb, escape);
+  return true;
+}
+
+/** O que o bot enxerga no mapa de perigo: quem é ele e o horizonte da morte súbita. */
+function view(bot: Bot, player: Player): DangerOptions {
+  return { viewerId: player.id, collapseHorizonTicks: bot.config.collapseHorizonTicks ?? 0 };
+}
+
+/**
+ * Morte súbita: se o tile do bot cai logo (menos de 2 × o horizonte), vai para o tile seguro
+ * alcançável que cai mais tarde (rumo ao centro).
+ */
+function retreat(bot: Bot, world: World, hi: number): boolean {
+  const collapse = world.collapse;
+  const horizon = bot.config.collapseHorizonTicks ?? 0;
+  if (!collapse || horizon === 0) return false;
+  const dropHere = (collapse.dropAt[hi] ?? SAFE) - world.tick;
+  if (dropHere >= 2 * horizon) return false;
+  let goal = -1;
+  let latest = dropHere;
+  for (let i = 0; i < bot.search.time.length; i++) {
+    if ((bot.search.time[i] ?? UNREACHABLE) === UNREACHABLE || bot.danger.start[i] !== SAFE)
+      continue;
+    if (isSlipperyTile(world, i)) continue;
+    const drop = (collapse.dropAt[i] ?? SAFE) - world.tick;
+    if (drop > latest) {
+      latest = drop;
+      goal = i;
+    }
+  }
+  if (goal === -1) return false;
+  follow(bot, bot.search, goal);
   return true;
 }
 

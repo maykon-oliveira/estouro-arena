@@ -69,6 +69,6 @@ Arquivos: [`tests/core/bots.test.ts`](../../tests/core/bots.test.ts), [`tests/da
 ## Pendências
 
 - Gelo e remota: o primeiro passo da rota respeita o deslize; a checagem de fuga conta as remotas detonadas na mesma decisão; não detona deslizando (achados no passo 6, [mapas](mapas-fase-1.md)).
-- Calibrar os números dos níveis jogando. Simulação (6 seeds, 4 bots iguais): muitas rodadas ainda terminam empatadas por tempo, sobretudo no `facil` — a [morte súbita](morte-subita.md) (passo 8) deve resolver; revisar a agressividade depois dela.
+- Calibrar os números dos níveis jogando. Com a [morte súbita](morte-subita.md), as partidas entre bots passaram a terminar (10–12 de 12 na simulação); o `facil` ainda empata mais.
 - Rotas não esperam no lugar (o Dijkstra não modela "esperar a chama apagar"); o bot só passa por um tile já em chama se chegar depois que ela apagar.
 - Bots com itens especiais (chute, remota), terrenos, montarias e fantasma: seção "Bots" de cada spec.

@@ -32,17 +32,20 @@ export function matchRulesFromConfig(cfg: GameConfig): MatchRules {
     roundTicks: msToTicks(cfg.match.roundMs, cfg.tickRate),
     countdownTicks: msToTicks(cfg.match.countdownMs, cfg.tickRate),
     roundEndDelayTicks: msToTicks(cfg.match.roundEndDelayMs, cfg.tickRate),
+    suddenDeathTicks: msToTicks(cfg.suddenDeath.durationMs, cfg.tickRate),
   };
 }
 
 /** Nível de bot por id (`facil`, `medio`, `dificil`), com durações em ticks. */
 export function botConfigsFromData(data: BotsData, tickRate: number): Map<string, BotConfig> {
   const escapeMarginTicks = msToTicks(data.escapeMarginMs, tickRate);
+  const collapseHorizonTicks = msToTicks(data.collapseHorizonMs, tickRate);
   return new Map(
     Object.entries(data.levels).map(([id, level]) => [
       id,
       {
         escapeMarginTicks,
+        collapseHorizonTicks,
         level: {
           reactionTicks: Math.max(1, msToTicks(level.reactionMs, tickRate)),
           mistakeChance: level.mistakeChance,

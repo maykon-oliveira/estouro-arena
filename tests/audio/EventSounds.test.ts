@@ -9,7 +9,7 @@ describe('EventSounds', () => {
     const sounds = new EventSounds(audio, { 'bomba.explodiu': 'sfx_boom' });
     sounds.handle([
       { type: 'bomba.explodiu', bombId: 0, x: 1, y: 1, tiles: [] },
-      { type: 'jogador.morreu', playerId: 0 },
+      { type: 'jogador.morreu', playerId: 0, cause: 'fogo' },
     ]);
     expect(played).toEqual(['sfx_boom']);
   });

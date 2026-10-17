@@ -157,6 +157,19 @@ test('montaria: ovo de sapo acende o botão de ação e K pula 2 tiles', async (
   expect(errors).toEqual([]);
 });
 
+test('morte súbita: com a rodada curta, aparece o aviso e o relógio fica vermelho', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  // Rodada de 32 s: a morte súbita (30 s) começa 2 s depois do "Já!".
+  await page.goto('/?seed=0&ia=0&roundMs=32000');
+  const hud = page.locator('.match-hud');
+  await expect(hud).toHaveAttribute('data-phase', 'playing', { timeout: 6_000 });
+  await expect(hud).toHaveAttribute('data-sudden', '1', { timeout: 5_000 });
+  await expect(page.locator('.hud-banner-text')).toHaveText('Morte súbita!');
+  expect(errors).toEqual([]);
+});
+
 test('bots: com o jogador parado, os adversários quebram blocos sozinhos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=0&debug=1&nivel=dificil');

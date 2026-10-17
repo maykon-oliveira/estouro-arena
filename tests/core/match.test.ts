@@ -10,6 +10,7 @@ const matchRules: MatchRules = {
   roundTicks: 100,
   countdownTicks: 5,
   roundEndDelayTicks: 4,
+  suddenDeathTicks: 0, // sem morte súbita (testada em suddenDeath.test.ts)
 };
 
 /** 4 spawns nos cantos; `densidade` > 0 para as rodadas terem grades diferentes. */
@@ -190,7 +191,9 @@ describe('partida: fim de rodada', () => {
     // O jogador 0 solta bomba no próprio spawn (canto, sem fugir) e o 1, longe da cruz, vence.
     runMatch(match, 1, [{ type: 'bomb', playerId: 0 }]);
     const events = runMatch(match, testRules.fuseTicks + 1 + 4);
-    expect(ofType(events, 'jogador.morreu')).toEqual([{ type: 'jogador.morreu', playerId: 0 }]);
+    expect(ofType(events, 'jogador.morreu')).toEqual([
+      { type: 'jogador.morreu', playerId: 0, cause: 'fogo' },
+    ]);
     expect(ofType(events, 'rodada.terminou')[0]?.winnerId).toBe(1);
   });
 });

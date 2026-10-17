@@ -6,7 +6,8 @@ import { createBot, runBots, type Bot } from '../core/bots/bot';
 import { DIRECTION_VECTORS } from '../core/direction';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
 import { countSpawns } from '../core/grid';
-import { BLOCK } from '../core/terrainIds';
+import { BLOCK, WALL } from '../core/terrainIds';
+import { msToTicks } from '../core/time';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
 import { botConfigs, gameConfig, items, maps, mounts, sounds, terrains } from '../data';
@@ -74,6 +75,12 @@ function readSeed(): number {
 function readMapId(): string {
   const id = new URLSearchParams(window.location.search).get('map');
   return id !== null && maps.has(id) ? id : gameConfig.map.default;
+}
+
+/** `?roundMs=N` encurta a rodada (testes e depuração da morte súbita); inválido → game.json. */
+function readRoundMs(): number | null {
+  const ms = Number(new URLSearchParams(window.location.search).get('roundMs'));
+  return Number.isFinite(ms) && ms >= 1000 ? ms : null;
 }
 
 /** `?bots=N` (1–3, padrão 3) até existir o menu de batalha. */
@@ -153,7 +160,12 @@ export class ArenaScene extends Phaser.Scene {
         map,
         terrains,
         rules: rulesFromConfig(gameConfig),
-        matchRules: matchRulesFromConfig(gameConfig),
+        matchRules: {
+          ...matchRulesFromConfig(gameConfig),
+          ...(readRoundMs() === null
+            ? {}
+            : { roundTicks: msToTicks(readRoundMs() ?? 0, gameConfig.tickRate) }),
+        },
         seed,
         items,
         defaultItems: gameConfig.items.defaultDistribution,
@@ -261,6 +273,7 @@ export class ArenaScene extends Phaser.Scene {
       if (
         e.type === 'bloco.destruido' ||
         e.type === 'terreno.queimou' ||
+        e.type === 'morte_subita.bloco_caiu' ||
         e.type === 'rodada.contagem'
       ) {
         gridChanged = true;
@@ -367,6 +380,7 @@ export class ArenaScene extends Phaser.Scene {
 
     g.fillStyle(SPAWN_COLOR, 0.35);
     for (const s of spawns) {
+      if (tiles[s.y * cols + s.x] === WALL) continue; // caiu na morte súbita
       const pos = this.toScreen(s.x, s.y);
       g.fillCircle(pos.x, pos.y, TILE / 4);
     }
@@ -393,6 +407,22 @@ export class ArenaScene extends Phaser.Scene {
         TILE / 2 - inset,
       );
     });
+
+    // Morte súbita: os próximos tiles a cair piscam em vermelho.
+    const collapse = this.world.collapse;
+    if (collapse) {
+      const blink = 0.25 + 0.2 * Math.sin(this.world.tick * 0.4);
+      g.fillStyle(0xff1744, blink);
+      for (let k = collapse.next; k < Math.min(collapse.next + 3, collapse.order.length); k++) {
+        const tile = collapse.order[k] ?? 0;
+        g.fillRect(
+          this.origin.x + (tile % cols) * TILE,
+          this.origin.y + Math.floor(tile / cols) * TILE,
+          TILE,
+          TILE,
+        );
+      }
+    }
 
     this.world.items.forEach((itemId, i) => {
       if (itemId === null) return;

@@ -18,6 +18,8 @@ export class MatchHud {
   private lastResult = '';
   /** Até quando o "Já!" fica na tela. */
   private goUntil = 0;
+  /** Até quando o "Morte súbita!" fica na tela. */
+  private suddenUntil = 0;
   private matchResult = '';
   /** Último valor escrito em cada elemento, para não tocar no DOM à toa. */
   private readonly written = new Map<HTMLElement, string>();
@@ -63,6 +65,8 @@ export class MatchHud {
       if (e.type === 'rodada.iniciou') {
         this.lastResult = '';
         this.goUntil = nowMs + gameConfig.hud.goBannerMs;
+      } else if (e.type === 'morte_subita.iniciou') {
+        this.suddenUntil = nowMs + gameConfig.hud.suddenDeathBannerMs;
       } else if (e.type === 'rodada.terminou') {
         this.lastResult = roundEndText(e.winnerId);
       } else if (e.type === 'partida.terminou') {
@@ -76,6 +80,7 @@ export class MatchHud {
     const { tickRate } = match.world.rules;
     this.setData('phase', match.phase);
     this.setData('round', match.round.toString());
+    this.setData('sudden', match.world.collapse ? '1' : '0');
     this.write(this.clock, formatClock(match.clockTicks, tickRate));
 
     const { winsToWin } = match.options.matchRules;
@@ -95,6 +100,8 @@ export class MatchHud {
       note = this.lastResult;
       text = this.matchResult;
       sub = t('match.restart');
+    } else if (nowMs < this.suddenUntil) {
+      text = t('round.sudden_death');
     } else if (nowMs < this.goUntil) {
       text = t('round.go');
     }

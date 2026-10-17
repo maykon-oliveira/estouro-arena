@@ -72,7 +72,9 @@ describe('ovos e escudo', () => {
     const events = dropBomb(world);
     events.push(...run(world, testRules.fuseTicks + 10));
     expect(ofType(events, 'montaria.perdida')).toHaveLength(1);
-    expect(ofType(events, 'jogador.morreu')).toEqual([{ type: 'jogador.morreu', playerId: 0 }]);
+    expect(ofType(events, 'jogador.morreu')).toEqual([
+      { type: 'jogador.morreu', playerId: 0, cause: 'fogo' },
+    ]);
   });
 });
 
