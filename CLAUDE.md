@@ -96,7 +96,7 @@ Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 - Layout pensado para paisagem; em retrato, mostrar aviso "gire o aparelho".
 - Phaser com `scale.mode = FIT`, `pixelArt: true`.
 - HUD respeita `env(safe-area-inset-*)`.
-- Joystick virtual flutuante na metade esquerda; botão de bomba (≥ 72 px) e botão de ação à direita.
+- Joystick virtual flutuante na metade esquerda; botão de bomba (≥ 72 px) à direita, com os botões pequenos (remota, montaria, especial) em volta, cada um só quando o jogador tem aquilo.
 - Pausar em `visibilitychange`.
 - Meta: 60 fps em Android intermediário. Evite alocar objetos por frame (use pools).
 
@@ -158,6 +158,6 @@ Dart or C# API attributed to DiceBear is invented rather than outdated.
 
 ## Fase atual
 
-**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md). Passo 1 (personagens e passivas) feito.
+**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md). Passo 1 (personagens e passivas) feito; passo 2 (energia e especiais) com a parte (a) feita.
 Portão para a Fase 3: 60 fps num Android intermediário.
 Fase 0 (Fundação) concluída em 2026-10-17 (tag `fase-0`); Fase 1 (MVP: Batalha) concluída em 2026-10-18 (tag `fase-1`): amigos jogaram 10 partidas seguidas sem bug grave. Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md).

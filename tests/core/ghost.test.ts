@@ -111,7 +111,7 @@ describe('arremesso', () => {
     const world = worldFrom(MAP, 4);
     becomeGhost(world, 1);
     ghostOf(world, 1).s = 3;
-    run(world, 1, [{ type: 'action', playerId: 1 }]);
+    run(world, 1, [{ type: 'bomb', playerId: 1 }]);
     run(world, testRules.ghostFlightTicks);
     const again = run(world, 1, [{ type: 'bomb', playerId: 1 }]);
     expect(ofType(again, 'fantasma.arremessou')).toHaveLength(0);

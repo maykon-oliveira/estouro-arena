@@ -13,9 +13,21 @@ export interface BombCommand {
   playerId: number;
 }
 
-/** Botão de ação: detona a bomba remota mais antiga (depois, habilidade da montaria). */
-export interface ActionCommand {
-  type: 'action';
+/** Detona a bomba remota mais antiga do jogador. */
+export interface RemoteCommand {
+  type: 'remote';
+  playerId: number;
+}
+
+/** Habilidade da montaria (pulo do sapo). */
+export interface MountCommand {
+  type: 'mount';
+  playerId: number;
+}
+
+/** Especial do personagem (com a barra de energia cheia). */
+export interface SpecialCommand {
+  type: 'special';
   playerId: number;
 }
 
@@ -26,5 +38,18 @@ export interface DebugItemCommand {
   itemId: string;
 }
 
+/** Painel de debug (`?debug=1`): enche a barra de energia do jogador. */
+export interface DebugEnergyCommand {
+  type: 'debugEnergy';
+  playerId: number;
+}
+
 /** Tudo que a entrada (teclado, joystick, bot, rede, debug) pode pedir à simulação. */
-export type Command = MoveCommand | BombCommand | ActionCommand | DebugItemCommand;
+export type Command =
+  | MoveCommand
+  | BombCommand
+  | RemoteCommand
+  | MountCommand
+  | SpecialCommand
+  | DebugItemCommand
+  | DebugEnergyCommand;

@@ -1,5 +1,6 @@
 import type { TerrainOverride } from './mounts';
 import { createRng } from './rng';
+import type { SpecialDef } from './specials';
 import type { Player, Rules } from './world';
 
 /** Passiva do personagem (src/data/characters.json): só dados, aplicados ao nascer. */
@@ -21,6 +22,8 @@ export interface CharacterPassive {
 export interface CharacterDef {
   id: string;
   passive: CharacterPassive;
+  /** Especial (barra de energia cheia); ausente = sem especial ainda. */
+  special?: SpecialDef;
 }
 
 /** Aplica a passiva no jogador recém-criado, respeitando os limites dos power-ups. */

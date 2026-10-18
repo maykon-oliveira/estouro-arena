@@ -11,10 +11,18 @@ export interface PressSource {
   take(): boolean;
 }
 
+/** Fontes dos botões pequenos: remota, montaria e especial. */
+export interface ActionSources {
+  remote?: readonly PressSource[];
+  mount?: readonly PressSource[];
+  special?: readonly PressSource[];
+}
+
 /**
  * Junta as fontes de entrada de um jogador (joystick, teclado, gamepad) e gera comandos.
  * Direção: a primeira fonte com direção vence; só emite `move` quando muda.
- * Bomba e ação: qualquer fonte com pedido pendente gera um `bomb` / um `action` (nessa ordem).
+ * Botões: qualquer fonte com pedido pendente gera um comando, nesta ordem: `bomb`, `remote`,
+ * `mount`, `special`.
  */
 export class PlayerInput {
   private lastSent: Direction | null = null;
@@ -23,7 +31,7 @@ export class PlayerInput {
     private readonly playerId: number,
     private readonly directions: readonly DirectionSource[],
     private readonly bombs: readonly PressSource[] = [],
-    private readonly actions: readonly PressSource[] = [],
+    private readonly actions: ActionSources = {},
   ) {}
 
   poll(out: Command[]): void {
@@ -37,8 +45,11 @@ export class PlayerInput {
       out.push({ type: 'move', playerId: this.playerId, dir });
     }
 
-    if (takeAny(this.bombs)) out.push({ type: 'bomb', playerId: this.playerId });
-    if (takeAny(this.actions)) out.push({ type: 'action', playerId: this.playerId });
+    const playerId = this.playerId;
+    if (takeAny(this.bombs)) out.push({ type: 'bomb', playerId });
+    if (takeAny(this.actions.remote ?? [])) out.push({ type: 'remote', playerId });
+    if (takeAny(this.actions.mount ?? [])) out.push({ type: 'mount', playerId });
+    if (takeAny(this.actions.special ?? [])) out.push({ type: 'special', playerId });
   }
 }
 
@@ -49,7 +60,7 @@ function takeAny(sources: readonly PressSource[]): boolean {
   return any;
 }
 
-/** Pedido pendente (bomba ou ação), preenchido por eventos do DOM. */
+/** Pedido pendente (bomba ou botão pequeno), preenchido por eventos do DOM. */
 export class PressTrigger implements PressSource {
   private pending = false;
 

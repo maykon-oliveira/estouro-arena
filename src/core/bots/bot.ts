@@ -6,6 +6,8 @@ import { DIRECTION_VECTORS } from '../direction';
 import { ringPoint, ringPosition, throwTarget, type Ghost } from '../ghost';
 import { ABILITY_PIERCE, playerSpeed } from '../items';
 import { canStand } from '../mounts';
+import { dashReach, specialOf, teleportLanding } from '../specials';
+import { BLOCK } from '../terrainIds';
 import type { Match } from '../match';
 import { createRng, type Rng } from '../rng';
 import type { Bomb, Player, World } from '../world';
@@ -55,7 +57,7 @@ export interface Bot {
   world: World | null;
   nextDecisionTick: number;
   forceDecision: boolean;
-  /** Apertou o `action` nesta decisão (as próprias remotas contam como explodindo agora). */
+  /** Detonou a remota nesta decisão (as próprias remotas contam como explodindo agora). */
   detonating: boolean;
   /** Fantasma: direção escolhida na última decisão. */
   ghostDir: Direction | null;
@@ -110,8 +112,8 @@ export function updateBot(bot: Bot, world: World, out: Command[]): void {
     if (player.ghost) ghostBrain(bot, world, player, out);
     return;
   }
-  // No ar (pulo do sapo) não há o que decidir nem para onde andar.
-  if (player.jump) return;
+  // No ar (pulo do sapo) ou em disparada não há o que decidir nem para onde andar.
+  if (player.jump || player.dash) return;
 
   if (bot.forceDecision || world.tick >= bot.nextDecisionTick) {
     bot.forceDecision = false;
@@ -157,7 +159,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
   if (player.iceSlide === null && worthDetonating(world, player)) {
     computeDanger(world, bot.danger, { ...view(bot, player), detonateOwn: true });
     if (bot.danger.start[hi] === SAFE) {
-      out.push({ type: 'action', playerId: player.id });
+      out.push({ type: 'remote', playerId: player.id });
       bot.detonating = true;
     } else {
       computeDanger(world, bot.danger, view(bot, player));
@@ -170,11 +172,15 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
     const safe = (i: number): boolean => bot.danger.start[i] === SAFE;
     let goal = currentGoal(bot, (i) => safe(i));
     if (goal === -1) goal = nearest(world, bot.search, safe);
+    if (goal === -1 && teleportToSafety(bot, world, player, out)) return;
     if (goal === -1 && jumpToSafety(bot, world, player, out)) return;
     if (goal === -1) goal = latestDanger(world, bot.search, bot.danger);
     follow(bot, bot.search, goal);
     return;
   }
+
+  // Especial com a barra cheia (Boto encanta e segue; Mula dispara e espera chegar).
+  if (useSpecialOpportunity(bot, world, player, out)) return;
 
   const hypothetical: Bomb = {
     id: -1,
@@ -234,7 +240,7 @@ function decide(bot: Bot, world: World, player: Player, out: Command[]): void {
 /** Checa a fuga com a bomba hipotética; se houver (ou se o bot "errar"), solta e já foge. */
 function tryBomb(bot: Bot, world: World, player: Player, bomb: Bomb, out: Command[]): boolean {
   const mistake = bot.rng.next() < bot.config.level.mistakeChance;
-  // Se acabou de apertar o `action`, as próprias remotas explodem agora também nesta checagem.
+  // Se acabou de detonar a remota, as próprias remotas explodem agora também nesta checagem.
   computeDanger(world, bot.dangerWithBomb, {
     ...view(bot, player),
     extra: bomb,
@@ -287,7 +293,7 @@ function retreat(bot: Bot, world: World, hi: number): boolean {
   return true;
 }
 
-/** Remota: vale detonar a mais antiga (a que o `action` detona) se ela pega inimigo ou bloco. */
+/** Remota: vale detonar a mais antiga (a que o `remote` detona) se ela pega inimigo ou bloco. */
 function worthDetonating(world: World, player: Player): boolean {
   let oldest: Bomb | undefined;
   for (const b of world.bombs) {
@@ -393,20 +399,76 @@ function wants(world: World, player: Player, itemId: string | null): boolean {
   return !(world.itemDefs.get(itemId)?.effect === 'mount' && player.mount !== null);
 }
 
+/** Barra cheia e o especial é do tipo pedido? */
+function specialReady(world: World, player: Player, type: string): boolean {
+  return player.energy >= world.rules.energyMax && specialOf(world, player)?.type === type;
+}
+
+/** Sem saída a pé: o Saci com a barra cheia teleporta se o pouso à frente for seguro. */
+function teleportToSafety(bot: Bot, world: World, player: Player, out: Command[]): boolean {
+  const def = specialOf(world, player);
+  if (def?.type !== 'teleport' || !specialReady(world, player, 'teleport')) return false;
+  const landing = teleportLanding(world, player, def.tiles);
+  if (!landing || bot.danger.start[landing.y * world.grid.cols + landing.x] !== SAFE) return false;
+  out.push({ type: 'special', playerId: player.id });
+  bot.path.length = 0;
+  return true;
+}
+
+/** Até onde o Boto encanta e a Mula olha à frente procurando bloco (tiles). */
+const SPECIAL_REACH = 4;
+
 /**
- * Sem saída a pé: montado no sapo, com o pulo pronto e sem remota no mapa (o `action`
- * detonaria a remota), pula se o pouso na direção em que está virado for seguro.
+ * Fora de perigo, com a barra cheia: o Boto encanta o rival mais próximo se ele estiver a até
+ * 4 tiles (e segue a decisão); a Mula dispara se há bloco no caminho à frente e todo o
+ * percurso é seguro (e para de decidir até chegar).
+ */
+function useSpecialOpportunity(bot: Bot, world: World, player: Player, out: Command[]): boolean {
+  const def = specialOf(world, player);
+  if (!def || player.energy < world.rules.energyMax || player.iceSlide !== null) return false;
+  if (def.type === 'charm') {
+    const near = world.players.some(
+      (p) =>
+        p !== player &&
+        p.alive &&
+        Math.abs(p.x - player.x) + Math.abs(p.y - player.y) <= SPECIAL_REACH,
+    );
+    if (near) out.push({ type: 'special', playerId: player.id });
+    return false;
+  }
+  if (def.type === 'dash') {
+    const reach = dashReach(world, player, def.tiles);
+    if (reach === 0) return false;
+    const { dx, dy } = DIRECTION_VECTORS[player.facing];
+    const x0 = Math.round(player.x);
+    const y0 = Math.round(player.y);
+    let hitsBlock = false;
+    for (let d = 1; d <= reach; d++) {
+      const i = (y0 + dy * d) * world.grid.cols + (x0 + dx * d);
+      if (bot.danger.start[i] !== SAFE) return false;
+      if (world.grid.tiles[i] === BLOCK) hitsBlock = true;
+    }
+    if (!hitsBlock) return false;
+    out.push({ type: 'special', playerId: player.id });
+    bot.path.length = 0;
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Sem saída a pé: montado no sapo e com o pulo pronto, pula se o pouso na direção em que está
+ * virado for seguro.
  */
 function jumpToSafety(bot: Bot, world: World, player: Player, out: Command[]): boolean {
   const mount = player.mount === null ? undefined : world.mountDefs.get(player.mount);
   if (!mount || mount.ability !== 'jump' || player.abilityCooldown > 0) return false;
-  if (world.bombs.some((b) => b.remote && b.ownerId === player.id)) return false;
   const { dx, dy } = DIRECTION_VECTORS[player.facing];
   const x = Math.round(player.x) + dx * mount.jumpTiles;
   const y = Math.round(player.y) + dy * mount.jumpTiles;
   if (!canStand(world, player, x, y) || bombAt(world, x, y)) return false;
   if (bot.danger.start[y * world.grid.cols + x] !== SAFE) return false;
-  out.push({ type: 'action', playerId: player.id });
+  out.push({ type: 'mount', playerId: player.id });
   bot.path.length = 0;
   return true;
 }

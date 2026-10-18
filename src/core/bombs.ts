@@ -5,6 +5,7 @@ import { ABILITY_PIERCE, ABILITY_REMOTE } from './items';
 import { slideBombs } from './kick';
 import { FLOOR } from './terrainIds';
 import type { Bomb, Player, World } from './world';
+import { addEnergy } from './specials';
 
 const CROSS: readonly Direction[] = ['up', 'down', 'left', 'right'];
 
@@ -18,7 +19,7 @@ function findBomb(bombs: readonly Bomb[], x: number, y: number): Bomb | undefine
 
 /** Solta uma bomba no tile do jogador, se ele tiver bomba livre e o terreno permitir. */
 export function placeBomb(world: World, player: Player, out: GameEvent[]): void {
-  if (player.jump) return; // no ar não solta bomba
+  if (player.jump || player.dash) return; // no ar ou em disparada não solta bomba
   const x = Math.round(player.x);
   const y = Math.round(player.y);
   const terrainId = tileAt(world.grid, x, y);
@@ -42,7 +43,7 @@ export function placeBomb(world: World, player: Player, out: GameEvent[]): void 
   out.push({ type: 'bomba.colocada', bombId: bomb.id, playerId: player.id, x, y });
 }
 
-/** Comando `action`: a remota mais antiga (menor id) do jogador explode neste tick. */
+/** Comando `remote`: a remota mais antiga (menor id) do jogador explode neste tick. */
 export function detonateOldestRemote(world: World, player: Player): boolean {
   let oldest: Bomb | undefined;
   for (const bomb of world.bombs) {
@@ -68,6 +69,8 @@ export function updateBombs(world: World, out: GameEvent[]): void {
     if (left === 0) continue;
     flames[i] = left - 1;
     if (left === 1) {
+      const owner = world.flameOwner[i] ?? -1;
+      world.flameOwner[i] = -1;
       const id = grid.tiles[i];
       const terrain = id === undefined ? undefined : world.terrains.get(id);
       if (id !== undefined && terrain?.destructible) {
@@ -80,6 +83,8 @@ export function updateBombs(world: World, out: GameEvent[]): void {
           continue;
         }
         out.push({ type: 'bloco.destruido', x, y });
+        const ownerPlayer = world.players[owner];
+        if (ownerPlayer) addEnergy(world, ownerPlayer, world.rules.energyPerBlock, out);
         const hidden = world.hiddenItems[i];
         if (hidden !== null && hidden !== undefined) {
           world.hiddenItems[i] = null;
@@ -155,6 +160,7 @@ function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): voi
   for (const t of tiles) {
     const i = t.y * world.grid.cols + t.x;
     world.flames[i] = Math.max(world.flames[i] ?? 0, world.rules.explosionTicks);
+    world.flameOwner[i] = bomb.ownerId;
     const itemId = world.items[i];
     if (itemId !== null && itemId !== undefined) {
       world.items[i] = null;

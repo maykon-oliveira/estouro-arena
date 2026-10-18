@@ -2,8 +2,10 @@ import { msToTicks } from '../core/time';
 import type { BotConfig } from '../core/bots/bot';
 import type { MatchRules } from '../core/match';
 import type { MountDef } from '../core/mounts';
+import type { CharacterDef } from '../core/characters';
+import type { SpecialDef } from '../core/specials';
 import type { Rules } from '../core/world';
-import type { BotsData, GameConfig, MountData } from './schemas';
+import type { BotsData, CharacterData, GameConfig, MountData, SpecialData } from './schemas';
 
 /** Converte a config validada (game.json) nas regras da simulação, com durações em ticks. */
 export function rulesFromConfig(cfg: GameConfig): Rules {
@@ -23,6 +25,10 @@ export function rulesFromConfig(cfg: GameConfig): Rules {
     kickSpeed: cfg.bomb.kickSpeedTilesPerSecond,
     mountInvulnerableTicks: msToTicks(cfg.mount.invulnerableMs, cfg.tickRate),
     shieldInvulnerableTicks: msToTicks(cfg.character.shieldInvulnerableMs, cfg.tickRate),
+    energyMax: cfg.energy.max,
+    energyPerBlock: cfg.energy.perBlock,
+    energyPerKnockout: cfg.energy.perKnockout,
+    energyPerSecond: cfg.energy.perSecond,
     ghostDelayTicks: msToTicks(cfg.ghost.delayMs, cfg.tickRate),
     ghostSpeed: cfg.ghost.speedTilesPerSecond,
     ghostThrowTiles: cfg.ghost.throwTiles,
@@ -73,4 +79,26 @@ export function mountDefFromData(data: MountData, tickRate: number): MountDef {
     cooldownTicks: msToTicks(data.cooldownMs, tickRate),
     terrainOverrides: data.terrainOverrides,
   };
+}
+
+/** Especial com durações em ticks. */
+export function specialDefFromData(data: SpecialData, tickRate: number): SpecialDef {
+  switch (data.type) {
+    case 'teleport':
+      return data;
+    case 'charm':
+      return { type: 'charm', durationTicks: Math.max(1, msToTicks(data.durationMs, tickRate)) };
+    case 'dash':
+      return {
+        type: 'dash',
+        tiles: data.tiles,
+        ticksPerTile: Math.max(1, Math.round(tickRate / data.speedTilesPerSecond)),
+      };
+  }
+}
+
+/** Personagem com o especial em ticks. */
+export function characterDefFromData(data: CharacterData, tickRate: number): CharacterDef {
+  const { special, ...rest } = data;
+  return special ? { ...rest, special: specialDefFromData(special, tickRate) } : rest;
 }

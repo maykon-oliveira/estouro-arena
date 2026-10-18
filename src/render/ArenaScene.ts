@@ -6,7 +6,7 @@ import { createBot, runBots, type Bot } from '../core/bots/bot';
 import { assignBotCharacters } from '../core/characters';
 import { DIRECTION_VECTORS } from '../core/direction';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
-import { ringPoint, throwOrigin } from '../core/ghost';
+import { ringPoint } from '../core/ghost';
 import { countSpawns } from '../core/grid';
 import { WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
@@ -21,6 +21,7 @@ import type { TouchControls } from '../input/TouchControls';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { debugInfo } from '../ui/debugInfo';
 import { MatchHud } from '../ui/MatchHud';
+import { buttonsView } from '../ui/controlsModel';
 import { DebugOverlay } from './DebugOverlay';
 import { themeTextures, tileVariant } from './theme';
 
@@ -260,6 +261,9 @@ export class ArenaScene extends Phaser.Scene {
     for (const itemId of this.debug?.takeItemRequests() ?? []) {
       this.commands.push({ type: 'debugItem', playerId: 0, itemId });
     }
+    if ((this.debug?.takeEnergyRequests() ?? 0) > 0) {
+      this.commands.push({ type: 'debugEnergy', playerId: 0 });
+    }
     const ticks = this.stepper.advance(deltaMs);
     for (let i = 0; i < ticks; i++) {
       // Comandos do jogador entram no primeiro tick do quadro; os bots decidem a cada tick.
@@ -273,23 +277,13 @@ export class ArenaScene extends Phaser.Scene {
 
     this.handleEvents();
     this.hud?.update(this.match, this.time.now);
-    this.touch?.setActionAvailable(this.actionAvailable());
+    if (this.touch) {
+      const view = buttonsView(this.world, 0);
+      this.touch.setButtons(view.states, view.specialFill);
+    }
     this.syncPlayers();
     this.drawDynamic();
     this.drawDebug();
-  }
-
-  /** Botão de ação aceso: remota do jogador no mapa ou habilidade da montaria pronta. */
-  private actionAvailable(): boolean {
-    const me = this.world.players[0];
-    if (me?.ghost) {
-      // Fantasma: o botão (ou a bomba) arremessa, uma vez, fora das quinas.
-      return !me.ghost.thrown && throwOrigin(this.world.grid, me.ghost) !== null;
-    }
-    if (!me?.alive) return false;
-    if (this.world.bombs.some((b) => b.remote === true && b.ownerId === 0)) return true;
-    const mount = me.mount === null ? undefined : mounts.get(me.mount);
-    return mount?.ability === 'jump' && me.abilityCooldown === 0 && me.jump === null;
   }
 
   private drawDebug(): void {

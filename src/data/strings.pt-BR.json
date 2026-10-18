@@ -1,7 +1,6 @@
 {
   "rotate_warning": "Gire o aparelho para jogar",
   "controls.bomb": "Bomba",
-  "controls.action": "Ação",
   "controls.joystick": "Joystick de movimento",
   "round.label": "Rodada {round}",
   "round.go": "Já!",
@@ -56,5 +55,15 @@
   "character.boto.name": "Boto",
   "character.boto.passive": "Já começa chutando bombas",
   "character.mula_sem_cabeca.name": "Mula sem Cabeça",
-  "character.mula_sem_cabeca.passive": "Aguenta a primeira chama da rodada"
+  "character.mula_sem_cabeca.passive": "Aguenta a primeira chama da rodada",
+  "controls.remote": "Detonar remota",
+  "controls.mount": "Habilidade da montaria",
+  "controls.special": "Especial",
+  "character.saci.special": "Redemoinho",
+  "character.boitata.special": "Rastro de fogo",
+  "character.iara.special": "Maré",
+  "character.curupira.special": "Pegada falsa",
+  "character.boto.special": "Encanto",
+  "character.mula_sem_cabeca.special": "Disparada",
+  "hud.special.ready": "⚡ {special}!"
 }

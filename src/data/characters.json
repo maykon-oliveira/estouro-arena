@@ -3,6 +3,10 @@
     "id": "saci",
     "passive": {
       "speedLevel": 1
+    },
+    "special": {
+      "type": "teleport",
+      "tiles": 3
     }
   },
   {
@@ -31,12 +35,21 @@
     "id": "boto",
     "passive": {
       "abilities": ["chute"]
+    },
+    "special": {
+      "type": "charm",
+      "durationMs": 2000
     }
   },
   {
     "id": "mula_sem_cabeca",
     "passive": {
       "flameShields": 1
+    },
+    "special": {
+      "type": "dash",
+      "tiles": 4,
+      "speedTilesPerSecond": 12
     }
   }
 ]

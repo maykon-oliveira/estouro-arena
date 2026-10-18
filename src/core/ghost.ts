@@ -122,7 +122,7 @@ export function spawnGhosts(world: World, out: GameEvent[]): void {
 export function ghostCommand(
   world: World,
   player: Player,
-  type: 'move' | 'bomb' | 'action',
+  type: 'move' | 'bomb',
   dir: Direction | null,
   out: GameEvent[],
 ): void {

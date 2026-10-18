@@ -38,7 +38,11 @@ const input = new PlayerInput(
   LOCAL_PLAYER,
   [touch.joystick, keyboard],
   [touch.bomb, keyboard.bomb],
-  [touch.action, keyboard.action],
+  {
+    remote: [touch.remote, keyboard.remote],
+    mount: [touch.mount, keyboard.mount],
+    special: [touch.special, keyboard.special],
+  },
 );
 
 /** Cena vazia atrás dos menus (a partida só começa quando o jogador escolhe). */

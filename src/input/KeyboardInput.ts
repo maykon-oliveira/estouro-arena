@@ -13,15 +13,20 @@ const KEY_DIRECTIONS: Readonly<Record<string, Direction>> = {
   KeyD: 'right',
 };
 
-const BOMB_KEYS: ReadonlySet<string> = new Set(['Space']);
-const ACTION_KEYS: ReadonlySet<string> = new Set(['ShiftLeft', 'ShiftRight', 'KeyK']);
-
-/** Teclado: setas/WASD para andar, espaço para bomba, Shift ou K para ação. */
+/** Teclado: setas/WASD para andar, espaço bomba, K remota, J montaria, L especial. */
 export class KeyboardInput implements DirectionSource {
   private readonly stack = new DirectionStack();
-  /** Pedidos de bomba (espaço) e de ação (Shift ou K), para o `PlayerInput`. */
+  /** Pedidos de cada botão, para o `PlayerInput`. */
   readonly bomb = new PressTrigger();
-  readonly action = new PressTrigger();
+  readonly remote = new PressTrigger();
+  readonly mount = new PressTrigger();
+  readonly special = new PressTrigger();
+  private readonly presses: Readonly<Record<string, PressTrigger>> = {
+    Space: this.bomb,
+    KeyK: this.remote,
+    KeyJ: this.mount,
+    KeyL: this.special,
+  };
 
   constructor(target: Window = window) {
     target.addEventListener('keydown', (e) => this.onKey(e, true));
@@ -35,7 +40,7 @@ export class KeyboardInput implements DirectionSource {
   }
 
   private onKey(e: KeyboardEvent, down: boolean): void {
-    const press = BOMB_KEYS.has(e.code) ? this.bomb : ACTION_KEYS.has(e.code) ? this.action : null;
+    const press = this.presses[e.code];
     if (press) {
       e.preventDefault();
       // Segurar a tecla não repete o pedido (ignora auto-repeat).

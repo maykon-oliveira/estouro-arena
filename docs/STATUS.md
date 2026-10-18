@@ -2,7 +2,7 @@
 
 > **Leia isto primeiro ao começar uma sessão.** Reescrito ao fechar cada spec ou fase, no mesmo commit.
 
-**Atualizado em:** 2026-10-18 · **Última feature:** [personagens e passivas](specs/personagens-e-passivas.md) (Fase 2, passo 1) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
+**Atualizado em:** 2026-10-18 · **Última feature:** [carga de energia e especiais, parte (a)](specs/carga-de-energia.md) (Fase 2, passo 2) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
 
 ## Fase atual: 2 — Arte e conteúdo (GDD §9)
 
@@ -13,7 +13,7 @@ Ordem proposta dos 10 passos (escopo de cada um em [specs/README.md](specs/READM
 | # | Passo | Situação |
 | --- | --- | --- |
 | 1 | [Personagens e passivas](specs/personagens-e-passivas.md) | **Feito:** `src/core/characters.ts`, `src/data/characters.json` (6 do folclore), escolha na Batalha (`?personagem=`), bots sorteados, avatares DiceBear `pixel-art` (`bun run avatars`) no menu, HUD e Resultado |
-| 2 | Carga de energia e especiais | A escrever |
+| 2 | [Carga de energia e especiais](specs/carga-de-energia.md) | **Parte (a) feita:** `src/core/specials.ts` (barra, Redemoinho do Saci, Encanto do Boto, Disparada da Mula), botões separados remota/montaria/especial (`src/ui/controlsModel.ts`), teclas `K`/`J`/`L`, `+ energia` no debug, bots usam os 3 especiais. **Falta (b):** Boitatá, Iara, Curupira |
 | 3 | Bombas elementais | A escrever |
 | 4 | Inimigos da campanha | A escrever |
 | 5 | Estrutura da campanha | A escrever |
@@ -25,10 +25,14 @@ Ordem proposta dos 10 passos (escopo de cada um em [specs/README.md](specs/READM
 
 Fases concluídas: **Fase 0** (Fundação) em 2026-10-17, tag `fase-0` = `v0.1.0`; **Fase 1** (MVP: Batalha) em 2026-10-18, tag `fase-1` = `v0.12.0` + docs. O portão da Fase 1 foi cumprido: amigos jogaram 10 partidas seguidas sem bug grave. Os 10 passos dela estão em [specs/README.md](specs/README.md).
 
-## Próximo passo: spec da carga de energia e especiais (passo 2)
+## Próximo passo: parte (b) da carga de energia — Boitatá, Iara e Curupira
 
-1. Escrever `docs/specs/carga-de-energia.md` (ciclo do CLAUDE.md): barra enchida por bloco destruído (GDD §5), especial de cada personagem no botão de ação (PERSONAGENS §1: Redemoinho, Rastro de fogo, Maré, Pegada falsa, Encanto, Disparada), prioridade do `action` (remota → montaria → especial?), bots usando especiais.
-2. Confirmar com o autor antes de implementar: quanto enche a barra, se ela zera entre rodadas, e a prioridade do botão de ação.
+A spec [carga-de-energia.md](specs/carga-de-energia.md) já tem as regras (confirmadas pelo autor):
+
+1. **Boitatá — Rastro de fogo** (`fireTrail`, 3 s): chama em cada tile em que ele está, com ele como dono (`world.flameOwner`); ele não é atingido pelas chamas que são dele.
+2. **Iara — Maré** (`tide`, 4 s, × 0,5): a linha à frente dela até o primeiro tile onde não se anda; os outros andam mais devagar nela (movimento e rotas dos bots).
+3. **Curupira — Pegada falsa** (`decoy`, 4 s): clone que anda espelhado; os bots o veem como inimigo; chama desfaz.
+4. Entradas `special` em `characters.json` + `SpecialSchema` + handler em `HANDLERS` (`src/core/specials.ts`); bots conforme a spec; testes; marcar a spec como feita.
 
 ### Perguntas em aberto da Fase 2
 
@@ -58,9 +62,9 @@ docker build -t estouro-arena . && docker run --rm -p 8080:80 estouro-arena   # 
 
 - Commits: `feat(<spec>): Assunto` (ver CLAUDE.md, passo 8); o push na `main` gera a versão e o `CHANGELOG.md` sozinho. Fase fechada = tag `fase-N`.
 - Regras de cada feature: [`docs/specs/`](specs/README.md). Decisões e motivos: [`DECISIONS.md`](DECISIONS.md).
-- Testes: Vitest (280) + Playwright (14 smoke contra o build, viewport 812 × 375).
+- Testes: Vitest (307) + Playwright (15 smoke contra o build, viewport 812 × 375).
 - Em dev, `window.__arena` expõe a partida (`Match`; o mundo da rodada em `.world`) para inspeção no console (só leitura).
-- Sem parâmetros, o jogo abre no Título. Atalhos de dev/teste que pulam os menus: `?map=arena_01|pantanal_01|tundra_01`; `?seed=N` fixa o mapa da 1ª rodada; `?winsToWin=N`; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?personagem=<id>` (saci, boitata, iara, curupira, boto, mula_sem_cabeca); `?ia=0` deixa os bots parados; `?roundMs=N` encurta a rodada (morte súbita nos últimos 30 s); `?touch=1` força os controles de toque; `?debug=1` liga o painel (com botões `+ <item>`).
+- Sem parâmetros, o jogo abre no Título. Atalhos de dev/teste que pulam os menus: `?map=arena_01|pantanal_01|tundra_01`; `?seed=N` fixa o mapa da 1ª rodada; `?winsToWin=N`; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?personagem=<id>` (saci, boitata, iara, curupira, boto, mula_sem_cabeca); `?ia=0` deixa os bots parados; `?roundMs=N` encurta a rodada (morte súbita nos últimos 30 s); `?touch=1` força os controles de toque; `?debug=1` liga o painel (com botões `+ <item>` e `+ energia`).
 - Roteiros dos posts: `roteiros/` (fora do git), um por feature.
 
 ## Ambiente conhecido

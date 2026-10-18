@@ -6,6 +6,7 @@
 
 ### Botão de ação
 
+- *(Desde a Fase 2, passo 2: o `action` virou os comandos `remote` e `mount`, cada um com o seu botão pequeno e as teclas `K`/`J` — ver [carga de energia](carga-de-energia.md).)*
 - Novo comando `action { playerId }`. Toque: botão menor acima e à esquerda do botão de bomba (`controls.actionButtonPx`, ≥ 56 px), esmaecido quando não há ação disponível (hoje: nenhuma bomba remota do jogador no mapa). Teclado: `Shift` ou `K` (sem auto-repeat).
 - Entrada: `PlayerInput` recebe fontes de bomba e de ação separadas (`PressTrigger`); vários toques no mesmo quadro viram **um** comando de cada.
 - **Prioridade da ação**, nesta ordem: detonar bomba remota (se houver alguma do jogador no mapa) → habilidade da [montaria](montarias.md) → nada.

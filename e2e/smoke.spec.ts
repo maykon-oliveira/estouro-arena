@@ -169,17 +169,19 @@ test('itens: o botão de debug dá fogo +1 e patins ao jogador', async ({ page }
   expect(errors).toEqual([]);
 });
 
-test('remota: a bomba espera; K detona e o botão de ação acende', async ({ page }) => {
+test('remota: o botão aparece com o item; a bomba espera e K detona', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.goto('/?seed=0&debug=1&ia=0&touch=1');
+  // Iara: sem passiva de velocidade (as distâncias abaixo contam com a velocidade base).
+  await page.goto('/?seed=0&debug=1&ia=0&touch=1&personagem=iara');
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
     timeout: 6_000,
   });
-  const action = page.locator('.action-button');
-  await expect(action).toBeVisible();
-  await expect(action).toHaveClass(/unavailable/);
+  const action = page.locator('.remote-button');
+  await expect(action).toBeHidden();
 
   await page.getByRole('button', { name: '+ remota', exact: true }).click();
+  await expect(action).toBeVisible();
+  await expect(action).toHaveClass(/unavailable/);
   // Anda até (2,1) e solta: a cruz não pega o esconderijo (1,2).
   await holdKey(page, 'ArrowRight', 350);
   await page.keyboard.press('Space');
@@ -210,23 +212,47 @@ for (const mapId of ['pantanal_01', 'tundra_01']) {
   });
 }
 
-test('montaria: ovo de sapo acende o botão de ação e K pula 2 tiles', async ({ page }) => {
+test('montaria: ovo de sapo mostra o botão da montaria e J pula 2 tiles', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.goto('/?seed=0&debug=1&ia=0&touch=1');
+  await page.goto('/?seed=0&debug=1&ia=0&touch=1&personagem=iara');
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
     timeout: 6_000,
   });
-  const action = page.locator('.action-button');
-  await expect(action).toHaveClass(/unavailable/);
+  const action = page.locator('.mount-button');
+  await expect(action).toBeHidden();
   await page.getByRole('button', { name: '+ ovo_sapo_saltador', exact: true }).click();
+  await expect(action).toBeVisible();
   await expect(action).not.toHaveClass(/unavailable/);
 
   // Seed 0: spawn (1,1), chão em (1,2) e (1,3). Vira para baixo e pula de (1,1) para (1,3).
   await page.keyboard.press('ArrowDown');
   await expect.poll(() => debugValue(page, 'tile')).toBe('1,1');
-  await page.keyboard.press('KeyK');
+  await page.keyboard.press('KeyJ');
   await expect.poll(() => debugValue(page, 'tile')).toBe('1,3');
   await expect(action).toHaveClass(/unavailable/); // recarga
+  expect(errors).toEqual([]);
+});
+
+test('especial: o anel enche com + energia e L teleporta o Saci', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=0&debug=1&ia=0&touch=1&personagem=saci');
+  await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
+    timeout: 6_000,
+  });
+  const special = page.locator('.special-button');
+  await expect(special).toBeVisible();
+  await expect(special).toHaveClass(/unavailable/);
+  await page.getByRole('button', { name: '+ energia', exact: true }).click();
+  await expect(special).not.toHaveClass(/unavailable/);
+  await expect(page.locator('.player-panel')).toContainText('Redemoinho!');
+
+  // Seed 0: spawn (1,1) com chão abaixo. Vira para baixo e teleporta para baixo.
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(() => debugValue(page, 'tile')).toBe('1,1');
+  await page.keyboard.press('KeyL');
+  await expect.poll(() => debugValue(page, 'tile')).not.toBe('1,1');
+  expect((await debugValue(page, 'tile')).startsWith('1,')).toBe(true);
+  await expect(special).toHaveClass(/unavailable/); // barra gasta
   expect(errors).toEqual([]);
 });
 
@@ -252,13 +278,15 @@ test('fantasma: quem morre vira fantasma na borda e arremessa uma bomba', async 
   // Solta a bomba no spawn e fica: morre na explosão.
   await page.keyboard.press('Space');
   await expect.poll(() => debugValue(page, 'alive'), { timeout: 5_000 }).toBe('morto');
-  // Depois de 1,5 s vira fantasma em (1,0); o botão de ação acende para o arremesso.
-  const action = page.locator('.action-button');
-  await expect(action).not.toHaveClass(/unavailable/, { timeout: 4_000 });
+  // Depois de 1,5 s vira fantasma em (1,0); o painel avisa que o arremesso está pronto.
+  const panel = page.locator('.player-panel');
+  await expect(panel).toHaveText('Fantasma: arremesso pronto', { timeout: 4_000 });
+  // Fantasma: os botões pequenos somem; a bomba arremessa.
+  await expect(page.locator('.special-button')).toBeHidden();
   await page.keyboard.press('Space');
   // A bomba voa e pousa em (1,3): o painel conta as bombas do jogador 0 (o fantasma).
   await expect.poll(() => debugValue(page, 'bombs'), { timeout: 3_000 }).toBe('1/1');
-  await expect(action).toHaveClass(/unavailable/);
+  await expect(panel).toHaveText('Fantasma: arremesso usado');
   expect(errors).toEqual([]);
 });
 

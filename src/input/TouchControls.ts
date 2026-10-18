@@ -1,17 +1,42 @@
-import { gameConfig, t } from '../data';
+import { gameConfig, t, type StringKey } from '../data';
 import { PressTrigger } from './PlayerInput';
 import { VirtualJoystick } from './VirtualJoystick';
 
-/** Controles de toque: joystick na metade esquerda, botões de bomba e de ação à direita. */
+/** Estado de um botão pequeno: escondido, esmaecido (tem, mas não dá agora) ou pronto. */
+export type ButtonState = 'hidden' | 'dim' | 'ready';
+
+/** Os botões pequenos em volta do de bomba. */
+export type SmallButton = 'remote' | 'mount' | 'special';
+
+const SMALL_BUTTONS: readonly SmallButton[] = ['remote', 'mount', 'special'];
+/** Ícone de cada botão pequeno (placeholder até a arte final). */
+const ICONS: Readonly<Record<SmallButton, string>> = { remote: '📡', mount: '🐸', special: '⚡' };
+const LABELS: Readonly<Record<SmallButton, StringKey>> = {
+  remote: 'controls.remote',
+  mount: 'controls.mount',
+  special: 'controls.special',
+};
+
+/**
+ * Controles de toque: joystick na metade esquerda, botão de bomba à direita e, em volta dele,
+ * os botões pequenos (remota, montaria, especial), cada um só quando o jogador tem aquilo.
+ */
 export class TouchControls {
   readonly joystick: VirtualJoystick;
   readonly bombButton: HTMLButtonElement;
-  /** Pedidos de bomba vindos do botão (fonte de ação para o PlayerInput). */
+  /** Pedidos de bomba vindos do botão (fonte para o PlayerInput). */
   readonly bomb = new PressTrigger();
-  readonly actionButton: HTMLButtonElement;
-  /** Pedidos de ação vindos do botão de ação. */
-  readonly action = new PressTrigger();
-  private actionAvailable: boolean | null = null;
+  /** Pedidos de cada botão pequeno. */
+  readonly remote = new PressTrigger();
+  readonly mount = new PressTrigger();
+  readonly special = new PressTrigger();
+  readonly buttons: Readonly<Record<SmallButton, HTMLButtonElement>>;
+  private readonly states: Record<SmallButton, ButtonState | null> = {
+    remote: null,
+    mount: null,
+    special: null,
+  };
+  private specialFill = -1;
 
   constructor(root: HTMLElement) {
     const { controls } = gameConfig;
@@ -32,14 +57,29 @@ export class TouchControls {
       controls.bombButtonPx,
       this.bomb,
     );
-    this.actionButton = pressButton(
-      'action-button',
-      t('controls.action'),
-      controls.actionButtonPx,
-      this.action,
-    );
-    this.setActionAvailable(false);
-    root.append(this.bombButton, this.actionButton);
+    this.buttons = {
+      remote: pressButton(
+        'small-button remote-button',
+        t(LABELS.remote),
+        controls.actionButtonPx,
+        this.remote,
+      ),
+      mount: pressButton(
+        'small-button mount-button',
+        t(LABELS.mount),
+        controls.actionButtonPx,
+        this.mount,
+      ),
+      special: pressButton(
+        'small-button special-button',
+        t(LABELS.special),
+        controls.actionButtonPx,
+        this.special,
+      ),
+    };
+    for (const name of SMALL_BUTTONS) this.buttons[name].textContent = ICONS[name];
+    root.append(this.bombButton, ...SMALL_BUTTONS.map((b) => this.buttons[b]));
+    this.setButtons({ remote: 'hidden', mount: 'hidden', special: 'hidden' }, 0);
 
     const forceTouch = new URLSearchParams(window.location.search).has('touch');
     const showTouchUi = () => root.classList.add('touch');
@@ -50,11 +90,25 @@ export class TouchControls {
     });
   }
 
-  /** Esmaece o botão de ação quando não há ação (só mexe no DOM quando muda). */
-  setActionAvailable(available: boolean): void {
-    if (available === this.actionAvailable) return;
-    this.actionAvailable = available;
-    this.actionButton.classList.toggle('unavailable', !available);
+  /**
+   * Mostra, esmaece ou acende cada botão pequeno; `specialFill` (0 a 1) desenha o anel da barra
+   * de energia no botão de especial. Só mexe no DOM quando algo muda.
+   */
+  setButtons(states: Readonly<Record<SmallButton, ButtonState>>, specialFill: number): void {
+    for (const name of SMALL_BUTTONS) {
+      const state = states[name];
+      if (state === this.states[name]) continue;
+      this.states[name] = state;
+      const button = this.buttons[name];
+      button.hidden = state === 'hidden';
+      button.classList.toggle('unavailable', state === 'dim');
+    }
+    // Anel em passos de 5 %, para não reescrever o estilo a cada quadro.
+    const fill = Math.round(Math.min(1, Math.max(0, specialFill)) * 20) / 20;
+    if (fill !== this.specialFill) {
+      this.specialFill = fill;
+      this.buttons.special.style.setProperty('--fill', String(fill));
+    }
   }
 }
 

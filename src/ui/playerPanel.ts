@@ -1,5 +1,5 @@
 import type { Player } from '../core/world';
-import { t, type StringKey } from '../data';
+import { characters, gameConfig, t, type StringKey } from '../data';
 import { playerName } from './hudModel';
 
 /** Rótulo de cada habilidade e montaria no painel (só as que o jogador tem aparecem). */
@@ -29,6 +29,17 @@ export function panelChips(player: Player): string[] {
   }
   const mountKey = player.mount === null ? undefined : LABELS[player.mount];
   if (mountKey) chips.push(t(mountKey));
+  // Barra de energia (só para quem tem especial): % ou o nome do especial, quando cheia.
+  if (player.character !== null && characters.get(player.character)?.special) {
+    const max = gameConfig.energy.max;
+    chips.push(
+      player.energy >= max
+        ? t('hud.special.ready', {
+            special: t(`character.${player.character}.special` as StringKey),
+          })
+        : `⚡ ${Math.floor((player.energy / max) * 100)}%`,
+    );
+  }
   return chips;
 }
 

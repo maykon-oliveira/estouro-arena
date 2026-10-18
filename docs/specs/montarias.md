@@ -13,6 +13,7 @@ Fase 1 tem 2 das 7 montarias, só no nível 1 (os níveis 2 e 3 ficam para depoi
 - **Capivara (`capivara`):** passiva, sem ação. `terrainOverrides`: `agua_rasa` → `speedMultiplier: 1`; `agua_funda` → `walkable: true, speedMultiplier: 1`.
 - **Sapo-saltador (`sapo_saltador`):** ação **Pulo** (`action`, depois da remota na prioridade) — salta na direção `facing` e cai `jumpTiles` (2) adiante, a partir do tile atual, se o tile de pouso for andável (para quem pula), sem bomba e dentro da grade. O que está no meio não importa (parede, bloco, bomba, água funda). O pulo dura `jumpMs` (400): a posição vai em linha reta do centro de partida ao de pouso; no ar o jogador não anda, não colide, não é atingido por chama, não pega item, não chuta nem solta bomba; ao pousar volta tudo (a chama do tile de pouso vale no mesmo tick). Recarga `cooldownMs` (1000), contada a partir do início do pulo.
 - Montaria não altera bombas, alcance nem velocidade base.
+- *(Desde a Fase 2, passo 2: o `action` virou os comandos `remote` e `mount`, cada um com o seu botão pequeno e as teclas `K`/`J` — ver [carga de energia](carga-de-energia.md).)*
 - **Botão de ação** aceso quando há remota no mapa **ou** a montaria tem habilidade pronta (sem recarga, sem estar no ar).
 - **Render (placeholder):** elipse da cor da montaria sob o jogador (capivara marrom, sapo verde); no pulo o jogador cresce no meio do arco; invulnerável, pisca. Ovos: oval claro com pinta da cor da montaria.
 

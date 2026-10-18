@@ -45,6 +45,8 @@ export class DebugPanel {
   private lastRefresh = -Infinity;
   /** Itens pedidos pelos botões desde a última leitura (viram comandos `debugItem`). */
   private readonly itemRequests: string[] = [];
+  /** Pedidos de barra cheia (viram comandos `debugEnergy`). */
+  private energyRequests = 0;
 
   /** `itemIds`: um botão por item, que põe o item no tile do jogador local. */
   constructor(parent: HTMLElement, itemIds: readonly string[] = []) {
@@ -86,9 +88,17 @@ export class DebugPanel {
     for (const id of itemIds) {
       itemButtons.append(this.button(`+ ${id}`, () => this.itemRequests.push(id)));
     }
+    itemButtons.append(this.button('+ energia', () => this.energyRequests++));
 
     this.root.append(table, toggles, actions, itemButtons);
     parent.append(this.root);
+  }
+
+  /** Devolve e zera os pedidos de barra cheia. */
+  takeEnergyRequests(): number {
+    const n = this.energyRequests;
+    this.energyRequests = 0;
+    return n;
   }
 
   /** Devolve e esvazia os pedidos de item feitos pelos botões. */

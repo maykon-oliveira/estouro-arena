@@ -48,6 +48,10 @@ export const testRules: Rules = {
   kickSpeed: 12,
   mountInvulnerableTicks: 5,
   shieldInvulnerableTicks: 5,
+  energyMax: 100,
+  energyPerBlock: 10,
+  energyPerKnockout: 40,
+  energyPerSecond: 1,
   ghostDelayTicks: 3,
   ghostSpeed: 6,
   ghostThrowTiles: 3,
@@ -96,12 +100,26 @@ export const testMounts: ReadonlyMap<string, MountDef> = new Map<string, MountDe
 
 /** Personagens dos testes (as passivas de src/data/characters.json). */
 export const testCharacters: ReadonlyMap<string, CharacterDef> = new Map<string, CharacterDef>([
-  ['saci', { id: 'saci', passive: { speedLevel: 1 } }],
+  ['saci', { id: 'saci', passive: { speedLevel: 1 }, special: { type: 'teleport', tiles: 3 } }],
   ['boitata', { id: 'boitata', passive: { range: 1 } }],
   ['iara', { id: 'iara', passive: { terrainOverrides: { agua_rasa: { speedMultiplier: 1 } } } }],
   ['curupira', { id: 'curupira', passive: { hiddenWhileMoving: true } }],
-  ['boto', { id: 'boto', passive: { abilities: ['chute'] } }],
-  ['mula_sem_cabeca', { id: 'mula_sem_cabeca', passive: { flameShields: 1 } }],
+  [
+    'boto',
+    {
+      id: 'boto',
+      passive: { abilities: ['chute'] },
+      special: { type: 'charm', durationTicks: 6 },
+    },
+  ],
+  [
+    'mula_sem_cabeca',
+    {
+      id: 'mula_sem_cabeca',
+      passive: { flameShields: 1 },
+      special: { type: 'dash', tiles: 4, ticksPerTile: 2 },
+    },
+  ],
 ]);
 
 /**

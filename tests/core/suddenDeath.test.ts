@@ -98,7 +98,7 @@ describe('queda dos tiles', () => {
     run(world, 1, [{ type: 'debugItem', playerId: 0, itemId: 'ovo_sapo_saltador' }]);
     run(world, 1, [{ type: 'move', playerId: 0, dir: 'right' }]);
     run(world, 1, [{ type: 'move', playerId: 0, dir: null }]);
-    run(world, 1, [{ type: 'action', playerId: 0 }]); // pula de (1,1) para (3,1)
+    run(world, 1, [{ type: 'mount', playerId: 0 }]); // pula de (1,1) para (3,1)
     expect(player(world).jump).not.toBeNull();
     world.collapse = { order: [idx(world, 3, 1)], next: 0, dropAt: dropAtFor(world, 3, 1) };
     const events = stepAndCollapse(world, 1);

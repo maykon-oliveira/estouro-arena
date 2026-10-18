@@ -11,6 +11,7 @@ import { movePlayer } from './movement';
 import type { Collapse } from './suddenDeath';
 import { createRng, type Rng } from './rng';
 import { applyPassive, type CharacterDef } from './characters';
+import { addEnergy, advanceDash, invert, updateCharm, useSpecial, type Dash } from './specials';
 
 /** Propriedades de terreno que a simulação consulta (subconjunto de src/data/terrains.json). */
 export interface TerrainRules {
@@ -49,6 +50,11 @@ export interface Rules {
   mountInvulnerableTicks: number;
   /** Invulnerabilidade depois do escudo do personagem (Mula sem Cabeça). */
   shieldInvulnerableTicks: number;
+  /** Barra de energia: máximo e ganhos (bloco, nocaute, segundo vivo). */
+  energyMax: number;
+  energyPerBlock: number;
+  energyPerKnockout: number;
+  energyPerSecond: number;
   /** Fantasma vingador: espera depois da morte, velocidade no anel (tiles/s), distância mínima do pouso e duração do voo. */
   ghostDelayTicks: number;
   ghostSpeed: number;
@@ -91,6 +97,12 @@ export interface Player {
   character: string | null;
   /** Chamas que o escudo do personagem ainda absorve nesta rodada. */
   flameShields: number;
+  /** Barra de energia (0 a `rules.energyMax`); cheia, libera o especial. */
+  energy: number;
+  /** Ticks restantes do encanto do Boto (controles invertidos); 0 = normal. */
+  charmTicks: number;
+  /** Disparada da Mula em andamento (não anda nem solta bomba). */
+  dash: Dash | null;
 }
 
 export interface Bomb {
@@ -118,6 +130,8 @@ export interface World {
   bombs: Bomb[];
   /** Ticks restantes de chama por tile (0 = sem chama), mesmo índice de `grid.tiles`. */
   flames: number[];
+  /** Dono da chama de cada tile (id do jogador; −1 = ninguém), para creditar energia. */
+  flameOwner: number[];
   nextBombId: number;
   /** Item visível por tile (mesmo índice de `grid.tiles`); null = nenhum. */
   items: (string | null)[];
@@ -178,6 +192,9 @@ export function createWorld(options: WorldOptions): World {
     ghost: null,
     character: null,
     flameShields: 0,
+    energy: 0,
+    charmTicks: 0,
+    dash: null,
   }));
   const characterDefs = options.characters ?? new Map<string, CharacterDef>();
   for (const p of players) {
@@ -197,6 +214,7 @@ export function createWorld(options: WorldOptions): World {
     players,
     bombs: [],
     flames: new Array<number>(grid.tiles.length).fill(0),
+    flameOwner: new Array<number>(grid.tiles.length).fill(-1),
     nextBombId: 0,
     items: new Array<string | null>(grid.tiles.length).fill(null),
     hiddenItems,
@@ -224,29 +242,35 @@ export function step(
     const player = world.players[cmd.playerId];
     if (!player) continue;
     if (!player.alive) {
-      // Morto: só o fantasma (anel e arremesso) recebe comandos.
+      // Morto: só o fantasma (anel e arremesso com a bomba) recebe comandos.
       if (cmd.type === 'move') ghostCommand(world, player, 'move', cmd.dir, out);
-      else if (cmd.type === 'bomb' || cmd.type === 'action') {
-        ghostCommand(world, player, cmd.type, null, out);
-      }
+      else if (cmd.type === 'bomb') ghostCommand(world, player, 'bomb', null, out);
       continue;
     }
-    if (cmd.type === 'move') player.moveDir = cmd.dir;
+    // Encantado (Boto): a direção chega invertida.
+    if (cmd.type === 'move') player.moveDir = player.charmTicks > 0 ? invert(cmd.dir) : cmd.dir;
     else if (cmd.type === 'bomb') placeBomb(world, player, out);
-    // Ação: detona a remota mais antiga; sem remota, usa a habilidade da montaria.
-    else if (cmd.type === 'action') {
-      if (!detonateOldestRemote(world, player)) useMountAbility(world, player, out);
-    } else if (cmd.type === 'debugItem' && world.itemDefs.has(cmd.itemId)) {
+    else if (cmd.type === 'remote') detonateOldestRemote(world, player);
+    else if (cmd.type === 'mount') useMountAbility(world, player, out);
+    else if (cmd.type === 'special') useSpecial(world, player, out);
+    else if (cmd.type === 'debugItem' && world.itemDefs.has(cmd.itemId)) {
       // Painel de debug: põe o item no tile do jogador (coletado logo abaixo).
       world.items[Math.round(player.y) * world.grid.cols + Math.round(player.x)] = cmd.itemId;
+    } else if (cmd.type === 'debugEnergy') {
+      addEnergy(world, player, world.rules.energyMax, out);
     }
   }
 
+  // Fim de cada segundo da rodada (ticks 59, 119…): +energia para quem está vivo.
+  const secondTick = (world.tick + 1) % world.rules.tickRate === 0;
   for (const player of world.players) {
     if (!player.alive) continue;
     if (player.abilityCooldown > 0) player.abilityCooldown--;
     if (player.invulnerableTicks > 0) player.invulnerableTicks--;
+    updateCharm(player);
+    if (secondTick) addEnergy(world, player, world.rules.energyPerSecond, out);
     if (player.jump) advanceJump(player);
+    else if (player.dash) advanceDash(player);
     else movePlayer(world, player);
   }
   collectItems(world, out);
@@ -296,7 +320,11 @@ function killPlayersInFlames(world: World, out: GameEvent[]): void {
       player.alive = false;
       player.moveDir = null;
       player.deathTick = world.tick;
+      player.dash = null;
       out.push({ type: 'jogador.morreu', playerId: player.id, cause: 'fogo' });
+      // Nocaute: energia para o dono da chama (a própria bomba não conta).
+      const owner = world.players[world.flameOwner[i] ?? -1];
+      if (owner && owner !== player) addEnergy(world, owner, world.rules.energyPerKnockout, out);
     }
   }
 }

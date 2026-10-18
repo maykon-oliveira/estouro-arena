@@ -105,12 +105,12 @@ describe('bomba remota', () => {
     expect(ofType(waited, 'bomba.explodiu')).toHaveLength(0);
     expect(world.bombs[0]?.remote).toBe(true);
 
-    const events = run(world, 1, [{ type: 'action', playerId: 0 }]);
+    const events = run(world, 1, [{ type: 'remote', playerId: 0 }]);
     expect(ofType(events, 'bomba.explodiu')).toHaveLength(1);
     expect(world.bombs).toHaveLength(0);
   });
 
-  it('action detona a mais antiga, uma por toque', () => {
+  it('remote detona a mais antiga, uma por toque', () => {
     const world = worldFrom(['#######', '#P....#', '#######'], 1, { startRange: 1 });
     give(world, 'remota');
     give(world, 'bomba');
@@ -120,7 +120,7 @@ describe('bomba remota', () => {
     const firstId = ofType(first, 'bomba.colocada')[0]?.bombId;
 
     hold(world, 'left', 10); // (3,1): fora da cruz da primeira (alcance 1)
-    const events = run(world, 1, [{ type: 'action', playerId: 0 }]);
+    const events = run(world, 1, [{ type: 'remote', playerId: 0 }]);
     expect(ofType(events, 'bomba.explodiu').map((e) => e.bombId)).toEqual([firstId]);
     expect(world.bombs).toHaveLength(1);
   });
@@ -137,10 +137,10 @@ describe('bomba remota', () => {
     expect(ofType(events, 'bomba.explodiu')).toHaveLength(1);
   });
 
-  it('action sem bomba remota não faz nada', () => {
+  it('remote sem bomba remota não faz nada', () => {
     const world = worldFrom(['#######', '#P....#', '#######']);
     dropBomb(world);
-    const events = run(world, 1, [{ type: 'action', playerId: 0 }]);
+    const events = run(world, 1, [{ type: 'remote', playerId: 0 }]);
     expect(events).toEqual([]);
     expect(world.bombs).toHaveLength(1);
   });

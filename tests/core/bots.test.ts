@@ -5,7 +5,7 @@ import { createPathSearch, pathTo, searchPaths, UNREACHABLE } from '../../src/co
 import type { Command } from '../../src/core/commands';
 import { createMatch, stepMatch } from '../../src/core/match';
 import { createWorld, step, type Bomb, type World } from '../../src/core/world';
-import { botConfigs, gameConfig, items, maps, mounts, terrains } from '../../src/data';
+import { botConfigs, characters, gameConfig, items, maps, mounts, terrains } from '../../src/data';
 import { matchRulesFromConfig, rulesFromConfig } from '../../src/data/rules';
 import type { GameEvent } from '../../src/events';
 import { testRules, worldFrom } from './helpers';
@@ -314,7 +314,7 @@ describe('partida só de bots (dados reais)', () => {
 
 describe('sobrevivência (dados reais)', () => {
   it.each(['arena_01', 'pantanal_01', 'tundra_01'])(
-    'bot difícil sozinho em %s (com itens) sobrevive 60 s em ≥ 90 % das seeds',
+    'bot difícil sozinho em %s (com itens e personagens) sobrevive 60 s em ≥ 90 % das seeds',
     (mapId) => {
       const map = maps.get(mapId);
       const config = botConfigs.get('dificil');
@@ -323,6 +323,7 @@ describe('sobrevivência (dados reais)', () => {
       let survived = 0;
       let destroyed = 0;
       const seeds = 20;
+      const cast = [...characters.keys()];
       for (let seed = 0; seed < seeds; seed++) {
         const world = createWorld({
           map,
@@ -333,6 +334,9 @@ describe('sobrevivência (dados reais)', () => {
           items,
           defaultItems: gameConfig.items.defaultDistribution,
           mounts,
+          // Um personagem por seed, em rodízio (passivas e especiais em jogo).
+          characters,
+          playerCharacters: [cast[seed % cast.length] ?? null],
         });
         const bot = createBot(0, config, seed);
         const events = runWithBots(world, [bot], 60 * gameConfig.tickRate);

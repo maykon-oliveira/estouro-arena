@@ -25,6 +25,12 @@ export type GameEvent =
   | { type: 'montaria.perdida'; playerId: number; mountId: string }
   /** Habilidade da montaria usada (pulo do sapo). */
   | { type: 'montaria.acao'; playerId: number; mountId: string; from: Point; to: Point }
+  /** A barra de energia chegou ao máximo (o especial está pronto). */
+  | { type: 'energia.cheia'; playerId: number }
+  /** Especial do personagem usado (gastou a barra). */
+  | { type: 'especial.usado'; playerId: number; characterId: string; special: string }
+  /** Especial com duração acabou. */
+  | { type: 'especial.terminou'; playerId: number; characterId: string; special: string }
   /** O escudo do personagem (passiva da Mula sem Cabeça) absorveu uma chama. */
   | { type: 'personagem.escudo'; playerId: number; characterId: string }
   /** Terreno destrutível que não barra fogo (mato) terminou de queimar e virou chão. */
@@ -58,6 +64,9 @@ export const GAME_EVENT_TYPES = [
   'montaria.perdida',
   'montaria.acao',
   'personagem.escudo',
+  'energia.cheia',
+  'especial.usado',
+  'especial.terminou',
   'terreno.queimou',
   'bomba.chutada',
   'bomba.parou',

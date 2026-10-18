@@ -91,30 +91,32 @@ describe('PlayerInput — bomba', () => {
   });
 });
 
-describe('PlayerInput — ação', () => {
-  it('emite action uma vez por pedido, separado da bomba', () => {
+describe('PlayerInput — botões pequenos', () => {
+  it('emite remote uma vez por pedido, separado da bomba', () => {
     const bomb = new PressTrigger();
-    const action = new PressTrigger();
-    const input = new PlayerInput(2, [], [bomb], [action]);
-    action.trigger();
+    const remote = new PressTrigger();
+    const input = new PlayerInput(2, [], [bomb], { remote: [remote] });
+    remote.trigger();
     const out: Command[] = [];
     input.poll(out);
-    expect(out).toEqual([{ type: 'action', playerId: 2 }]);
+    expect(out).toEqual([{ type: 'remote', playerId: 2 }]);
     out.length = 0;
     input.poll(out);
     expect(out).toEqual([]);
   });
 
-  it('bomba e ação no mesmo quadro: move, bomb, action', () => {
+  it('todos no mesmo quadro: move, bomb, remote, mount, special', () => {
     const dirs = new FakeSource();
-    const bomb = new PressTrigger();
-    const action = new PressTrigger();
-    const input = new PlayerInput(0, [dirs], [bomb], [action]);
+    const [bomb, remote, mount, special] = [0, 1, 2, 3].map(() => new PressTrigger());
+    const input = new PlayerInput(0, [dirs], bomb ? [bomb] : [], {
+      remote: remote ? [remote] : [],
+      mount: mount ? [mount] : [],
+      special: special ? [special] : [],
+    });
     dirs.dir = 'left';
-    bomb.trigger();
-    action.trigger();
+    for (const t of [special, mount, remote, bomb]) t?.trigger();
     const out: Command[] = [];
     input.poll(out);
-    expect(out.map((c) => c.type)).toEqual(['move', 'bomb', 'action']);
+    expect(out.map((c) => c.type)).toEqual(['move', 'bomb', 'remote', 'mount', 'special']);
   });
 });

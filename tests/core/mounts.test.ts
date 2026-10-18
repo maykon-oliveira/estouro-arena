@@ -17,7 +17,7 @@ function give(world: World, itemId: string, playerId = 0): GameEvent[] {
   return run(world, 1, [{ type: 'debugItem', playerId, itemId }]);
 }
 
-const action = (world: World, playerId = 0) => run(world, 1, [{ type: 'action', playerId }]);
+const action = (world: World, playerId = 0) => run(world, 1, [{ type: 'mount', playerId }]);
 
 describe('dados reais', () => {
   it('mounts.json tem capivara e sapo; items.json tem os ovos', () => {
@@ -157,15 +157,17 @@ describe('sapo-saltador', () => {
     expect(ofType(action(world), 'montaria.acao')).toHaveLength(0);
   });
 
-  it('prioridade do action: primeiro a remota, depois o pulo', () => {
+  it('remota e pulo são comandos separados: o pulo não detona a remota', () => {
     const world = worldFrom(['#######', '#P....#', '#######']);
     give(world, 'remota');
     give(world, 'ovo_sapo_saltador');
     dropBomb(world);
     hold(world, 'right', 10); // (2,1), virado para a direita
     const first = action(world);
-    expect(ofType(first, 'bomba.explodiu')).toHaveLength(1);
-    expect(ofType(first, 'montaria.acao')).toHaveLength(0);
+    expect(ofType(first, 'bomba.explodiu')).toHaveLength(0);
+    expect(ofType(first, 'montaria.acao')).toHaveLength(1);
+    const remote = run(world, 1, [{ type: 'remote', playerId: 0 }]);
+    expect(ofType(remote, 'bomba.explodiu')).toHaveLength(1);
   });
 });
 

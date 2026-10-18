@@ -47,10 +47,10 @@ O jogador anda numa grade de tiles, solta bombas que explodem em cruz após um t
 | --- | --- | --- |
 | Metade esquerda | Joystick virtual flutuante | Aparece onde o polegar toca; 4 direções com zona morta |
 | Direita, botão grande | Soltar bomba | Área de toque generosa (≥ 72 px) |
-| Direita, botão menor | Ação especial | Chutar, detonar remoto, habilidade da montaria |
+| Direita, botões pequenos em volta do de bomba | Remota, montaria, especial | Cada um só aparece quando o jogador tem aquilo (o chute é automático, ao andar contra a bomba); o do especial mostra a barra de energia num anel |
 | Topo | Pausa e HUD | Tempo, vidas, itens ativos |
 
-Suportar também teclado e gamepad (útil para testar no PC). Vibração curta (Vibration API) ao explodir e ao morrer.
+Suportar também teclado e gamepad (útil para testar no PC). Teclado: setas/WASD, espaço (bomba), `K` (remota), `J` (montaria), `L` (especial). Vibração curta (Vibration API) ao explodir e ao morrer.
 
 ### Power-ups clássicos
 
@@ -163,7 +163,7 @@ Escolher 2 ou 3 para a identidade do jogo e deixar o resto como variações de r
 
 ### Habilidades e progressão
 
-- **Carga de energia:** cada bloco destruído enche uma barra; cheia, libera o especial do personagem (ver PERSONAGENS.md).
+- **Carga de energia:** a barra enche com cada bloco destruído pela própria bomba, com cada rival nocauteado e devagar com o tempo vivo; zera a cada rodada; cheia, libera o especial do personagem (ver PERSONAGENS.md e `docs/specs/carga-de-energia.md`).
 - **Personagens com passiva:** cada personagem tem uma vantagem fixa.
 - **Loadout antes da partida:** escolher 1 item inicial entre 3 sorteados.
 - **Upgrades em rodada (estilo roguelite) na campanha:** ao fim de cada fase, escolher 1 de 3 cartas de bônus.

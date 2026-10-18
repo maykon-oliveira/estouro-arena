@@ -89,6 +89,14 @@ export const GameConfigSchema = z
       /** Invulnerabilidade depois do escudo do personagem (Mula sem Cabeça). */
       shieldInvulnerableMs: z.number().min(0),
     }),
+    energy: z.strictObject({
+      /** Barra cheia (libera o especial). */
+      max: PositiveInt,
+      /** Ganhos: bloco destruído pela própria bomba, rival nocauteado, segundo vivo. */
+      perBlock: z.number().int().min(0),
+      perKnockout: z.number().int().min(0),
+      perSecond: z.number().int().min(0),
+    }),
     hud: z.strictObject({
       /** Quanto tempo o "Já!" fica na tela depois da contagem. */
       goBannerMs: z.number().min(0),
@@ -213,6 +221,18 @@ export const MountSchema = z.discriminatedUnion('ability', [
 export const MountsSchema = z.array(MountSchema);
 export type MountData = z.infer<typeof MountSchema>;
 
+/** Especial do personagem (ver docs/specs/carga-de-energia.md); `type` escolhe o handler. */
+export const SpecialSchema = z.discriminatedUnion('type', [
+  z.strictObject({ type: z.literal('teleport'), tiles: z.number().int().min(1) }),
+  z.strictObject({ type: z.literal('charm'), durationMs: z.number().positive() }),
+  z.strictObject({
+    type: z.literal('dash'),
+    tiles: z.number().int().min(1),
+    speedTilesPerSecond: z.number().positive(),
+  }),
+]);
+export type SpecialData = z.infer<typeof SpecialSchema>;
+
 /** Personagem de src/data/characters.json (ver docs/specs/personagens-e-passivas.md). */
 export const CharacterSchema = z.strictObject({
   id: ContentId,
@@ -225,6 +245,7 @@ export const CharacterSchema = z.strictObject({
     flameShields: z.number().int().min(1).optional(),
     hiddenWhileMoving: z.boolean().optional(),
   }),
+  special: SpecialSchema.optional(),
 });
 
 export const CharactersSchema = z

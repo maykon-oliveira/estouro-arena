@@ -64,6 +64,12 @@
   "character": {
     "shieldInvulnerableMs": 1000
   },
+  "energy": {
+    "max": 100,
+    "perBlock": 10,
+    "perKnockout": 40,
+    "perSecond": 1
+  },
   "suddenDeath": {
     "durationMs": 30000
   },

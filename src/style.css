@@ -94,6 +94,137 @@ body {
   box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
 }
 
+/* Botões pequenos em volta do de bomba: remota à esquerda, montaria na diagonal, especial em cima. */
+.small-button {
+  position: absolute;
+  display: none;
+  padding: 0;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  border: 3px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.remote-button {
+  right: calc(24px + 88px + 12px + env(safe-area-inset-right));
+  bottom: calc(24px + 12px + env(safe-area-inset-bottom));
+  background: radial-gradient(circle at 35% 35%, #ff5252, #37474f);
+}
+
+.mount-button {
+  right: calc(24px + 88px + env(safe-area-inset-right));
+  bottom: calc(24px + 88px + env(safe-area-inset-bottom));
+  background: radial-gradient(circle at 35% 35%, #9ccc65, #33691e);
+}
+
+/* Especial: o anel (conic-gradient) mostra a barra de energia enchendo. */
+.special-button {
+  right: calc(24px + 12px + env(safe-area-inset-right));
+  bottom: calc(24px + 88px + 12px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle, #6a1b9a 58%, transparent 60%),
+    conic-gradient(#ffd54f calc(var(--fill, 0) * 360deg), rgb(255 255 255 / 15%) 0);
+}
+
+.small-button.pressed {
+  transform: translateY(3px) scale(0.95);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
+}
+
+.small-button.unavailable {
+  opacity: 0.45;
+}
+
+#controls.touch .bomb-button,
+#controls.touch .small-button:not([hidden]) {
+  display: block;
+}
+
+#rotate-warning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #fff;
+  font:
+    600 20px/1.4 system-ui,
+    sans-serif;
+  text-align: center;
+  background: #14141f;
+}
+
+@media (orientation: portrait) {
+  #rotate-warning {
+    display: flex;
+  }
+}
+
+/* Controles de toque (camada DOM sobre o canvas; tamanhos em px de CSS). */
+#controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+}
+
+.joystick-zone {
+  position: absolute;
+  inset: 0 50% 0 0;
+  pointer-events: auto;
+}
+
+.joystick-base {
+  position: absolute;
+  display: none;
+  box-sizing: border-box;
+  border: 2px solid rgb(255 255 255 / 35%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 10%);
+  transform: translate(-50%, -50%);
+}
+
+.joystick-base.active {
+  display: block;
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44%;
+  height: 44%;
+  margin: -22% 0 0 -22%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+}
+
+.bomb-button {
+  position: absolute;
+  display: none;
+  right: calc(24px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  padding: 0;
+  border: 3px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff7043, #c62828);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bomb-button.pressed {
+  transform: translateY(3px) scale(0.95);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
+}
+
 /* Botão de ação: menor, acima e à esquerda do de bomba. */
 .action-button {
   position: absolute;

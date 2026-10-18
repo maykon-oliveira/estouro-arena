@@ -12,7 +12,7 @@ import type { CharacterDef } from '../core/characters';
 import type { ItemDef } from '../core/items';
 import { checkMapLayout } from '../core/mapCheck';
 import type { MountDef } from '../core/mounts';
-import { botConfigsFromData, mountDefFromData } from './rules';
+import { botConfigsFromData, characterDefFromData, mountDefFromData } from './rules';
 import {
   BotsSchema,
   CharactersSchema,
@@ -56,7 +56,10 @@ for (const item of items.values()) {
 
 /** Personagens por id (src/data/characters.json), na ordem do arquivo (a da tela de escolha). */
 export const characters: ReadonlyMap<string, CharacterDef> = new Map(
-  parseContent(CharactersSchema, charactersJson, 'src/data/characters.json').map((c) => [c.id, c]),
+  parseContent(CharactersSchema, charactersJson, 'src/data/characters.json').map((c) => [
+    c.id,
+    characterDefFromData(c, gameConfig.tickRate),
+  ]),
 );
 
 for (const c of characters.values()) {
