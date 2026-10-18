@@ -41,7 +41,7 @@ export function movePlayer(world: World, player: Player): void {
     walkable(m, c) && !(horizontal ? bombAt(world, m, c) : bombAt(world, c, m));
 
   const here = tileAt(world.grid, Math.round(player.x), Math.round(player.y));
-  const speedMultiplier = here === undefined ? 1 : terrainSpeed(world, player.mount, here);
+  const speedMultiplier = here === undefined ? 1 : terrainSpeed(world, player, here);
   let budget = (playerSpeed(world, player) * speedMultiplier) / world.rules.tickRate;
 
   const mainTile = Math.round(main);

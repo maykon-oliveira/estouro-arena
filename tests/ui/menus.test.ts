@@ -10,6 +10,7 @@ import {
 } from '../../src/ui/settings';
 
 const valid = {
+  characters: new Set(['saci', 'iara', 'boto']),
   maps: new Set(['arena_01', 'pantanal_01', 'tundra_01']),
   levels: new Set(['facil', 'medio', 'dificil']),
 };
@@ -30,20 +31,46 @@ function memoryStore(initial: Record<string, string> = {}): SettingsStore & {
 describe('configurações da batalha', () => {
   it('sem armazenamento, usa os padrões', () => {
     expect(loadSettings(null, valid)).toEqual(DEFAULT_SETTINGS);
-    expect(DEFAULT_SETTINGS).toEqual({ mapId: 'arena_01', bots: 3, level: 'medio' });
+    expect(DEFAULT_SETTINGS).toEqual({
+      character: 'saci',
+      mapId: 'arena_01',
+      bots: 3,
+      level: 'medio',
+    });
   });
 
   it('salva e carrega a última escolha', () => {
     const store = memoryStore();
-    saveSettings(store, { mapId: 'tundra_01', bots: 1, level: 'dificil' });
-    expect(loadSettings(store, valid)).toEqual({ mapId: 'tundra_01', bots: 1, level: 'dificil' });
+    const choice = { character: 'iara', mapId: 'tundra_01', bots: 1, level: 'dificil' };
+    saveSettings(store, choice);
+    expect(loadSettings(store, valid)).toEqual(choice);
   });
 
   it('valores inválidos caem no padrão, campo a campo', () => {
     const store = memoryStore({
-      'estouro.batalha': JSON.stringify({ mapId: 'lua_99', bots: 7, level: 'dificil' }),
+      'estouro.batalha': JSON.stringify({
+        character: 'cuca',
+        mapId: 'lua_99',
+        bots: 7,
+        level: 'dificil',
+      }),
     });
-    expect(loadSettings(store, valid)).toEqual({ mapId: 'arena_01', bots: 3, level: 'dificil' });
+    expect(loadSettings(store, valid)).toEqual({
+      character: 'saci',
+      mapId: 'arena_01',
+      bots: 3,
+      level: 'dificil',
+    });
+    // Escolha salva antes dos personagens (Fase 1): ganha o padrão e mantém o resto.
+    const old = memoryStore({
+      'estouro.batalha': JSON.stringify({ mapId: 'tundra_01', bots: 2, level: 'facil' }),
+    });
+    expect(loadSettings(old, valid)).toEqual({
+      character: 'saci',
+      mapId: 'tundra_01',
+      bots: 2,
+      level: 'facil',
+    });
     expect(loadSettings(memoryStore({ 'estouro.batalha': '{oops' }), valid)).toEqual(
       DEFAULT_SETTINGS,
     );
@@ -71,13 +98,13 @@ describe('atalhos de URL', () => {
 
   it('com parâmetros, começa direto e aplica o que for válido', () => {
     const o = readUrlOptions(
-      '?map=pantanal_01&bots=2&nivel=facil&seed=7&ia=0&roundMs=32000&winsToWin=1',
+      '?map=pantanal_01&personagem=boto&bots=2&nivel=facil&seed=7&ia=0&roundMs=32000&winsToWin=1',
       DEFAULT_SETTINGS,
       valid,
     );
     expect(o).toEqual({
       autostart: true,
-      settings: { mapId: 'pantanal_01', bots: 2, level: 'facil' },
+      settings: { character: 'boto', mapId: 'pantanal_01', bots: 2, level: 'facil' },
       seed: 7,
       botsEnabled: false,
       roundMs: 32000,
@@ -86,7 +113,11 @@ describe('atalhos de URL', () => {
   });
 
   it('valores inválidos são ignorados', () => {
-    const o = readUrlOptions('?map=x&bots=9&nivel=y&seed=z&roundMs=5', DEFAULT_SETTINGS, valid);
+    const o = readUrlOptions(
+      '?map=x&personagem=cuca&bots=9&nivel=y&seed=z&roundMs=5',
+      DEFAULT_SETTINGS,
+      valid,
+    );
     expect(o.autostart).toBe(true);
     expect(o.settings).toEqual(DEFAULT_SETTINGS);
     expect(o.seed).toBeNull();
@@ -114,6 +145,8 @@ function fakePlayer(over: Partial<Player> = {}): Player {
     abilityCooldown: 0,
     deathTick: null,
     ghost: null,
+    character: null,
+    flameShields: 0,
     ...over,
   };
 }
@@ -147,8 +180,9 @@ describe('painel do jogador', () => {
 });
 
 describe('resultado', () => {
-  it('"Você venceu!" para o jogador local; cor para os outros', () => {
+  it('"Você venceu!" para o jogador local; personagem (ou cor) para os outros', () => {
     expect(resultTitle(0)).toBe('Você venceu!');
     expect(resultTitle(2)).toBe('Verde venceu!');
+    expect(resultTitle(2, ['saci', 'boto', 'mula_sem_cabeca'])).toBe('Mula sem Cabeça venceu!');
   });
 });

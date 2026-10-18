@@ -20,13 +20,33 @@ export function countdownLabel(ticks: number, tickRate: number): string {
   return Math.max(1, Math.ceil(ticks / tickRate)).toString();
 }
 
-/** Nome do jogador pela cor ("Vermelho", "Azul"…). */
-export function playerName(id: number): string {
+/** Nome do personagem (`character.<id>.name`). */
+export function characterName(characterId: string): string {
+  return t(`character.${characterId}.name` as StringKey);
+}
+
+/** Passiva do personagem em uma linha (`character.<id>.passive`). */
+export function characterPassive(characterId: string): string {
+  return t(`character.${characterId}.passive` as StringKey);
+}
+
+/**
+ * Nome do jogador: o do personagem, se tiver; senão, pela cor do lugar ("Vermelho", "Azul"…).
+ * `characters` é o personagem de cada jogador (índice = id).
+ */
+export function playerName(id: number, characters: readonly (string | null)[] = []): string {
+  const character = characters[id];
+  if (character) return characterName(character);
   const key = PLAYER_NAME_KEYS[id];
   return key ? t(key) : `#${id + 1}`;
 }
 
 /** Aviso de fim de rodada: vencedor ou empate. */
-export function roundEndText(winnerId: number | null): string {
-  return winnerId === null ? t('round.draw') : t('round.win', { player: playerName(winnerId) });
+export function roundEndText(
+  winnerId: number | null,
+  characters: readonly (string | null)[] = [],
+): string {
+  return winnerId === null
+    ? t('round.draw')
+    : t('round.win', { player: playerName(winnerId, characters) });
 }

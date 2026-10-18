@@ -32,36 +32,51 @@ export interface Jump {
   totalTicks: number;
 }
 
-function override(
-  world: World,
-  mount: string | null,
-  terrainId: string,
-): TerrainOverride | undefined {
-  return mount === null ? undefined : world.mountDefs.get(mount)?.terrainOverrides[terrainId];
+/** Quem muda o terreno: a montaria e o personagem (passiva). */
+export interface TerrainMods {
+  mount?: string | null;
+  character?: string | null;
 }
 
-/** Terreno andável para quem está (ou não) montado, já com a sobreposição da montaria. */
-export function terrainWalkable(world: World, mount: string | null, terrainId: string): boolean {
+/** Campo do terreno efetivo: montaria → personagem → terreno. */
+function effective<K extends keyof TerrainOverride>(
+  world: World,
+  mods: TerrainMods,
+  terrainId: string,
+  key: K,
+): TerrainOverride[K] {
+  const fromMount = mods.mount
+    ? world.mountDefs.get(mods.mount)?.terrainOverrides[terrainId]
+    : null;
+  const fromCharacter = mods.character
+    ? world.characterDefs.get(mods.character)?.passive.terrainOverrides?.[terrainId]
+    : null;
+  return fromMount?.[key] ?? fromCharacter?.[key];
+}
+
+/** Terreno andável para o jogador, já com as sobreposições da montaria e do personagem. */
+export function terrainWalkable(world: World, mods: TerrainMods, terrainId: string): boolean {
   return (
-    override(world, mount, terrainId)?.walkable ?? world.terrains.get(terrainId)?.walkable === true
+    effective(world, mods, terrainId, 'walkable') ??
+    world.terrains.get(terrainId)?.walkable === true
   );
 }
 
-/** Multiplicador de velocidade do terreno, já com a sobreposição da montaria. */
-export function terrainSpeed(world: World, mount: string | null, terrainId: string): number {
+/** Multiplicador de velocidade do terreno, já com as sobreposições. */
+export function terrainSpeed(world: World, mods: TerrainMods, terrainId: string): number {
   return (
-    override(world, mount, terrainId)?.speedMultiplier ??
+    effective(world, mods, terrainId, 'speedMultiplier') ??
     world.terrains.get(terrainId)?.speedMultiplier ??
     1
   );
 }
 
-/** O jogador pode ficar no tile (x, y)? (montaria e `atravessa_bloco` contam). */
+/** O jogador pode ficar no tile (x, y)? (montaria, personagem e `atravessa_bloco` contam). */
 export function canStand(world: World, player: Player, x: number, y: number): boolean {
   const id = tileAt(world.grid, x, y);
   if (id === undefined) return false;
   if (id === BLOCK && player.abilities.has(ABILITY_PASS_BLOCKS)) return true;
-  return terrainWalkable(world, player.mount, id);
+  return terrainWalkable(world, player, id);
 }
 
 /**

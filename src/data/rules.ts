@@ -22,6 +22,7 @@ export function rulesFromConfig(cfg: GameConfig): Rules {
     maxSpeedLevel: cfg.player.maxSpeedLevel,
     kickSpeed: cfg.bomb.kickSpeedTilesPerSecond,
     mountInvulnerableTicks: msToTicks(cfg.mount.invulnerableMs, cfg.tickRate),
+    shieldInvulnerableTicks: msToTicks(cfg.character.shieldInvulnerableMs, cfg.tickRate),
     ghostDelayTicks: msToTicks(cfg.ghost.delayMs, cfg.tickRate),
     ghostSpeed: cfg.ghost.speedTilesPerSecond,
     ghostThrowTiles: cfg.ghost.throwTiles,

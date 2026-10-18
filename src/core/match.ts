@@ -4,6 +4,7 @@ import type { Direction } from './direction';
 import type { MapDefinition } from './grid';
 import type { ItemDef } from './items';
 import type { MountDef } from './mounts';
+import type { CharacterDef } from './characters';
 import { advanceCollapse, startCollapse } from './suddenDeath';
 import { createWorld, step, type Rules, type TerrainRules, type World } from './world';
 
@@ -35,6 +36,9 @@ export interface MatchOptions {
   items?: ReadonlyMap<string, ItemDef>;
   defaultItems?: Readonly<Record<string, number>>;
   mounts?: ReadonlyMap<string, MountDef>;
+  /** Catálogo de personagens e o personagem de cada jogador (ver `WorldOptions`). */
+  characters?: ReadonlyMap<string, CharacterDef>;
+  playerCharacters?: readonly (string | null)[];
 }
 
 export interface Match {
@@ -66,6 +70,8 @@ function roundWorld(options: MatchOptions, round: number): World {
     ...(options.items ? { items: options.items } : {}),
     ...(options.defaultItems ? { defaultItems: options.defaultItems } : {}),
     ...(options.mounts ? { mounts: options.mounts } : {}),
+    ...(options.characters ? { characters: options.characters } : {}),
+    ...(options.playerCharacters ? { playerCharacters: options.playerCharacters } : {}),
   });
 }
 

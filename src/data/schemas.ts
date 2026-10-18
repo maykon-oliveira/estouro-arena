@@ -85,6 +85,10 @@ export const GameConfigSchema = z
       /** Invulnerabilidade depois de perder a montaria (para a mesma explosão não matar). */
       invulnerableMs: z.number().min(0),
     }),
+    character: z.strictObject({
+      /** Invulnerabilidade depois do escudo do personagem (Mula sem Cabeça). */
+      shieldInvulnerableMs: z.number().min(0),
+    }),
     hud: z.strictObject({
       /** Quanto tempo o "Já!" fica na tela depois da contagem. */
       goBannerMs: z.number().min(0),
@@ -208,6 +212,34 @@ export const MountSchema = z.discriminatedUnion('ability', [
 
 export const MountsSchema = z.array(MountSchema);
 export type MountData = z.infer<typeof MountSchema>;
+
+/** Personagem de src/data/characters.json (ver docs/specs/personagens-e-passivas.md). */
+export const CharacterSchema = z.strictObject({
+  id: ContentId,
+  /** Passiva: só dados, aplicados ao nascer (campos opcionais). */
+  passive: z.strictObject({
+    speedLevel: z.number().int().min(1).optional(),
+    range: z.number().int().min(1).optional(),
+    abilities: z.array(AbilityId).optional(),
+    terrainOverrides: z.record(ContentId, TerrainOverrideSchema).optional(),
+    flameShields: z.number().int().min(1).optional(),
+    hiddenWhileMoving: z.boolean().optional(),
+  }),
+});
+
+export const CharactersSchema = z
+  .array(CharacterSchema)
+  .min(1)
+  .superRefine((list, ctx) => {
+    const seen = new Set<string>();
+    list.forEach((c, i) => {
+      if (seen.has(c.id)) {
+        ctx.addIssue({ code: 'custom', message: `personagem duplicado: ${c.id}`, path: [i, 'id'] });
+      }
+      seen.add(c.id);
+    });
+  });
+export type CharacterData = z.infer<typeof CharacterSchema>;
 
 export const ItemsSchema = z.array(ItemSchema).superRefine((items, ctx) => {
   const seen = new Set<string>();

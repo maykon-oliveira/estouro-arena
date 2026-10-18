@@ -39,6 +39,11 @@ export function themeTextures(name: string): ThemeTexture[] {
   });
 }
 
+/** URL do 1º arquivo de um nome lógico (para o DOM: avatares nos menus e no HUD). */
+export function themeUrl(name: string): string | undefined {
+  return themeTextures(name)[0]?.url;
+}
+
 /** Variação fixa por posição (o mapa não "pisca" ao redesenhar), em [0, n). */
 export function tileVariant(x: number, y: number, n: number): number {
   if (n <= 1) return 0;

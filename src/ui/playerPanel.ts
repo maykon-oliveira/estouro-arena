@@ -33,6 +33,8 @@ export function panelChips(player: Player): string[] {
 }
 
 /** Título da tela de Resultado. */
-export function resultTitle(winnerId: number): string {
-  return winnerId === 0 ? t('result.you_win') : t('result.win', { player: playerName(winnerId) });
+export function resultTitle(winnerId: number, characters: readonly (string | null)[] = []): string {
+  return winnerId === 0
+    ? t('result.you_win')
+    : t('result.win', { player: playerName(winnerId, characters) });
 }

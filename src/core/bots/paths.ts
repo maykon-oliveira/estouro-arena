@@ -1,7 +1,7 @@
 import { bombAt } from '../bombs';
 import { ABILITY_PASS_BLOCKS, playerSpeed } from '../items';
 import { DIRECTION_VECTORS, type Direction } from '../direction';
-import { terrainSpeed, terrainWalkable, type MountDef } from '../mounts';
+import { terrainSpeed, terrainWalkable, type TerrainMods } from '../mounts';
 import { BLOCK } from '../terrainIds';
 import type { Player, World } from '../world';
 import { SAFE, type DangerMap } from './dangerMap';
@@ -31,15 +31,17 @@ const NEIGHBORS = [
 ] as const;
 
 /** Quem anda pela rota: posição contínua, velocidade (tiles/s) e se atravessa blocos. */
-export interface Mover {
+export interface Mover extends TerrainMods {
   x: number;
   y: number;
   speed: number;
   passBlocks: boolean;
   /** Deslizando no gelo: o primeiro passo só pode seguir nessa direção. */
   slide?: Direction | null;
-  /** Montaria (muda terrenos: capivara nada na água). */
-  mount?: MountDef | null;
+  /** Montaria (id; muda terrenos: capivara nada na água). */
+  mount?: string | null;
+  /** Personagem (id; a passiva pode mudar terrenos: Iara na água rasa). */
+  character?: string | null;
 }
 
 export function moverOf(world: World, player: Player): Mover {
@@ -49,7 +51,8 @@ export function moverOf(world: World, player: Player): Mover {
     speed: playerSpeed(world, player),
     passBlocks: player.abilities.has(ABILITY_PASS_BLOCKS),
     slide: player.iceSlide,
-    mount: player.mount === null ? null : (world.mountDefs.get(player.mount) ?? null),
+    mount: player.mount,
+    character: player.character,
   };
 }
 
@@ -59,7 +62,7 @@ export function moverOf(world: World, player: Player): Mover {
  */
 export function ticksPerTile(world: World, i: number, mover: Mover): number {
   const id = world.grid.tiles[i];
-  const multiplier = id === undefined ? 1 : terrainSpeed(world, mover.mount?.id ?? null, id);
+  const multiplier = id === undefined ? 1 : terrainSpeed(world, mover, id);
   const speed = mover.speed * multiplier;
   if (speed <= 0) return UNREACHABLE;
   const ticks = Math.ceil(world.rules.tickRate / speed);
@@ -182,7 +185,7 @@ function isEnterable(world: World, mover: Mover, x: number, y: number): boolean 
   if (x < 0 || y < 0 || x >= world.grid.cols || y >= world.grid.rows) return false;
   const id = world.grid.tiles[y * world.grid.cols + x];
   if (id === undefined || bombAt(world, x, y)) return false;
-  return terrainWalkable(world, mover.mount?.id ?? null, id) || (mover.passBlocks && id === BLOCK);
+  return terrainWalkable(world, mover, id) || (mover.passBlocks && id === BLOCK);
 }
 
 /** Gelo (ou outro terreno escorregadio). */

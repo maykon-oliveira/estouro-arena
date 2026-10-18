@@ -3,6 +3,7 @@ import { SilentAudio } from '../audio/AudioService';
 import { EventSounds } from '../audio/EventSounds';
 import type { Command } from '../core/commands';
 import { createBot, runBots, type Bot } from '../core/bots/bot';
+import { assignBotCharacters } from '../core/characters';
 import { DIRECTION_VECTORS } from '../core/direction';
 import { createFixedStep, type FixedStep } from '../core/fixedStep';
 import { ringPoint, throwOrigin } from '../core/ghost';
@@ -11,7 +12,7 @@ import { WALL } from '../core/terrainIds';
 import { msToTicks } from '../core/time';
 import { createMatch, stepMatch, type Match } from '../core/match';
 import type { World } from '../core/world';
-import { botConfigs, gameConfig, items, maps, mounts, sounds, terrains } from '../data';
+import { botConfigs, characters, gameConfig, items, maps, mounts, sounds, terrains } from '../data';
 import type { BattleSettings } from '../ui/settings';
 import { matchRulesFromConfig, rulesFromConfig } from '../data/rules';
 import type { GameEvent } from '../events';
@@ -84,6 +85,8 @@ export class ArenaScene extends Phaser.Scene {
   private paused = false;
   /** Avisa o fim da partida (o main mostra o Resultado). */
   onMatchOver: (winnerId: number, wins: readonly number[]) => void = () => undefined;
+  /** Personagem de cada jogador da partida atual (índice = id). */
+  private playerCharacters: (string | null)[] = [];
   private stepper!: FixedStep;
   private readonly commands: Command[] = [];
   /** Comandos de um tick (jogador local + bots), reaproveitado para não alocar por tick. */
@@ -136,6 +139,11 @@ export class ArenaScene extends Phaser.Scene {
     this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
   }
 
+  /** Personagem de cada jogador da partida atual (para o Resultado). */
+  get characters(): readonly (string | null)[] {
+    return this.playerCharacters;
+  }
+
   get isPaused(): boolean {
     return this.paused;
   }
@@ -165,6 +173,13 @@ export class ArenaScene extends Phaser.Scene {
     this.mapId = map.id;
     this.commands.length = 0;
     this.gameEvents.length = 0;
+    // Spawns limitam a partida: 1 jogador + até 3 bots.
+    const players = Math.min(1 + settings.bots, countSpawns(map));
+    // O jogador escolhe; os bots sorteiam (com a seed) entre os outros, sem repetir.
+    this.playerCharacters = [
+      settings.character,
+      ...assignBotCharacters([...characters.keys()], settings.character, players - 1, seed),
+    ];
     this.match = createMatch(
       {
         map,
@@ -179,12 +194,15 @@ export class ArenaScene extends Phaser.Scene {
         items,
         defaultItems: gameConfig.items.defaultDistribution,
         mounts,
-        // Spawns limitam a partida: 1 jogador + até 3 bots.
-        players: Math.min(1 + settings.bots, countSpawns(map)),
+        characters,
+        playerCharacters: this.playerCharacters,
+        players,
       },
       this.gameEvents,
     );
-    console.info(`[arena] mapa ${map.id}, seed ${seed}`);
+    console.info(
+      `[arena] mapa ${map.id}, seed ${seed}, personagens ${this.playerCharacters.join(' ')}`,
+    );
     // Só em dev: inspeção pelo console e pelos testes e2e. Nunca escrever na partida por aqui.
     if (import.meta.env.DEV) Object.assign(window, { __arena: this.match });
 
@@ -196,7 +214,7 @@ export class ArenaScene extends Phaser.Scene {
       : [];
 
     this.stepper = createFixedStep(gameConfig.tickRate, gameConfig.maxTicksPerFrame);
-    this.hud = new MatchHud(document.body, this.world.players.length);
+    this.hud = new MatchHud(document.body, this.world.players.length, this.playerCharacters);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.hud?.destroy();
       this.hud = null;
@@ -333,8 +351,11 @@ export class ArenaScene extends Phaser.Scene {
       let stroke = fill;
       if (hidden && p.id === 0) fill = stroke = 0.5;
       else if (hidden) {
+        // Curupira (passiva `hiddenWhileMoving`) não mostra nem o contorno andando.
+        const vanishes =
+          p.character !== null && characters.get(p.character)?.passive.hiddenWhileMoving === true;
         fill = 0;
-        stroke = moved ? 0.8 : 0;
+        stroke = moved && !vanishes ? 0.8 : 0;
       }
       // Pulo: cresce no meio do arco. Invulnerável: pisca.
       const jump = p.jump;

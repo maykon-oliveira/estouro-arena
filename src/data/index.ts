@@ -1,5 +1,6 @@
 // Ponto único de carga do conteúdo: todo JSON passa pelo schema Zod aqui.
 import botsJson from './bots.json';
+import charactersJson from './characters.json';
 import gameJson from './game.json';
 import itemsJson from './items.json';
 import mountsJson from './mounts.json';
@@ -7,12 +8,14 @@ import soundsJson from './sounds.json';
 import stringsJson from './strings.pt-BR.json';
 import terrainsJson from './terrains.json';
 import type { BotConfig } from '../core/bots/bot';
+import type { CharacterDef } from '../core/characters';
 import type { ItemDef } from '../core/items';
 import { checkMapLayout } from '../core/mapCheck';
 import type { MountDef } from '../core/mounts';
 import { botConfigsFromData, mountDefFromData } from './rules';
 import {
   BotsSchema,
+  CharactersSchema,
   GameConfigSchema,
   ItemsSchema,
   MountsSchema,
@@ -48,6 +51,19 @@ export const mounts: ReadonlyMap<string, MountDef> = new Map(
 for (const item of items.values()) {
   if (item.effect === 'mount' && !mounts.has(item.mount)) {
     throw new Error(`src/data/items.json: ${item.id} usa montaria inexistente: ${item.mount}`);
+  }
+}
+
+/** Personagens por id (src/data/characters.json), na ordem do arquivo (a da tela de escolha). */
+export const characters: ReadonlyMap<string, CharacterDef> = new Map(
+  parseContent(CharactersSchema, charactersJson, 'src/data/characters.json').map((c) => [c.id, c]),
+);
+
+for (const c of characters.values()) {
+  for (const terrainId of Object.keys(c.passive.terrainOverrides ?? {})) {
+    if (!terrains.has(terrainId)) {
+      throw new Error(`src/data/characters.json: ${c.id} usa terreno inexistente: ${terrainId}`);
+    }
   }
 }
 

@@ -42,6 +42,7 @@ bun run lint         # ESLint + Prettier
 bun run format       # aplica o Prettier
 bun run build        # typecheck + build de produção
 bun run tiles        # regenera as texturas de terreno (DiceBear) a partir de assets/themes/default/tiles.dicebear.json
+bun run avatars      # regenera os avatares dos personagens (DiceBear pixel-art) a partir de assets/themes/default/avatars.dicebear.json
 ```
 
 (Se algum script ainda não existir, crie-o.)
@@ -109,7 +110,7 @@ Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 
 ## Arte e propriedade intelectual
 
-- Texturas de terreno: DiceBear 10, só estilos abstratos **CC0**, geradas no desenvolvimento (`bun run tiles`) e versionadas como SVG — ver [`docs/specs/tema-dicebear.md`](docs/specs/tema-dicebear.md). Personagens, itens e bombas: formas coloridas por enquanto. PixelLab (pixel art 32 × 32) é pago e ficou adiado. Avatares: DiceBear, só estilos CC0.
+- Texturas de terreno: DiceBear 10, só estilos abstratos **CC0**, geradas no desenvolvimento (`bun run tiles`) e versionadas como SVG — ver [`docs/specs/tema-dicebear.md`](docs/specs/tema-dicebear.md). Avatares dos personagens: DiceBear `pixel-art` (CC0, `bun run avatars`). Personagens na arena, itens e bombas: formas coloridas por enquanto. PixelLab (pixel art 32 × 32) é pago e ficou adiado.
 - **Nunca** usar o nome "Bomberman", personagens/sprites dos jogos da Hudson/Konami, nem visuais de adaptações recentes do folclore (novelas, séries). Nunca usar nome ou imagem de pessoas reais.
 
 ## DiceBear
@@ -157,6 +158,6 @@ Dart or C# API attributed to DiceBear is invented rather than outdated.
 
 ## Fase atual
 
-**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md); nenhuma spec escrita ainda.
+**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md). Passo 1 (personagens e passivas) feito.
 Portão para a Fase 3: 60 fps num Android intermediário.
 Fase 0 (Fundação) concluída em 2026-10-17 (tag `fase-0`); Fase 1 (MVP: Batalha) concluída em 2026-10-18 (tag `fase-1`): amigos jogaram 10 partidas seguidas sem bug grave. Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md).

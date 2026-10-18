@@ -6,7 +6,7 @@ import type { Command } from '../../src/core/commands';
 import { step, type Bomb, type World } from '../../src/core/world';
 import { items, mounts } from '../../src/data';
 import type { GameEvent } from '../../src/events';
-import { dropBomb, hold, player, run, testMounts, testRules, worldFrom } from './helpers';
+import { dropBomb, hold, player, run, testRules, worldFrom } from './helpers';
 
 const idx = (world: World, x: number, y: number) => y * world.grid.cols + x;
 
@@ -205,7 +205,7 @@ describe('bots e montarias', () => {
     const base = { x: 1, y: 1, speed: testRules.playerSpeed, passBlocks: false };
     searchPaths(world, d, base, 0, s);
     expect(s.time[idx(world, 4, 1)]).toBe(UNREACHABLE);
-    searchPaths(world, d, { ...base, mount: testMounts.get('capivara') ?? null }, 0, s);
+    searchPaths(world, d, { ...base, mount: 'capivara' }, 0, s);
     expect(s.time[idx(world, 4, 1)]).not.toBe(UNREACHABLE);
   });
 });

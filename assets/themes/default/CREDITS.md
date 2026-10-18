@@ -15,4 +15,8 @@ Geradas com [DiceBear](https://www.dicebear.com) 10 (`@dicebear/core` + `@dicebe
 | gelo       | glass           | CC0 1.0 |
 | lama       | blobs           | CC0 1.0 |
 
+## Avatares dos personagens
+
+Gerados com [DiceBear](https://www.dicebear.com) 10 por `bun run avatars`, a partir de `avatars.dicebear.json`: estilo **pixel-art**, **CC0 1.0**, um por personagem (`saci`, `boitata`, `iara`, `curupira`, `boto`, `mula_sem_cabeca`).
+
 CC0 não exige atribuição; este arquivo existe para deixar a origem clara.

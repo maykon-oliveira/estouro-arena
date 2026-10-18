@@ -25,6 +25,8 @@ export type GameEvent =
   | { type: 'montaria.perdida'; playerId: number; mountId: string }
   /** Habilidade da montaria usada (pulo do sapo). */
   | { type: 'montaria.acao'; playerId: number; mountId: string; from: Point; to: Point }
+  /** O escudo do personagem (passiva da Mula sem Cabeça) absorveu uma chama. */
+  | { type: 'personagem.escudo'; playerId: number; characterId: string }
   /** Terreno destrutível que não barra fogo (mato) terminou de queimar e virou chão. */
   | { type: 'terreno.queimou'; x: number; y: number; terrainId: string }
   /** Bloco com item virou chão: o item aparece no tile. */
@@ -55,6 +57,7 @@ export const GAME_EVENT_TYPES = [
   'montaria.montou',
   'montaria.perdida',
   'montaria.acao',
+  'personagem.escudo',
   'terreno.queimou',
   'bomba.chutada',
   'bomba.parou',

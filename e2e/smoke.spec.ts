@@ -28,6 +28,13 @@ test('menus: Título → Batalha → Começar; a escolha fica salva', async ({ p
   await expect(page.locator('.bomb-button')).toBeHidden();
   await page.getByRole('button', { name: 'Jogar' }).click();
 
+  await expect(page.locator('.menu-character-passive')).toHaveText(
+    'Saci: Mais rápido desde o início',
+  );
+  await page.getByRole('radio', { name: 'Iara' }).click();
+  await expect(page.locator('.menu-character-passive')).toHaveText(
+    'Iara: Não fica lenta na água rasa',
+  );
   await page.getByRole('radio', { name: 'Pantanal' }).click();
   await page.getByRole('radiogroup', { name: 'Bots' }).getByRole('radio', { name: '1' }).click();
   await page.getByRole('radio', { name: 'Fácil' }).click();
@@ -36,6 +43,10 @@ test('menus: Título → Batalha → Começar; a escolha fica salva', async ({ p
   await expect(page.locator('#game canvas')).toBeVisible();
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'countdown');
   await expect(page.locator('.hud-score')).toHaveCount(2);
+  // O jogador é a Iara (com avatar); o bot sorteou outro personagem.
+  await expect(page.locator('.hud-score').first()).toHaveAttribute('aria-label', 'Iara');
+  await expect(page.locator('.hud-score').first().locator('img.avatar')).toBeVisible();
+  await expect(page.locator('.hud-score').nth(1)).not.toHaveAttribute('data-character', 'iara');
   await expect(page.locator('.bomb-button')).toBeVisible();
   await expect(page.locator('#rotate-warning')).toBeHidden();
 
@@ -46,6 +57,7 @@ test('menus: Título → Batalha → Começar; a escolha fica salva', async ({ p
     'true',
   );
   await expect(page.getByRole('radio', { name: 'Fácil' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('radio', { name: 'Iara' })).toHaveAttribute('aria-checked', 'true');
   expect(errors).toEqual([]);
 });
 
@@ -70,7 +82,7 @@ test('pausa: o botão e o Esc abrem e fecham o menu de pausa', async ({ page }) 
 
 test('resultado: o bot vence, aparecem Revanche e Menu', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.goto('/?seed=0&ia=0&bots=1&winsToWin=1');
+  await page.goto('/?seed=0&ia=0&bots=1&winsToWin=1&personagem=saci');
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
     timeout: 6_000,
   });
@@ -78,7 +90,10 @@ test('resultado: o bot vence, aparecem Revanche e Menu', async ({ page }) => {
   await expect(page.locator('.menu')).toHaveAttribute('data-screen', 'result', {
     timeout: 8_000,
   });
-  await expect(page.locator('.menu-result')).toHaveText('Azul venceu!');
+  // Com a seed 0, o bot (Azul) sorteia o personagem abaixo.
+  const botName = await page.locator('.hud-score').nth(1).getAttribute('aria-label');
+  expect(botName).not.toBe('Saci');
+  await expect(page.locator('.menu-result')).toHaveText(`${botName} venceu!`);
 
   await page.getByRole('button', { name: 'Revanche' }).click();
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'countdown');
@@ -141,7 +156,8 @@ test('partida: contagem, "Já!" e relógio correndo', async ({ page }) => {
 
 test('itens: o botão de debug dá fogo +1 e patins ao jogador', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.goto('/?seed=0&debug=1&ia=0');
+  // Iara: nenhuma passiva mexe em alcance ou velocidade.
+  await page.goto('/?seed=0&debug=1&ia=0&personagem=iara');
   await expect(page.locator('.match-hud')).toHaveAttribute('data-phase', 'playing', {
     timeout: 6_000,
   });

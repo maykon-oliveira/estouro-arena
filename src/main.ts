@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { botConfigs, gameConfig, items, maps, t } from './data';
+import { botConfigs, characters, gameConfig, items, maps, t } from './data';
 import { KeyboardInput } from './input/KeyboardInput';
 import { PlayerInput } from './input/PlayerInput';
 import { TouchControls } from './input/TouchControls';
@@ -63,7 +63,11 @@ const game = new Phaser.Game({
   scene: [new IdleScene(), arena],
 });
 
-const valid = { maps: new Set(maps.keys()), levels: new Set(botConfigs.keys()) };
+const valid = {
+  characters: new Set(characters.keys()),
+  maps: new Set(maps.keys()),
+  levels: new Set(botConfigs.keys()),
+};
 const url = readUrlOptions(window.location.search, loadSettings(storage(), valid), valid);
 /** Opções da partida atual (Revanche e Reiniciar repetem, com seed nova). */
 let current: ArenaStart | null = null;
@@ -81,7 +85,11 @@ const screens = new Screens(
     },
     quit: showTitle,
   },
-  { mapIds: [...maps.keys()], levelIds: [...botConfigs.keys()] },
+  {
+    characterIds: [...characters.keys()],
+    mapIds: [...maps.keys()],
+    levelIds: [...botConfigs.keys()],
+  },
 );
 screens.onPauseRequest = pause;
 
@@ -122,7 +130,7 @@ function resume(): void {
 arena.onMatchOver = (winnerId, wins) => {
   arena.pause();
   screens.setPauseButtonVisible(false);
-  screens.showResult(winnerId, wins);
+  screens.showResult(winnerId, wins, arena.characters);
 };
 
 window.addEventListener('keydown', (e) => {

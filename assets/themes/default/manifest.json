@@ -1,4 +1,40 @@
 {
+  "avatar.boitata": {
+    "files": [
+      "avatars/boitata.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "avatar.boto": {
+    "files": [
+      "avatars/boto.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "avatar.curupira": {
+    "files": [
+      "avatars/curupira.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "avatar.iara": {
+    "files": [
+      "avatars/iara.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "avatar.mula_sem_cabeca": {
+    "files": [
+      "avatars/mula_sem_cabeca.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "avatar.saci": {
+    "files": [
+      "avatars/saci.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
   "tile.agua_funda": {
     "files": [
       "tiles/agua_funda_0.svg",

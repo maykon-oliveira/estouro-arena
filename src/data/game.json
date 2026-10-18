@@ -61,6 +61,9 @@
   "mount": {
     "invulnerableMs": 1000
   },
+  "character": {
+    "shieldInvulnerableMs": 1000
+  },
   "suddenDeath": {
     "durationMs": 30000
   },

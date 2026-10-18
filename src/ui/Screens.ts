@@ -1,5 +1,6 @@
 import { gameConfig, t, type StringKey } from '../data';
-import { playerName } from './hudModel';
+import { themeUrl } from '../render/theme';
+import { characterName, characterPassive, playerName } from './hudModel';
 import { resultTitle } from './playerPanel';
 import type { BattleSettings } from './settings';
 
@@ -12,6 +13,8 @@ export interface ScreenActions {
 }
 
 export interface SetupOptions {
+  /** Personagens na ordem de src/data/characters.json. */
+  characterIds: readonly string[];
   mapIds: readonly string[];
   levelIds: readonly string[];
 }
@@ -80,6 +83,28 @@ export class Screens {
     const heading = document.createElement('h2');
     heading.textContent = t('menu.battle');
 
+    // Personagem: avatares; o nome e a passiva do escolhido aparecem embaixo.
+    const passive = document.createElement('p');
+    passive.className = 'menu-character-passive';
+    const describe = (id: string): void => {
+      passive.textContent = `${characterName(id)}: ${characterPassive(id)}`;
+    };
+    describe(settings.character);
+    const character = choiceRow(
+      t('menu.character'),
+      this.setup.characterIds.map((id) => ({
+        value: id,
+        label: characterName(id),
+        image: themeUrl(`avatar.${id}`),
+      })),
+      settings.character,
+      (v) => {
+        settings.character = v;
+        describe(v);
+      },
+      'menu-characters',
+    );
+
     const maps = choiceRow(
       t('menu.map'),
       this.setup.mapIds.map((id) => ({ value: id, label: label(MAP_KEYS[id], id) })),
@@ -100,7 +125,7 @@ export class Screens {
       (v) => (settings.level = v),
     );
     const start = button(t('menu.start'), 'menu-primary', () => this.actions.start(settings));
-    this.show('setup', [heading, maps, bots, level, start]);
+    this.show('setup', [heading, character, passive, maps, bots, level, start]);
   }
 
   showPause(): void {
@@ -114,16 +139,23 @@ export class Screens {
     ]);
   }
 
-  showResult(winnerId: number, wins: readonly number[]): void {
+  /** `characters`: personagem de cada jogador (índice = id). */
+  showResult(
+    winnerId: number,
+    wins: readonly number[],
+    characters: readonly (string | null)[] = [],
+  ): void {
     const heading = document.createElement('h2');
     heading.className = 'menu-result';
-    heading.textContent = resultTitle(winnerId);
+    heading.textContent = resultTitle(winnerId, characters);
     const scores = document.createElement('ul');
     scores.className = 'menu-scores';
     wins.forEach((w, id) => {
       const li = document.createElement('li');
       li.style.setProperty('--player-color', gameConfig.render.playerColors[id] ?? '#fff');
-      li.textContent = `${playerName(id)}: ${'●'.repeat(w)}`;
+      const avatar = avatarImage(characters[id] ?? null);
+      if (avatar) li.append(avatar);
+      li.append(`${playerName(id, characters)}: ${'●'.repeat(w)}`);
       scores.append(li);
     });
     this.show('result', [
@@ -146,6 +178,17 @@ export class Screens {
   }
 }
 
+/** Avatar do personagem (img decorativa); null sem personagem ou sem avatar no tema. */
+export function avatarImage(characterId: string | null): HTMLImageElement | null {
+  const url = characterId ? themeUrl(`avatar.${characterId}`) : undefined;
+  if (!url) return null;
+  const img = document.createElement('img');
+  img.className = 'avatar';
+  img.src = url;
+  img.alt = '';
+  return img;
+}
+
 function label(key: StringKey | undefined, fallback: string): string {
   return key ? t(key) : fallback;
 }
@@ -162,7 +205,8 @@ function button(text: string, className: string, onClick: () => void): HTMLButto
 /** Linha de escolha única (botões que se comportam como rádio). */
 function choiceRow(
   title: string,
-  options: { value: string; label: string }[],
+  /** Com `image`, o botão mostra só a imagem e o rótulo vira o nome acessível. */
+  options: { value: string; label: string; image?: string | undefined }[],
   selected: string,
   onChange: (value: string) => void,
   className = 'menu-choices',
@@ -182,6 +226,15 @@ function choiceRow(
       b.setAttribute('aria-checked', 'true');
       onChange(o.value);
     });
+    if (o.image) {
+      const img = document.createElement('img');
+      img.className = 'avatar';
+      img.src = o.image;
+      img.alt = '';
+      b.replaceChildren(img);
+      b.setAttribute('aria-label', o.label);
+      b.title = o.label;
+    }
     b.setAttribute('role', 'radio');
     b.setAttribute('aria-checked', String(o.value === selected));
     b.dataset['value'] = o.value;

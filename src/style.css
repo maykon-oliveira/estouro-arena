@@ -231,6 +231,9 @@ body {
 }
 
 .hud-score {
+  display: flex;
+  gap: 4px;
+  align-items: center;
   padding: 2px 8px;
   border-radius: 8px;
   border-bottom: 3px solid var(--player-color);
@@ -359,6 +362,45 @@ body:not(.playing) #controls {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+/* Avatares DiceBear (pixel-art): sem suavização ao escalar. */
+.avatar {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  image-rendering: pixelated;
+}
+
+.hud-score .avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.menu-scores .avatar {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.menu-characters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.menu .menu-characters button {
+  padding: 4px;
+}
+
+.menu-character-passive {
+  margin: -6px 0 0;
+  font-size: 14px;
+  opacity: 0.85;
 }
 
 .menu [role='radio'][aria-checked='true'] {

@@ -1,3 +1,4 @@
+import type { CharacterDef } from '../../src/core/characters';
 import type { Command } from '../../src/core/commands';
 import type { Direction } from '../../src/core/direction';
 import type { MapDefinition } from '../../src/core/grid';
@@ -46,6 +47,7 @@ export const testRules: Rules = {
   maxSpeedLevel: 2,
   kickSpeed: 12,
   mountInvulnerableTicks: 5,
+  shieldInvulnerableTicks: 5,
   ghostDelayTicks: 3,
   ghostSpeed: 6,
   ghostThrowTiles: 3,
@@ -92,6 +94,16 @@ export const testMounts: ReadonlyMap<string, MountDef> = new Map<string, MountDe
   ],
 ]);
 
+/** Personagens dos testes (as passivas de src/data/characters.json). */
+export const testCharacters: ReadonlyMap<string, CharacterDef> = new Map<string, CharacterDef>([
+  ['saci', { id: 'saci', passive: { speedLevel: 1 } }],
+  ['boitata', { id: 'boitata', passive: { range: 1 } }],
+  ['iara', { id: 'iara', passive: { terrainOverrides: { agua_rasa: { speedMultiplier: 1 } } } }],
+  ['curupira', { id: 'curupira', passive: { hiddenWhileMoving: true } }],
+  ['boto', { id: 'boto', passive: { abilities: ['chute'] } }],
+  ['mula_sem_cabeca', { id: 'mula_sem_cabeca', passive: { flameShields: 1 } }],
+]);
+
 /**
  * Mapa ASCII sem blocos sorteados: `#` parede, `.` chão, `B` bloco, `~` lama,
  * `w` água rasa, `=` água funda, `"` mato alto, `*` gelo, `P` spawn.
@@ -101,6 +113,7 @@ export function worldFrom(
   players = 1,
   rules: Partial<Rules> = {},
   itens?: Record<string, number>,
+  playerCharacters: readonly (string | null)[] = [],
 ): World {
   const map: MapDefinition = {
     tamanho: [mapa[0]?.length ?? 0, mapa.length],
@@ -126,6 +139,8 @@ export function worldFrom(
     players,
     items: testItems,
     mounts: testMounts,
+    characters: testCharacters,
+    playerCharacters,
   });
 }
 

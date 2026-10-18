@@ -1,0 +1,80 @@
+{
+  "$comment": "Fonte dos avatares dos personagens (DiceBear 10, estilo pixel-art, CC0). Gere com: bun run avatars",
+  "size": 64,
+  "cc0Styles": ["pixel-art"],
+  "style": "pixel-art",
+  "avatars": {
+    "saci": {
+      "backgroundColor": ["#e53935"],
+      "skinColor": ["#5c3a21"],
+      "hatProbability": 100,
+      "hatVariant": ["variant04"],
+      "hatColor": ["#d50000"],
+      "clothingColor": ["#d50000"],
+      "mouthVariant": ["happy09"],
+      "beardProbability": 0,
+      "glassesProbability": 0,
+      "accessoriesProbability": 0
+    },
+    "boitata": {
+      "backgroundColor": ["#1e3a8a"],
+      "skinColor": ["#e0a96d"],
+      "hairVariant": ["short19"],
+      "hairColor": ["#ff6d00"],
+      "clothingColor": ["#1565c0"],
+      "eyesColor": ["#ffab00"],
+      "hatProbability": 0,
+      "beardProbability": 0,
+      "glassesProbability": 0,
+      "accessoriesProbability": 0
+    },
+    "iara": {
+      "backgroundColor": ["#00897b"],
+      "skinColor": ["#c68642"],
+      "hairVariant": ["long06"],
+      "hairColor": ["#1b2631"],
+      "clothingColor": ["#4db6ac"],
+      "mouthVariant": ["happy04"],
+      "hatProbability": 0,
+      "beardProbability": 0,
+      "glassesProbability": 0,
+      "accessoriesProbability": 0
+    },
+    "curupira": {
+      "backgroundColor": ["#2e7d32"],
+      "skinColor": ["#a0663a"],
+      "hairVariant": ["short15"],
+      "hairColor": ["#e65100"],
+      "clothingColor": ["#43a047"],
+      "mouthVariant": ["sad02"],
+      "hatProbability": 0,
+      "beardProbability": 0,
+      "glassesProbability": 0,
+      "accessoriesProbability": 0
+    },
+    "boto": {
+      "backgroundColor": ["#ec407a"],
+      "skinColor": ["#f1c27d"],
+      "hatProbability": 100,
+      "hatVariant": ["variant02"],
+      "hatColor": ["#fafafa"],
+      "clothingColor": ["#fafafa"],
+      "mouthVariant": ["happy01"],
+      "beardProbability": 0,
+      "glassesProbability": 0,
+      "accessoriesProbability": 0
+    },
+    "mula_sem_cabeca": {
+      "backgroundColor": ["#6d4c41"],
+      "skinColor": ["#8d5524"],
+      "hairVariant": ["short02"],
+      "hairColor": ["#ffd600"],
+      "clothingColor": ["#ffb300"],
+      "eyesColor": ["#ff3d00"],
+      "hatProbability": 0,
+      "beardProbability": 0,
+      "glassesProbability": 0,
+      "accessoriesProbability": 0
+    }
+  }
+}

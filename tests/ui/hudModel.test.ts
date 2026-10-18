@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { countdownLabel, formatClock, playerName, roundEndText } from '../../src/ui/hudModel';
+import { characters } from '../../src/data';
+import {
+  characterName,
+  characterPassive,
+  countdownLabel,
+  formatClock,
+  playerName,
+  roundEndText,
+} from '../../src/ui/hudModel';
 
 describe('formatClock', () => {
   it('formata m:ss arredondando os segundos para cima', () => {
@@ -33,8 +41,23 @@ describe('textos de jogador', () => {
     expect(playerName(7)).toBe('#8');
   });
 
+  it('com personagem, usa o nome dele; sem, a cor', () => {
+    const cast = ['iara', null, 'mula_sem_cabeca'];
+    expect(playerName(0, cast)).toBe('Iara');
+    expect(playerName(1, cast)).toBe('Azul');
+    expect(playerName(2, cast)).toBe('Mula sem Cabeça');
+  });
+
+  it('todo personagem tem nome e passiva nos textos', () => {
+    for (const id of characters.keys()) {
+      expect(characterName(id)).not.toContain('character.');
+      expect(characterPassive(id)).not.toContain('character.');
+    }
+  });
+
   it('monta o aviso de fim de rodada', () => {
     expect(roundEndText(1)).toBe('Azul venceu a rodada!');
+    expect(roundEndText(1, ['saci', 'boto'])).toBe('Boto venceu a rodada!');
     expect(roundEndText(null)).toBe('Empate!');
   });
 });

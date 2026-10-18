@@ -3,6 +3,7 @@ import { gameConfig, t } from '../data';
 import type { GameEvent } from '../events';
 import { countdownLabel, formatClock, playerName, roundEndText } from './hudModel';
 import { panelChips } from './playerPanel';
+import { avatarImage } from './Screens';
 
 /**
  * HUD mínimo da partida (DOM sobre o canvas): relógio, vitórias por jogador e avisos centrais.
@@ -11,6 +12,7 @@ import { panelChips } from './playerPanel';
 export class MatchHud {
   private readonly root: HTMLElement;
   private readonly clock: HTMLElement;
+  /** Bolinhas de vitória de cada jogador (ao lado do avatar). */
   private readonly scores: HTMLElement[] = [];
   private readonly bannerNote: HTMLElement;
   private readonly bannerText: HTMLElement;
@@ -26,7 +28,12 @@ export class MatchHud {
   /** Último valor escrito em cada elemento, para não tocar no DOM à toa. */
   private readonly written = new Map<HTMLElement, string>();
 
-  constructor(parent: HTMLElement, players: number) {
+  /** `characters`: personagem de cada jogador (índice = id), para avatar e nomes. */
+  constructor(
+    parent: HTMLElement,
+    players: number,
+    private readonly characters: readonly (string | null)[] = [],
+  ) {
     this.root = document.createElement('div');
     this.root.className = 'match-hud';
 
@@ -36,16 +43,23 @@ export class MatchHud {
     this.clock.className = 'hud-clock';
 
     const colors = gameConfig.render.playerColors;
+    const cards: HTMLElement[] = [];
     for (let id = 0; id < players; id++) {
-      const score = document.createElement('div');
-      score.className = 'hud-score';
-      score.style.setProperty('--player-color', colors[id] ?? '#ffffff');
-      score.setAttribute('aria-label', playerName(id));
-      this.scores.push(score);
+      const card = document.createElement('div');
+      card.className = 'hud-score';
+      card.style.setProperty('--player-color', colors[id] ?? '#ffffff');
+      card.setAttribute('aria-label', playerName(id, characters));
+      card.dataset['character'] = characters[id] ?? '';
+      const avatar = avatarImage(characters[id] ?? null);
+      if (avatar) card.append(avatar);
+      const pips = document.createElement('span');
+      card.append(pips);
+      cards.push(card);
+      this.scores.push(pips);
     }
     // Metade dos jogadores de cada lado do relógio.
     const half = Math.ceil(players / 2);
-    top.append(...this.scores.slice(0, half), this.clock, ...this.scores.slice(half));
+    top.append(...cards.slice(0, half), this.clock, ...cards.slice(half));
 
     const banner = document.createElement('div');
     banner.className = 'hud-banner';
@@ -73,9 +87,9 @@ export class MatchHud {
       } else if (e.type === 'morte_subita.iniciou') {
         this.suddenUntil = nowMs + gameConfig.hud.suddenDeathBannerMs;
       } else if (e.type === 'rodada.terminou') {
-        this.lastResult = roundEndText(e.winnerId);
+        this.lastResult = roundEndText(e.winnerId, this.characters);
       } else if (e.type === 'partida.terminou') {
-        this.matchResult = t('match.win', { player: playerName(e.winnerId) });
+        this.matchResult = t('match.win', { player: playerName(e.winnerId, this.characters) });
       }
     }
   }

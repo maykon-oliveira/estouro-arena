@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "test:e2e": "playwright test",
     "prepare": "husky",
-    "tiles": "bun scripts/generate-tiles.ts"
+    "tiles": "bun scripts/generate-tiles.ts",
+    "avatars": "bun scripts/generate-avatars.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0",

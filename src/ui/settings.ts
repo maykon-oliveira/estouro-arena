@@ -1,5 +1,7 @@
 /** Escolhas da tela de Batalha (salvas entre visitas, por conveniência). */
 export interface BattleSettings {
+  /** Personagem do jogador (id de src/data/characters.json). */
+  character: string;
   mapId: string;
   bots: number;
   level: string;
@@ -7,6 +9,7 @@ export interface BattleSettings {
 
 /** Ids válidos (vêm dos dados carregados). */
 export interface ValidIds {
+  characters: ReadonlySet<string>;
   maps: ReadonlySet<string>;
   levels: ReadonlySet<string>;
 }
@@ -18,6 +21,7 @@ export interface SettingsStore {
 }
 
 export const DEFAULT_SETTINGS: Readonly<BattleSettings> = {
+  character: 'saci',
   mapId: 'arena_01',
   bots: 3,
   level: 'medio',
@@ -41,7 +45,9 @@ export function loadSettings(store: SettingsStore | null, valid: ValidIds): Batt
   const saved = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {};
   const mapId = typeof saved['mapId'] === 'string' ? saved['mapId'] : '';
   const level = typeof saved['level'] === 'string' ? saved['level'] : '';
+  const character = typeof saved['character'] === 'string' ? saved['character'] : '';
   return {
+    character: valid.characters.has(character) ? character : DEFAULT_SETTINGS.character,
     mapId: valid.maps.has(mapId) ? mapId : DEFAULT_SETTINGS.mapId,
     bots: validBots(saved['bots']) ? saved['bots'] : DEFAULT_SETTINGS.bots,
     level: valid.levels.has(level) ? level : DEFAULT_SETTINGS.level,
@@ -69,7 +75,17 @@ export interface UrlOptions {
   winsToWin: number | null;
 }
 
-const GAME_PARAMS = ['seed', 'map', 'bots', 'nivel', 'ia', 'roundMs', 'winsToWin', 'debug'];
+const GAME_PARAMS = [
+  'seed',
+  'map',
+  'personagem',
+  'bots',
+  'nivel',
+  'ia',
+  'roundMs',
+  'winsToWin',
+  'debug',
+];
 
 /** Lê os atalhos de URL sobre a escolha salva; valores inválidos são ignorados. */
 export function readUrlOptions(search: string, base: BattleSettings, valid: ValidIds): UrlOptions {
@@ -81,12 +97,14 @@ export function readUrlOptions(search: string, base: BattleSettings, valid: Vali
   };
   const map = params.get('map');
   const level = params.get('nivel');
+  const character = params.get('personagem');
   const bots = num('bots');
   const roundMs = num('roundMs');
   const winsToWin = num('winsToWin');
   return {
     autostart: GAME_PARAMS.some((p) => params.has(p)),
     settings: {
+      character: character !== null && valid.characters.has(character) ? character : base.character,
       mapId: map !== null && valid.maps.has(map) ? map : base.mapId,
       bots: validBots(bots) ? bots : base.bots,
       level: level !== null && valid.levels.has(level) ? level : base.level,

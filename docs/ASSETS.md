@@ -28,6 +28,14 @@ Enquanto não houver arte final, os tiles de terreno do tema `default` são SVGs
 - O render escolhe a variação pela posição do tile (fixa, sem repetição visível).
 - Créditos e licenças: `assets/themes/default/CREDITS.md`.
 
+## Avatares dos personagens (DiceBear)
+
+Um retrato por personagem, **DiceBear 10** estilo `pixel-art` (**CC0**), usado no DOM (escolha de personagem, placar do HUD, Resultado). Mesmo fluxo dos tiles:
+
+- Fonte: `assets/themes/default/avatars.dicebear.json` (cores de pele, cabelo, chapéu e roupa por personagem, para lembrar cada um; lista de estilos CC0 permitidos).
+- Gerar: `bun run avatars` → `assets/themes/default/avatars/<personagem>.svg` e as entradas `avatar.<personagem>` do `manifest.json`. Não edite à mão.
+- Os dois geradores dividem `scripts/dicebear.ts` (render do SVG sem `<metadata>`, checagem CC0, atualização do manifest).
+
 Formato atual do manifest para tiles (o atlas do exemplo abaixo continua valendo para spritesheets futuros):
 
 ```json

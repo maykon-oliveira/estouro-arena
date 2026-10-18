@@ -15,7 +15,7 @@ Projeto IA-first: o desenvolvimento é feito com agentes de IA seguindo [`CLAUDE
 
 ## Status
 
-Fase 0 — Fundação, concluída: grade, movimento com joystick, bomba e explosão em cruz e painel de debug, testados num celular real. Publicado em http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/ (Coolify). Fase 1 — MVP: Batalha, concluída: partida melhor de 3 contra bots em 3 fases — arena, pantanal e tundra —, com power-ups, chute, bomba remota e montarias — capivara e sapo —, morte súbita e fantasma vingador; amigos jogaram 10 partidas seguidas sem bug grave. Fase 2 — Arte e conteúdo (personagens, especiais, bombas elementais, campanha, arte final) em planejamento. Detalhes em [docs/STATUS.md](docs/STATUS.md).
+Fase 0 — Fundação, concluída: grade, movimento com joystick, bomba e explosão em cruz e painel de debug, testados num celular real. Publicado em http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/ (Coolify). Fase 1 — MVP: Batalha, concluída: partida melhor de 3 contra bots em 3 fases — arena, pantanal e tundra —, com power-ups, chute, bomba remota e montarias — capivara e sapo —, morte súbita e fantasma vingador; amigos jogaram 10 partidas seguidas sem bug grave. Fase 2 — Arte e conteúdo em andamento: os 6 personagens do folclore, cada um com sua passiva, já são escolhidos na Batalha; faltam especiais, bombas elementais, campanha e arte final. Detalhes em [docs/STATUS.md](docs/STATUS.md).
 
 ```bash
 bun install

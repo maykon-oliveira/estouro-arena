@@ -10,6 +10,7 @@ import { advanceJump, loseMount, useMountAbility, type Jump, type MountDef } fro
 import { movePlayer } from './movement';
 import type { Collapse } from './suddenDeath';
 import { createRng, type Rng } from './rng';
+import { applyPassive, type CharacterDef } from './characters';
 
 /** Propriedades de terreno que a simulação consulta (subconjunto de src/data/terrains.json). */
 export interface TerrainRules {
@@ -46,6 +47,8 @@ export interface Rules {
   kickSpeed: number;
   /** Invulnerabilidade depois de perder a montaria. */
   mountInvulnerableTicks: number;
+  /** Invulnerabilidade depois do escudo do personagem (Mula sem Cabeça). */
+  shieldInvulnerableTicks: number;
   /** Fantasma vingador: espera depois da morte, velocidade no anel (tiles/s), distância mínima do pouso e duração do voo. */
   ghostDelayTicks: number;
   ghostSpeed: number;
@@ -84,6 +87,10 @@ export interface Player {
   deathTick: number | null;
   /** Fantasma vingador (depois de morto). */
   ghost: Ghost | null;
+  /** Personagem (id de src/data/characters.json) ou null (sem passiva). */
+  character: string | null;
+  /** Chamas que o escudo do personagem ainda absorve nesta rodada. */
+  flameShields: number;
 }
 
 export interface Bomb {
@@ -120,6 +127,7 @@ export interface World {
   collapse: Collapse | null;
   readonly itemDefs: ReadonlyMap<string, ItemDef>;
   readonly mountDefs: ReadonlyMap<string, MountDef>;
+  readonly characterDefs: ReadonlyMap<string, CharacterDef>;
   readonly terrains: ReadonlyMap<string, TerrainRules>;
   readonly rules: Rules;
   readonly rng: Rng;
@@ -137,6 +145,10 @@ export interface WorldOptions {
   defaultItems?: Readonly<Record<string, number>>;
   /** Catálogo de montarias (src/data/mounts.json). */
   mounts?: ReadonlyMap<string, MountDef>;
+  /** Catálogo de personagens (src/data/characters.json). */
+  characters?: ReadonlyMap<string, CharacterDef>;
+  /** Personagem de cada jogador (índice = id); faltando ou null, sem passiva. */
+  playerCharacters?: readonly (string | null)[];
 }
 
 export function createWorld(options: WorldOptions): World {
@@ -164,7 +176,15 @@ export function createWorld(options: WorldOptions): World {
     abilityCooldown: 0,
     deathTick: null,
     ghost: null,
+    character: null,
+    flameShields: 0,
   }));
+  const characterDefs = options.characters ?? new Map<string, CharacterDef>();
+  for (const p of players) {
+    const id = options.playerCharacters?.[p.id];
+    const def = id ? characterDefs.get(id) : undefined;
+    if (def) applyPassive(p, def, rules);
+  }
   const itemDefs = options.items ?? new Map<string, ItemDef>();
   const counts = options.map.blocos.itens ?? options.defaultItems ?? {};
   const hiddenItems =
@@ -183,6 +203,7 @@ export function createWorld(options: WorldOptions): World {
     collapse: null,
     itemDefs,
     mountDefs: options.mounts ?? new Map<string, MountDef>(),
+    characterDefs,
     terrains: options.terrains,
     rules,
     rng,
@@ -253,12 +274,23 @@ function armOrphanRemotes(world: World): void {
 function killPlayersInFlames(world: World, out: GameEvent[]): void {
   for (const player of world.players) {
     if (!player.alive) continue;
-    // No ar (pulo) ou invulnerável, a chama não pega; montado, o escudo absorve.
+    // No ar (pulo) ou invulnerável, a chama não pega; montado, o escudo da montaria absorve
+    // primeiro, e depois o do personagem.
     if (player.jump || player.invulnerableTicks > 0) continue;
     const i = Math.round(player.y) * world.grid.cols + Math.round(player.x);
     if ((world.flames[i] ?? 0) > 0) {
       if (player.mount !== null) {
         loseMount(world, player, out);
+        continue;
+      }
+      if (player.flameShields > 0) {
+        player.flameShields--;
+        player.invulnerableTicks = world.rules.shieldInvulnerableTicks;
+        out.push({
+          type: 'personagem.escudo',
+          playerId: player.id,
+          characterId: player.character ?? '',
+        });
         continue;
       }
       player.alive = false;
