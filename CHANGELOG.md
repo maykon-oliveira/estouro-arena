@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.13.0...v0.14.0) (2026-10-18)
+
+### Funcionalidades
+
+* **carga-de-energia:** Adiciona barra de energia, botões separados e 3 especiais ([3e5924c](https://github.com/maykon-oliveira/estouro-arena/commit/3e5924c9438ee1670516d6b77d689f1a11c5b534))
+* **carga-de-energia:** Adiciona rastro de fogo, maré e pegada falsa ([181ed22](https://github.com/maykon-oliveira/estouro-arena/commit/181ed22be418671cba8ee0508390b4e7c2cf9895))
+
 ## [0.13.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.12.0...v0.13.0) (2026-10-18)
 
 ### Funcionalidades
