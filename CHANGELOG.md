@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.12.0...v0.13.0) (2026-10-18)
+
+### Funcionalidades
+
+* **personagens-e-passivas:** Adiciona os 6 personagens do folclore com passivas ([0f323fa](https://github.com/maykon-oliveira/estouro-arena/commit/0f323fa4bd93d5606ca1a7f7f20e32fc342b57c8))
+
+### Documentação
+
+* Fecha a Fase 1 e planeja a Fase 2 ([eef1ba9](https://github.com/maykon-oliveira/estouro-arena/commit/eef1ba95040abf407097eda9676ad630b1eb4d7e))
+
 ## [0.12.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.11.0...v0.12.0) (2026-10-17)
 
 ### Funcionalidades
