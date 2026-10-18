@@ -87,7 +87,15 @@ export function specialDefFromData(data: SpecialData, tickRate: number): Special
     case 'teleport':
       return data;
     case 'charm':
-      return { type: 'charm', durationTicks: Math.max(1, msToTicks(data.durationMs, tickRate)) };
+    case 'fireTrail':
+    case 'decoy':
+      return { type: data.type, durationTicks: Math.max(1, msToTicks(data.durationMs, tickRate)) };
+    case 'tide':
+      return {
+        type: 'tide',
+        durationTicks: Math.max(1, msToTicks(data.durationMs, tickRate)),
+        speedMultiplier: data.speedMultiplier,
+      };
     case 'dash':
       return {
         type: 'dash',

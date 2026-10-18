@@ -101,9 +101,26 @@ export const testMounts: ReadonlyMap<string, MountDef> = new Map<string, MountDe
 /** Personagens dos testes (as passivas de src/data/characters.json). */
 export const testCharacters: ReadonlyMap<string, CharacterDef> = new Map<string, CharacterDef>([
   ['saci', { id: 'saci', passive: { speedLevel: 1 }, special: { type: 'teleport', tiles: 3 } }],
-  ['boitata', { id: 'boitata', passive: { range: 1 } }],
-  ['iara', { id: 'iara', passive: { terrainOverrides: { agua_rasa: { speedMultiplier: 1 } } } }],
-  ['curupira', { id: 'curupira', passive: { hiddenWhileMoving: true } }],
+  [
+    'boitata',
+    { id: 'boitata', passive: { range: 1 }, special: { type: 'fireTrail', durationTicks: 10 } },
+  ],
+  [
+    'iara',
+    {
+      id: 'iara',
+      passive: { terrainOverrides: { agua_rasa: { speedMultiplier: 1 } } },
+      special: { type: 'tide', durationTicks: 10, speedMultiplier: 0.5 },
+    },
+  ],
+  [
+    'curupira',
+    {
+      id: 'curupira',
+      passive: { hiddenWhileMoving: true },
+      special: { type: 'decoy', durationTicks: 10 },
+    },
+  ],
   [
     'boto',
     {

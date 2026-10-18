@@ -13,6 +13,10 @@
     "id": "boitata",
     "passive": {
       "range": 1
+    },
+    "special": {
+      "type": "fireTrail",
+      "durationMs": 3000
     }
   },
   {
@@ -23,12 +27,21 @@
           "speedMultiplier": 1
         }
       }
+    },
+    "special": {
+      "type": "tide",
+      "durationMs": 4000,
+      "speedMultiplier": 0.5
     }
   },
   {
     "id": "curupira",
     "passive": {
       "hiddenWhileMoving": true
+    },
+    "special": {
+      "type": "decoy",
+      "durationMs": 4000
     }
   },
   {

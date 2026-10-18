@@ -43,6 +43,8 @@ const BOMB_COLOR = 0x111111;
 const BOMB_FUSE_COLOR = 0xffa000;
 const FLAME_OUTER = 0xff6d00;
 const FLAME_INNER = 0xffe082;
+/** Maré da Iara: água por cima do chão (placeholder). */
+const TIDE_COLOR = 0x4fc3f7;
 /** Itens: fundo e símbolo por id (placeholder até o manifest do tema). */
 const ITEM_COLORS: Readonly<Record<string, { bg: number; fg: number }>> = {
   bomba: { bg: 0xeceff1, fg: 0x111111 },
@@ -409,6 +411,18 @@ export class ArenaScene extends Phaser.Scene {
     const { fuseTicks, explosionTicks } = this.world.rules;
     const g = this.dynamicLayer.clear();
 
+    // Maré da Iara: os tiles alagados ficam azulados (mais claros quando estão secando).
+    this.world.tideTicks.forEach((left, i) => {
+      if (left === 0) return;
+      g.fillStyle(TIDE_COLOR, Math.min(0.45, 0.15 + left / 120));
+      g.fillRect(
+        this.origin.x + (i % cols) * TILE,
+        this.origin.y + Math.floor(i / cols) * TILE,
+        TILE,
+        TILE,
+      );
+    });
+
     this.world.flames.forEach((left, i) => {
       if (left === 0) return;
       const x = this.origin.x + (i % cols) * TILE;
@@ -492,6 +506,15 @@ export class ArenaScene extends Phaser.Scene {
       g.fillCircle(pos.x, pos.y, TILE * 0.36 * pulse);
       g.fillStyle(BOMB_FUSE_COLOR);
       g.fillCircle(pos.x + TILE * 0.2, pos.y - TILE * 0.24, TILE * 0.08);
+    }
+
+    // Pegada falsa: o clone é desenhado igual ao Curupira (é para enganar).
+    for (const d of this.world.decoys) {
+      const pos = this.toScreen(d.body.x, d.body.y);
+      g.fillStyle(PLAYER_COLORS[d.ownerId] ?? UNKNOWN_COLOR);
+      g.fillCircle(pos.x, pos.y, TILE * 0.4);
+      g.lineStyle(2, 0xffffff);
+      g.strokeCircle(pos.x, pos.y, TILE * 0.4);
     }
   }
 }

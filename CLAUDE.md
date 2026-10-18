@@ -158,6 +158,6 @@ Dart or C# API attributed to DiceBear is invented rather than outdated.
 
 ## Fase atual
 
-**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md). Passo 1 (personagens e passivas) feito; passo 2 (energia e especiais) com a parte (a) feita.
+**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md). Passos 1 (personagens e passivas) e 2 (energia e especiais) feitos.
 Portão para a Fase 3: 60 fps num Android intermediário.
 Fase 0 (Fundação) concluída em 2026-10-17 (tag `fase-0`); Fase 1 (MVP: Batalha) concluída em 2026-10-18 (tag `fase-1`): amigos jogaram 10 partidas seguidas sem bug grave. Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md).

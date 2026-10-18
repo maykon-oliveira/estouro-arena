@@ -45,7 +45,7 @@ GDD §9: personagens com passiva, carga de energia e especiais, bombas elementai
 | # | Spec | Escopo | Depende de | Status |
 | --- | --- | --- | --- | --- |
 | 1 | [Personagens e passivas](personagens-e-passivas.md) | Seleção de personagem na Batalha (6 do folclore, PERSONAGENS §1), passivas como dados, avatares DiceBear CC0 no menu e no HUD, bots com personagem | — | Feita |
-| 2 | [Carga de energia e especiais](carga-de-energia.md) | Barra (blocos, nocautes e tempo), botões separados (remota, montaria, especial), especial de cada personagem, bots usando especiais | 1 | Em andamento: (a) feita; (b) Boitatá, Iara, Curupira |
+| 2 | [Carga de energia e especiais](carga-de-energia.md) | Barra (blocos, nocautes e tempo), botões separados (remota, montaria, especial), especial de cada personagem, bots usando especiais | 1 | Feita |
 | 3 | Bombas elementais | Fogo (padrão), gelo, água e vento (GDD §5) como item e dados, interação com os terrenos | — | A escrever |
 | 4 | Inimigos da campanha | Capangas com IA simples por regras (sapos encantados, morcegos, corujas-sombra), dados em JSON | — | A escrever |
 | 5 | Estrutura da campanha | Modo Campanha no menu, mundos e fases, objetivo da fase, progresso salvo, cartas de bônus entre fases | 4 | A escrever |

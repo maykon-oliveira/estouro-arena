@@ -3,6 +3,7 @@ import { bombAt } from './bombs';
 import { DIRECTION_VECTORS, type Direction } from './direction';
 import { inBounds, setTile, tileAt, type Point } from './grid';
 import { canStand } from './mounts';
+import { movePlayer } from './movement';
 import { BLOCK, FLOOR } from './terrainIds';
 import type { Player, World } from './world';
 
@@ -10,9 +11,20 @@ import type { Player, World } from './world';
 export type SpecialDef =
   | { type: 'teleport'; tiles: number }
   | { type: 'charm'; durationTicks: number }
-  | { type: 'dash'; tiles: number; ticksPerTile: number };
+  | { type: 'dash'; tiles: number; ticksPerTile: number }
+  | { type: 'fireTrail'; durationTicks: number }
+  | { type: 'tide'; durationTicks: number; speedMultiplier: number }
+  | { type: 'decoy'; durationTicks: number };
 
 export type SpecialType = SpecialDef['type'];
+
+/** Clone da Pegada falsa: um corpo que anda espelhando o dono (as mesmas regras de movimento). */
+export interface Decoy {
+  ownerId: number;
+  /** Corpo do clone (forma de jogador, sem passiva nem itens), movido por `movePlayer`. */
+  body: Player;
+  ticksLeft: number;
+}
 
 /** Disparada em andamento: linha reta do centro de partida ao de chegada. */
 export interface Dash {
@@ -64,6 +76,9 @@ const HANDLERS: { [T in SpecialType]: Handler<T> } = {
   teleport: teleport,
   charm: charm,
   dash: dash,
+  fireTrail: fireTrail,
+  tide: tide,
+  decoy: decoy,
 };
 
 /**
@@ -73,7 +88,8 @@ const HANDLERS: { [T in SpecialType]: Handler<T> } = {
 export function useSpecial(world: World, player: Player, out: GameEvent[]): void {
   const def = specialOf(world, player);
   if (!def || player.character === null || player.energy < world.rules.energyMax) return;
-  if (player.jump || player.dash) return;
+  // No ar, em disparada ou com um especial ainda durando, espera.
+  if (player.jump || player.dash || player.specialTicks > 0) return;
   const handler = HANDLERS[def.type] as Handler<SpecialType>;
   if (!handler(world, player, def, out)) return;
   player.energy = 0;
@@ -210,6 +226,152 @@ export function advanceDash(player: Player): void {
     player.y = dash.toY;
     player.dash = null;
   }
+}
+
+/** Boitatá: por um tempo, deixa chama (dele) em cada tile em que está. */
+function fireTrail(
+  _world: World,
+  player: Player,
+  def: Extract<SpecialDef, { type: 'fireTrail' }>,
+): boolean {
+  player.specialTicks = def.durationTicks;
+  return true;
+}
+
+/**
+ * Tiles da Maré: do tile da Iara, na direção em que está virada, até antes do primeiro tile
+ * onde não se anda (parede, bloco, água funda) ou da borda.
+ */
+export function tideLine(world: World, player: Player): number[] {
+  const { dx, dy } = DIRECTION_VECTORS[player.facing];
+  const tiles: number[] = [];
+  let x = Math.round(player.x);
+  let y = Math.round(player.y);
+  while (inBounds(world.grid, x, y)) {
+    const id = tileAt(world.grid, x, y);
+    if (id === undefined || world.terrains.get(id)?.walkable !== true) break;
+    tiles.push(y * world.grid.cols + x);
+    x += dx;
+    y += dy;
+  }
+  return tiles;
+}
+
+/** Iara: alaga a linha à frente; quem não é a Iara anda mais devagar nela. */
+function tide(world: World, player: Player, def: Extract<SpecialDef, { type: 'tide' }>): boolean {
+  const tiles = tideLine(world, player);
+  if (tiles.length === 0) return false;
+  for (const i of tiles) {
+    world.tideTicks[i] = def.durationTicks;
+    world.tideOwner[i] = player.id;
+  }
+  world.tideMultiplier = def.speedMultiplier;
+  player.specialTicks = def.durationTicks;
+  return true;
+}
+
+/** Curupira: cria o clone no tile dele, parado, virado para o mesmo lado. */
+function decoy(world: World, player: Player, def: Extract<SpecialDef, { type: 'decoy' }>): boolean {
+  const x = Math.round(player.x);
+  const y = Math.round(player.y);
+  const body: Player = {
+    ...player,
+    x,
+    y,
+    moveDir: invert(player.moveDir),
+    iceSlide: null,
+    speedLevel: player.speedLevel,
+    abilities: new Set<string>(),
+    mount: null,
+    invulnerableTicks: 0,
+    jump: null,
+    dash: null,
+    ghost: null,
+    character: null,
+    flameShields: 0,
+    energy: 0,
+    charmTicks: 0,
+    specialTicks: 0,
+  };
+  world.decoys = world.decoys.filter((d) => d.ownerId !== player.id);
+  world.decoys.push({ ownerId: player.id, body, ticksLeft: def.durationTicks });
+  player.specialTicks = def.durationTicks;
+  return true;
+}
+
+/** Multiplicador da Maré no tile `i` para quem anda (1 = sem maré ou é a dona dela). */
+export function tideFactor(world: World, moverId: number | undefined, i: number): number {
+  if ((world.tideTicks[i] ?? 0) === 0 || world.tideOwner[i] === moverId) return 1;
+  return world.tideMultiplier;
+}
+
+/**
+ * Um tick dos especiais com duração: o rastro do Boitatá põe chama no tile dele, a maré seca,
+ * o clone anda espelhado e some na chama (ou se o tile cair); avisa quando cada um acaba.
+ */
+export function updateSpecials(world: World, out: GameEvent[]): void {
+  const { cols } = world.grid;
+  for (let i = 0; i < world.tideTicks.length; i++) {
+    const left = world.tideTicks[i] ?? 0;
+    if (left > 0) world.tideTicks[i] = left - 1;
+  }
+
+  for (const player of world.players) {
+    if (player.specialTicks === 0) continue;
+    const def = specialOf(world, player);
+    if (!player.alive || !def) {
+      player.specialTicks = 0;
+      continue;
+    }
+    if (def.type === 'fireTrail' && !player.jump) {
+      const i = Math.round(player.y) * cols + Math.round(player.x);
+      world.flames[i] = Math.max(world.flames[i] ?? 0, world.rules.explosionTicks);
+      world.flameOwner[i] = player.id;
+      world.flameFromTrail[i] = 1;
+      const itemId = world.items[i];
+      if (itemId !== null && itemId !== undefined) {
+        world.items[i] = null;
+        out.push({
+          type: 'item.destruido',
+          itemId,
+          x: i % cols,
+          y: Math.floor(i / cols),
+        });
+      }
+    }
+    player.specialTicks--;
+    if (player.specialTicks === 0 && player.character !== null && def.type !== 'decoy') {
+      out.push({
+        type: 'especial.terminou',
+        playerId: player.id,
+        characterId: player.character,
+        special: def.type,
+      });
+    }
+  }
+
+  for (const d of world.decoys) {
+    const owner = world.players[d.ownerId];
+    d.body.moveDir = owner?.alive ? invert(owner.moveDir) : null;
+    movePlayer(world, d.body);
+    d.ticksLeft--;
+  }
+  world.decoys = world.decoys.filter((d) => {
+    const x = Math.round(d.body.x);
+    const y = Math.round(d.body.y);
+    const burnt = (world.flames[y * cols + x] ?? 0) > 0;
+    const gone = d.ticksLeft <= 0 || burnt || !canStand(world, d.body, x, y);
+    if (gone) {
+      const owner = world.players[d.ownerId];
+      out.push({
+        type: 'especial.terminou',
+        playerId: d.ownerId,
+        characterId: owner?.character ?? '',
+        special: 'decoy',
+      });
+    }
+    return !gone;
+  });
 }
 
 /** Fim do encanto: a direção segurada volta ao normal. */

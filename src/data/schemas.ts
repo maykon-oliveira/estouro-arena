@@ -230,6 +230,13 @@ export const SpecialSchema = z.discriminatedUnion('type', [
     tiles: z.number().int().min(1),
     speedTilesPerSecond: z.number().positive(),
   }),
+  z.strictObject({ type: z.literal('fireTrail'), durationMs: z.number().positive() }),
+  z.strictObject({
+    type: z.literal('tide'),
+    durationMs: z.number().positive(),
+    speedMultiplier: z.number().min(0).max(1),
+  }),
+  z.strictObject({ type: z.literal('decoy'), durationMs: z.number().positive() }),
 ]);
 export type SpecialData = z.infer<typeof SpecialSchema>;
 

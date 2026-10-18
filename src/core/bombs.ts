@@ -71,6 +71,7 @@ export function updateBombs(world: World, out: GameEvent[]): void {
     if (left === 1) {
       const owner = world.flameOwner[i] ?? -1;
       world.flameOwner[i] = -1;
+      world.flameFromTrail[i] = 0;
       const id = grid.tiles[i];
       const terrain = id === undefined ? undefined : world.terrains.get(id);
       if (id !== undefined && terrain?.destructible) {
@@ -161,6 +162,7 @@ function explode(world: World, bomb: Bomb, queue: Bomb[], out: GameEvent[]): voi
     const i = t.y * world.grid.cols + t.x;
     world.flames[i] = Math.max(world.flames[i] ?? 0, world.rules.explosionTicks);
     world.flameOwner[i] = bomb.ownerId;
+    world.flameFromTrail[i] = 0;
     const itemId = world.items[i];
     if (itemId !== null && itemId !== undefined) {
       world.items[i] = null;

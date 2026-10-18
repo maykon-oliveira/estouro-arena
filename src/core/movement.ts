@@ -3,6 +3,7 @@ import { DIRECTION_VECTORS } from './direction';
 import { tileAt } from './grid';
 import { playerSpeed } from './items';
 import { canStand, terrainSpeed } from './mounts';
+import { tideFactor } from './specials';
 import type { Player, World } from './world';
 
 /** Tolerância para considerar o jogador alinhado (absorve erro de ponto flutuante). */
@@ -41,7 +42,11 @@ export function movePlayer(world: World, player: Player): void {
     walkable(m, c) && !(horizontal ? bombAt(world, m, c) : bombAt(world, c, m));
 
   const here = tileAt(world.grid, Math.round(player.x), Math.round(player.y));
-  const speedMultiplier = here === undefined ? 1 : terrainSpeed(world, player, here);
+  const hereIndex = Math.round(player.y) * world.grid.cols + Math.round(player.x);
+  const speedMultiplier =
+    here === undefined
+      ? 1
+      : terrainSpeed(world, player, here) * tideFactor(world, player.id, hereIndex);
   let budget = (playerSpeed(world, player) * speedMultiplier) / world.rules.tickRate;
 
   const mainTile = Math.round(main);

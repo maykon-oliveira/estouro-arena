@@ -43,6 +43,8 @@ export function computeDanger(
 
   // Chamas acesas: perigo desde já até apagarem.
   world.flames.forEach((left, i) => {
+    // O próprio rastro de fogo não é perigo para o Boitatá.
+    if (world.flameFromTrail[i] === 1 && world.flameOwner[i] === viewerId) return;
     if (left > 0) mark(danger, i, 0, left);
   });
 

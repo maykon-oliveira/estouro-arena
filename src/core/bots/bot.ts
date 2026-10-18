@@ -6,7 +6,7 @@ import { DIRECTION_VECTORS } from '../direction';
 import { ringPoint, ringPosition, throwTarget, type Ghost } from '../ghost';
 import { ABILITY_PIERCE, playerSpeed } from '../items';
 import { canStand } from '../mounts';
-import { dashReach, specialOf, teleportLanding } from '../specials';
+import { dashReach, specialOf, teleportLanding, tideLine } from '../specials';
 import { BLOCK } from '../terrainIds';
 import type { Match } from '../match';
 import { createRng, type Rng } from '../rng';
@@ -415,17 +415,41 @@ function teleportToSafety(bot: Bot, world: World, player: Player, out: Command[]
   return true;
 }
 
-/** Até onde o Boto encanta e a Mula olha à frente procurando bloco (tiles). */
+/** Até onde o Boto encanta, o Curupira solta o clone e a Mula olha à frente (tiles). */
 const SPECIAL_REACH = 4;
+/** O Boitatá acende o rastro com um inimigo a até 3 tiles. */
+const TRAIL_REACH = 3;
 
 /**
  * Fora de perigo, com a barra cheia: o Boto encanta o rival mais próximo se ele estiver a até
- * 4 tiles (e segue a decisão); a Mula dispara se há bloco no caminho à frente e todo o
- * percurso é seguro (e para de decidir até chegar).
+ * 4 tiles, o Boitatá acende o rastro com um inimigo a até 3, a Iara solta a maré com um inimigo
+ * na linha à frente e o Curupira solta o clone com um inimigo a até 4 (e todos seguem a
+ * decisão); a Mula dispara se há bloco no caminho à frente e todo o percurso é seguro (e para
+ * de decidir até chegar).
  */
 function useSpecialOpportunity(bot: Bot, world: World, player: Player, out: Command[]): boolean {
   const def = specialOf(world, player);
   if (!def || player.energy < world.rules.energyMax || player.iceSlide !== null) return false;
+  if (player.specialTicks > 0) return false;
+  const within = (reach: number): boolean =>
+    targets(world, player).some(
+      (p) => Math.abs(p.x - player.x) + Math.abs(p.y - player.y) <= reach,
+    );
+  if (def.type === 'fireTrail' || def.type === 'decoy') {
+    if (within(def.type === 'fireTrail' ? TRAIL_REACH : SPECIAL_REACH)) {
+      out.push({ type: 'special', playerId: player.id });
+    }
+    return false;
+  }
+  if (def.type === 'tide') {
+    const line = new Set(tideLine(world, player));
+    const cols = world.grid.cols;
+    const inLine = targets(world, player).some((p) =>
+      line.has(Math.round(p.y) * cols + Math.round(p.x)),
+    );
+    if (inLine) out.push({ type: 'special', playerId: player.id });
+    return false;
+  }
   if (def.type === 'charm') {
     const near = world.players.some(
       (p) =>
@@ -474,10 +498,18 @@ function jumpToSafety(bot: Bot, world: World, player: Player, out: Command[]): b
 }
 
 /** Vai para o tile seguro alcançável mais perto do inimigo vivo mais próximo. */
+/**
+ * Inimigos que o bot considera: rivais vivos e os clones da Pegada falsa dos outros (o bot não
+ * distingue o clone do Curupira de verdade).
+ */
+function targets(world: World, player: Player): Player[] {
+  const list = world.players.filter((p) => p.alive && p.id !== player.id);
+  for (const d of world.decoys) if (d.ownerId !== player.id) list.push(d.body);
+  return list;
+}
+
 function hunt(bot: Bot, world: World, player: Player, hi: number): boolean {
-  const enemies = world.players.filter(
-    (p) => p.alive && p.id !== player.id && sees(world, player, p),
-  );
+  const enemies = targets(world, player).filter((p) => sees(world, player, p));
   if (enemies.length === 0) return false;
   const { cols } = world.grid;
   let goal = -1;
@@ -560,13 +592,8 @@ function canPlaceBomb(world: World, player: Player, here: Point): boolean {
 }
 
 function enemyAt(world: World, player: Player, t: Point): boolean {
-  return world.players.some(
-    (p) =>
-      p.alive &&
-      p.id !== player.id &&
-      Math.round(p.x) === t.x &&
-      Math.round(p.y) === t.y &&
-      sees(world, player, p),
+  return targets(world, player).some(
+    (p) => Math.round(p.x) === t.x && Math.round(p.y) === t.y && sees(world, player, p),
   );
 }
 

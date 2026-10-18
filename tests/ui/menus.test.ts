@@ -150,6 +150,7 @@ function fakePlayer(over: Partial<Player> = {}): Player {
     energy: 0,
     charmTicks: 0,
     dash: null,
+    specialTicks: 0,
     ...over,
   };
 }
@@ -173,8 +174,8 @@ describe('painel do jogador', () => {
   it('com especial: % da barra, ou o nome do especial quando cheia', () => {
     expect(panelChips(fakePlayer({ character: 'saci', energy: 45 }))).toContain('⚡ 45%');
     expect(panelChips(fakePlayer({ character: 'saci', energy: 100 }))).toContain('⚡ Redemoinho!');
-    // Sem especial (ainda): sem barra no painel.
-    expect(panelChips(fakePlayer({ character: 'iara', energy: 50 }))).toEqual(['💣 1', '🔥 2']);
+    // Sem personagem: sem barra no painel.
+    expect(panelChips(fakePlayer({ energy: 50 }))).toEqual(['💣 1', '🔥 2']);
   });
 
   it('morto: fora da rodada, ou o estado do arremesso do fantasma', () => {

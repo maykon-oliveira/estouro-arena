@@ -2,6 +2,7 @@ import { bombAt } from '../bombs';
 import { ABILITY_PASS_BLOCKS, playerSpeed } from '../items';
 import { DIRECTION_VECTORS, type Direction } from '../direction';
 import { terrainSpeed, terrainWalkable, type TerrainMods } from '../mounts';
+import { tideFactor } from '../specials';
 import { BLOCK } from '../terrainIds';
 import type { Player, World } from '../world';
 import { SAFE, type DangerMap } from './dangerMap';
@@ -42,6 +43,8 @@ export interface Mover extends TerrainMods {
   mount?: string | null;
   /** Personagem (id; a passiva pode mudar terrenos: Iara na água rasa). */
   character?: string | null;
+  /** Id do jogador (a maré da Iara não atrasa a própria Iara). */
+  id?: number;
 }
 
 export function moverOf(world: World, player: Player): Mover {
@@ -53,6 +56,7 @@ export function moverOf(world: World, player: Player): Mover {
     slide: player.iceSlide,
     mount: player.mount,
     character: player.character,
+    id: player.id,
   };
 }
 
@@ -62,7 +66,8 @@ export function moverOf(world: World, player: Player): Mover {
  */
 export function ticksPerTile(world: World, i: number, mover: Mover): number {
   const id = world.grid.tiles[i];
-  const multiplier = id === undefined ? 1 : terrainSpeed(world, mover, id);
+  const multiplier =
+    id === undefined ? 1 : terrainSpeed(world, mover, id) * tideFactor(world, mover.id, i);
   const speed = mover.speed * multiplier;
   if (speed <= 0) return UNREACHABLE;
   const ticks = Math.ceil(world.rules.tickRate / speed);

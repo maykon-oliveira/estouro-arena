@@ -163,6 +163,114 @@ describe('Mula sem Cabeça: Disparada', () => {
   });
 });
 
+describe('Boitatá: Rastro de fogo', () => {
+  const MAP = ['#########', '#P.....P#', '#########'];
+
+  it('deixa chama (dele) por onde passa, sem se ferir, e acaba avisando', () => {
+    const world = worldFrom(MAP, 2, {}, undefined, ['boitata', null]);
+    fill(world);
+    special(world);
+    const events = hold(world, 'right', 2);
+    expect(world.flames[idx(world, 1, 1)]).toBeGreaterThan(0);
+    expect(world.flameOwner[idx(world, 1, 1)]).toBe(0);
+    events.push(...hold(world, 'right', 7));
+    expect(player(world).alive).toBe(true);
+    expect(ofType(events, 'especial.terminou')).toEqual([
+      { type: 'especial.terminou', playerId: 0, characterId: 'boitata', special: 'fireTrail' },
+    ]);
+  });
+
+  it('a chama do rastro mata os outros e credita o nocaute', () => {
+    const world = worldFrom(['#####', '#PP.#', '#####'], 2, {}, undefined, ['boitata', null]);
+    fill(world);
+    special(world);
+    // O rival entra no tile do Boitatá (jogadores não colidem).
+    player(world, 1).x = 1;
+    const events = run(world, 1);
+    expect(ofType(events, 'jogador.morreu')).toEqual([
+      { type: 'jogador.morreu', playerId: 1, cause: 'fogo' },
+    ]);
+    expect(player(world).energy).toBe(testRules.energyPerKnockout);
+  });
+
+  it('a bomba do próprio Boitatá ainda o fere', () => {
+    const world = worldFrom(MAP, 1, {}, undefined, ['boitata']);
+    fill(world);
+    special(world);
+    world.bombs.push({ id: 9, ownerId: 0, x: 2, y: 1, fuse: 1, range: 1 });
+    const events = run(world, 1);
+    expect(ofType(events, 'jogador.morreu')).toHaveLength(1);
+  });
+});
+
+describe('Iara: Maré', () => {
+  it('alaga a linha à frente até a parede; os outros andam pela metade, ela não', () => {
+    const world = worldFrom(
+      ['#########', '#P......#', '#P......#', '#########'],
+      2,
+      {},
+      undefined,
+      ['iara', null],
+    );
+    face(world, 'right');
+    fill(world);
+    special(world);
+    expect(world.tideTicks[idx(world, 1, 1)]).toBeGreaterThan(0);
+    expect(world.tideTicks[idx(world, 7, 1)]).toBeGreaterThan(0);
+    expect(world.tideTicks[idx(world, 1, 2)]).toBe(0);
+    // O jogador 1 entra na maré (na linha de cima) e anda pela metade.
+    player(world, 1).y = 1;
+    run(world, 5, [
+      { type: 'move', playerId: 0, dir: 'right' },
+      { type: 'move', playerId: 1, dir: 'right' },
+    ]);
+    expect(player(world, 0).x).toBeCloseTo(1.5);
+    expect(player(world, 1).x).toBeCloseTo(1.25);
+  });
+
+  it('para no bloco; a maré seca depois do tempo', () => {
+    const world = worldFrom(['#######', '#P.B..#', '#######'], 1, {}, undefined, ['iara']);
+    face(world, 'right');
+    fill(world);
+    special(world);
+    expect(world.tideTicks[idx(world, 2, 1)]).toBeGreaterThan(0);
+    expect(world.tideTicks[idx(world, 4, 1)]).toBe(0);
+    run(world, 10);
+    expect(world.tideTicks[idx(world, 2, 1)]).toBe(0);
+  });
+});
+
+describe('Curupira: Pegada falsa', () => {
+  const MAP = ['#########', '#...P...#', '#########'];
+
+  it('o clone nasce no tile dele e anda espelhado', () => {
+    const world = worldFrom(MAP, 1, {}, undefined, ['curupira']);
+    fill(world);
+    special(world);
+    expect(world.decoys).toHaveLength(1);
+    hold(world, 'right', 5);
+    expect(player(world).x).toBeCloseTo(4.5);
+    expect(world.decoys[0]?.body.x).toBeCloseTo(3.5);
+  });
+
+  it('a chama desfaz o clone; o tempo também', () => {
+    const world = worldFrom(MAP, 1, {}, undefined, ['curupira']);
+    fill(world);
+    special(world);
+    world.flames[idx(world, 4, 1)] = 5;
+    player(world).invulnerableTicks = 99;
+    const events = run(world, 1);
+    expect(world.decoys).toHaveLength(0);
+    expect(ofType(events, 'especial.terminou')).toHaveLength(1);
+
+    const timed = worldFrom(MAP, 1, {}, undefined, ['curupira']);
+    fill(timed);
+    special(timed);
+    run(timed, 10);
+    expect(timed.decoys).toHaveLength(0);
+  });
+});
+
 describe('bots e especiais', () => {
   const sharp: BotConfig = {
     level: { reactionTicks: 1, mistakeChance: 0, aggression: 0, itemSearchTiles: 15 },
@@ -199,6 +307,23 @@ describe('bots e especiais', () => {
     ]);
     fill(far);
     expect(decide(far).map((c) => c.type)).not.toContain('special');
+  });
+
+  it('bots perseguem o clone do Curupira como se fosse ele', () => {
+    const world = worldFrom(['#########', '#P.....P#', '#########'], 2, {}, undefined, [
+      'curupira',
+      null,
+    ]);
+    // Sem o Curupira à vista (longe e o clone perto), o bot 1 vai atrás do clone.
+    fill(world);
+    special(world);
+    const decoyBody = world.decoys[0]?.body;
+    if (!decoyBody) throw new Error('sem clone');
+    decoyBody.x = 6;
+    player(world, 1).x = 7;
+    player(world, 0).alive = false;
+    const cmds = decide(world, 1);
+    expect(cmds).toContainEqual({ type: 'move', playerId: 1, dir: 'left' });
   });
 
   it('Mula dispara quando há bloco no caminho à frente e o percurso é seguro', () => {

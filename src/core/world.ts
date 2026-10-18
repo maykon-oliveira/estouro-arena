@@ -11,7 +11,16 @@ import { movePlayer } from './movement';
 import type { Collapse } from './suddenDeath';
 import { createRng, type Rng } from './rng';
 import { applyPassive, type CharacterDef } from './characters';
-import { addEnergy, advanceDash, invert, updateCharm, useSpecial, type Dash } from './specials';
+import {
+  addEnergy,
+  advanceDash,
+  invert,
+  updateCharm,
+  updateSpecials,
+  useSpecial,
+  type Dash,
+  type Decoy,
+} from './specials';
 
 /** Propriedades de terreno que a simulação consulta (subconjunto de src/data/terrains.json). */
 export interface TerrainRules {
@@ -103,6 +112,8 @@ export interface Player {
   charmTicks: number;
   /** Disparada da Mula em andamento (não anda nem solta bomba). */
   dash: Dash | null;
+  /** Ticks restantes do especial com duração (rastro, maré, clone); 0 = nenhum. */
+  specialTicks: number;
 }
 
 export interface Bomb {
@@ -132,6 +143,14 @@ export interface World {
   flames: number[];
   /** Dono da chama de cada tile (id do jogador; −1 = ninguém), para creditar energia. */
   flameOwner: number[];
+  /** 1 = a chama do tile é do rastro de fogo do Boitatá (não fere o próprio dono). */
+  flameFromTrail: number[];
+  /** Maré da Iara: ticks restantes e dona de cada tile alagado, e o multiplicador da vez. */
+  tideTicks: number[];
+  tideOwner: number[];
+  tideMultiplier: number;
+  /** Clones da Pegada falsa (Curupira) em jogo. */
+  decoys: Decoy[];
   nextBombId: number;
   /** Item visível por tile (mesmo índice de `grid.tiles`); null = nenhum. */
   items: (string | null)[];
@@ -195,6 +214,7 @@ export function createWorld(options: WorldOptions): World {
     energy: 0,
     charmTicks: 0,
     dash: null,
+    specialTicks: 0,
   }));
   const characterDefs = options.characters ?? new Map<string, CharacterDef>();
   for (const p of players) {
@@ -215,6 +235,11 @@ export function createWorld(options: WorldOptions): World {
     bombs: [],
     flames: new Array<number>(grid.tiles.length).fill(0),
     flameOwner: new Array<number>(grid.tiles.length).fill(-1),
+    flameFromTrail: new Array<number>(grid.tiles.length).fill(0),
+    tideTicks: new Array<number>(grid.tiles.length).fill(0),
+    tideOwner: new Array<number>(grid.tiles.length).fill(-1),
+    tideMultiplier: 1,
+    decoys: [],
     nextBombId: 0,
     items: new Array<string | null>(grid.tiles.length).fill(null),
     hiddenItems,
@@ -274,6 +299,7 @@ export function step(
     else movePlayer(world, player);
   }
   collectItems(world, out);
+  updateSpecials(world, out);
   kickBombs(world, out);
   updateGhosts(world, out);
 
@@ -302,6 +328,8 @@ function killPlayersInFlames(world: World, out: GameEvent[]): void {
     // primeiro, e depois o do personagem.
     if (player.jump || player.invulnerableTicks > 0) continue;
     const i = Math.round(player.y) * world.grid.cols + Math.round(player.x);
+    // O rastro de fogo do Boitatá não fere o próprio Boitatá.
+    if (world.flameFromTrail[i] === 1 && world.flameOwner[i] === player.id) continue;
     if ((world.flames[i] ?? 0) > 0) {
       if (player.mount !== null) {
         loseMount(world, player, out);

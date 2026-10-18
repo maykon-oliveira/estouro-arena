@@ -1,6 +1,6 @@
 # Carga de energia, especiais e botões separados
 
-**Status:** em andamento (Fase 2, passo 2) — parte (a) feita: barra, botões e teclas, Saci, Boto e Mula; falta a parte (b): Boitatá, Iara e Curupira. GDD §5 ("carga de energia"), [PERSONAGENS §1](../PERSONAGENS.md#1-elenco-principal-folclore). Depende de [personagens e passivas](personagens-e-passivas.md), [chute e remota](chute-e-remota.md) e [montarias](montarias.md).
+**Status:** feita (Fase 2, passo 2), em dois commits: (a) barra, botões e teclas, Saci, Boto e Mula; (b) Boitatá, Iara e Curupira. GDD §5 ("carga de energia"), [PERSONAGENS §1](../PERSONAGENS.md#1-elenco-principal-folclore). Depende de [personagens e passivas](personagens-e-passivas.md), [chute e remota](chute-e-remota.md) e [montarias](montarias.md).
 
 Cada personagem ganha uma barra de energia; cheia, libera o **especial** dele. O botão de ação único da Fase 1 vira **três botões pequenos** (remota, montaria, especial), cada um só aparece quando o jogador tem aquilo.
 
@@ -76,7 +76,8 @@ Parâmetros em `characters.json`, no campo `special` de cada personagem (duraç�
   - Boitatá: ativa o rastro quando um inimigo está a ≤ 3 tiles.
   - Iara: solta a maré quando um inimigo está na linha à frente dela.
   - Curupira: solta o clone quando um inimigo está a ≤ 4 tiles.
-- Mapa de perigo: tiles do rastro de fogo do Boitatá são perigo para os outros (como chama).
+- Mapa de perigo: tiles do rastro de fogo do Boitatá são perigo para os outros (como chama), mas não para o próprio Boitatá (`world.flameFromTrail`).
+- Os bots tratam o clone do Curupira como inimigo (caçam e soltam bomba nele); a maré atrasa as rotas deles como atrasa o movimento.
 
 ## Testes
 
