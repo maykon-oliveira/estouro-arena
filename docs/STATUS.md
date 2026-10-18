@@ -2,35 +2,41 @@
 
 > **Leia isto primeiro ao começar uma sessão.** Reescrito ao fechar cada spec ou fase, no mesmo commit.
 
-**Atualizado em:** 2026-10-17 · **Última feature:** [texturas de terreno com DiceBear](specs/tema-dicebear.md) (depois do passo 10 da Fase 1) · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
+**Atualizado em:** 2026-10-18 · **Último marco:** Fase 1 concluída (tag `fase-1`); Fase 2 planejada · **Repositório:** [maykon-oliveira/estouro-arena](https://github.com/maykon-oliveira/estouro-arena) (público) · **No ar:** <http://lzggua2mdcnabqzbieiprsdk.187.77.50.149.sslip.io/> (Coolify, só HTTP)
 
-## Fase atual: 1 — MVP: Batalha (GDD §9)
+## Fase atual: 2 — Arte e conteúdo (GDD §9)
 
-Escopo: 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. **Portão para a Fase 2:** amigos jogam 10 partidas seguidas sem bug grave.
+Escopo: personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. **Portão para a Fase 3:** 60 fps num Android intermediário.
 
-| # | Passo ([ordem e specs](specs/README.md)) | Situação |
+Ordem proposta dos 10 passos (escopo de cada um em [specs/README.md](specs/README.md)); nenhuma spec escrita ainda:
+
+| # | Passo | Situação |
 | --- | --- | --- |
-| 1 | [Partida e rodadas](specs/partida-e-rodadas.md) | **Feito:** `src/core/match.ts`, HUD mínimo (`src/ui/MatchHud.ts`), toque/Enter recomeça no fim |
-| 2 | [Bots](specs/bots.md) | **Feito:** `src/core/bots/` (mapa de perigo, rotas, decisões), 3 níveis em `src/data/bots.json`, `?nivel=` |
-| 3 | [Itens e power-ups](specs/itens-e-power-ups.md) | **Feito:** `src/core/items.ts`, `src/data/items.json` (6 itens), coleta, perfurante, atravessar blocos, bots buscam itens, `+ item` no painel de debug |
-| 4 | [Chute, remota e botão de ação](specs/chute-e-remota.md) | **Feito:** `src/core/kick.ts`, remota (`action` detona a mais antiga), botão de ação no toque e `Shift`/`K`, bots detonam remotas |
-| 5 | [Terrenos: água, mato, gelo, lama](specs/terrenos.md) | **Feito:** 5 terrenos em `terrains.json` (`hides`, `slippery`), mato queima, deslize no gelo, bots no gelo e no mato; ainda sem fase que os use |
-| 6 | [Mapas da Fase 1](specs/mapas-fase-1.md) | **Feito:** `pantanal_01`, `tundra_01`, `arena_01` com itens, `?map=`, `checkMapLayout` na carga; bots 20/20 nas três fases |
-| 7 | [Montarias: capivara e sapo](specs/montarias.md) | **Feito:** `src/core/mounts.ts`, `src/data/mounts.json`, ovos, escudo, capivara na água, pulo do sapo no `action`, bots com ovos/capivara/pulo de fuga |
-| 8 | [Morte súbita](specs/morte-subita.md) | **Feito:** `src/core/suddenDeath.ts` (espiral nos últimos 30 s, `world.collapse`), aviso no HUD, tiles piscando, bots recuam; partidas entre bots agora terminam |
-| 9 | [Fantasma vingador](specs/fantasma-vingador.md) | **Feito:** `src/core/ghost.ts` (anel, arremesso, voo), bots fantasmas, bomba no ar no mapa de perigo |
-| 10 | [Menus e HUD](specs/menus-e-hud.md) | **Feito:** Título → Batalha → Partida → Pausa/Resultado em DOM, escolha salva, painel do jogador, arena abaixo do HUD |
+| 1 | Personagens e passivas | A escrever |
+| 2 | Carga de energia e especiais | A escrever |
+| 3 | Bombas elementais | A escrever |
+| 4 | Inimigos da campanha | A escrever |
+| 5 | Estrutura da campanha | A escrever |
+| 6 | Mundo Pantanal | A escrever |
+| 7 | Mundo Tundra | A escrever |
+| 8 | Chefes | A escrever |
+| 9 | Arte final e tema visual | A escrever |
+| 10 | Desempenho no celular | A escrever |
 
-Fase 0 (Fundação) concluída em 2026-10-17: tag `fase-0` = `v0.1.0`.
+Fases concluídas: **Fase 0** (Fundação) em 2026-10-17, tag `fase-0` = `v0.1.0`; **Fase 1** (MVP: Batalha) em 2026-10-18, tag `fase-1` = `v0.12.0` + docs. O portão da Fase 1 foi cumprido: amigos jogaram 10 partidas seguidas sem bug grave. Os 10 passos dela estão em [specs/README.md](specs/README.md).
 
-## Próximo passo: portão da Fase 1
+## Próximo passo: confirmar o plano e escrever a spec de personagens e passivas
 
-Os 10 passos estão feitos. **Portão para a Fase 2:** amigos jogam 10 partidas seguidas sem bug grave.
+1. O autor confirma (ou muda) a ordem proposta e responde às perguntas abaixo que afetam o passo 1.
+2. Escrever `docs/specs/personagens-e-passivas.md` (ciclo do CLAUDE.md): os 6 personagens do folclore com a passiva de cada (PERSONAGENS §1) como dados em `src/data/characters.json`, seleção na tela Batalha, avatar DiceBear CC0 (estilo a escolher) no menu e no painel do jogador, bots com personagem sorteado.
 
-1. Publicar a versão atual (o push na `main` gera a release; conferir se a Coolify fez o deploy da `main` nova) e jogar no celular, pelo fluxo normal: Título → Batalha → Começar.
-2. Chamar amigos para 10 partidas seguidas. Anotar cada bug (o que aconteceu, fase, seed — o `?debug=1` mostra a seed) e corrigir os graves, um commit `fix(<spec>)` por bug, com teste.
-3. Cumprido o portão: tag anotada `fase-1` no commit que fecha a fase (`git tag -a fase-1 -m "Fase 1 — MVP: Batalha" && git push origin fase-1`), reescrever este arquivo e o "Fase atual" do CLAUDE.md, e planejar a Fase 2 (arte PixelLab, tema, campanha) em `docs/specs/`.
-4. Roteiro do fechamento da fase: `roteiros/post-40-…` (recap da Fase 1, como o 28 foi para a Fase 0).
+### Perguntas em aberto da Fase 2
+
+- **Arte final:** PixelLab (pago) tem orçamento? Se não, de onde vêm os sprites (Kenney CC0, DiceBear, desenho próprio)? Decide o passo 9 e o estilo visual (GDD §10).
+- **Personagens:** só os 6 do folclore na Fase 2, ou também o Zé Pavio (disponível desde o início)? Os desbloqueáveis dependem de campanha e desafios.
+- **Campanha:** qual é o objetivo de uma fase (derrotar todos os inimigos? achar a saída?), quantas vidas, como salvar o progresso.
+- **Chefes:** a Cuca é o chefe final do último mundo (PERSONAGENS §3); quem são os chefes do Pantanal e da Tundra?
+- **Bombas elementais:** quais entram (gelo, água, vento?) e como se pegam (item que troca o tipo da bomba?).
 
 ## Pendências conhecidas
 
@@ -53,7 +59,7 @@ docker build -t estouro-arena . && docker run --rm -p 8080:80 estouro-arena   # 
 
 - Commits: `feat(<spec>): Assunto` (ver CLAUDE.md, passo 8); o push na `main` gera a versão e o `CHANGELOG.md` sozinho. Fase fechada = tag `fase-N`.
 - Regras de cada feature: [`docs/specs/`](specs/README.md). Decisões e motivos: [`DECISIONS.md`](DECISIONS.md).
-- Testes: Vitest (258) + Playwright (14 smoke contra o build, viewport 812 × 375).
+- Testes: Vitest (262) + Playwright (14 smoke contra o build, viewport 812 × 375).
 - Em dev, `window.__arena` expõe a partida (`Match`; o mundo da rodada em `.world`) para inspeção no console (só leitura).
 - Sem parâmetros, o jogo abre no Título. Atalhos de dev/teste que pulam os menus: `?map=arena_01|pantanal_01|tundra_01`; `?seed=N` fixa o mapa da 1ª rodada; `?winsToWin=N`; `?bots=N` (1–3); `?nivel=facil|medio|dificil`; `?ia=0` deixa os bots parados; `?roundMs=N` encurta a rodada (morte súbita nos últimos 30 s); `?touch=1` força os controles de toque; `?debug=1` liga o painel (com botões `+ <item>`).
 - Roteiros dos posts: `roteiros/` (fora do git), um por feature.

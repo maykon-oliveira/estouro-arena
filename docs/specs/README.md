@@ -36,4 +36,23 @@ Cada passo deixa o jogo jogável e testável; a ordem põe cedo o que destrava o
 | 9 | [Fantasma vingador](fantasma-vingador.md) | 1 | Feita |
 | 10 | [Menus e HUD](menus-e-hud.md) | todas | Feita |
 
+Fase concluída em 2026-10-18 (tag `fase-1`): amigos jogaram 10 partidas seguidas sem bug grave.
+
+## Fase 2 — Arte e conteúdo (ordem proposta)
+
+GDD §9: personagens com passiva, carga de energia e especiais, bombas elementais, campanha com 2 biomas de 6 fases e 1 chefe cada, sprites finais e tema visual, avatares DiceBear. **Portão:** 60 fps num Android intermediário. A ordem põe primeiro a jogabilidade, que não depende da arte paga, e deixa a arte e o desempenho para o fim, quando já se sabe o que precisa ser desenhado e otimizado. As specs ainda não existem: cada uma é escrita (e as perguntas em aberto de [STATUS](../STATUS.md) respondidas) antes do seu passo.
+
+| # | Spec | Escopo | Depende de | Status |
+| --- | --- | --- | --- | --- |
+| 1 | Personagens e passivas | Seleção de personagem na Batalha (6 do folclore, PERSONAGENS §1), passivas como dados, avatares DiceBear CC0 no menu e no HUD, bots com personagem | — | A escrever |
+| 2 | Carga de energia e especiais | Barra enchida por bloco destruído, especial de cada personagem no botão de ação, bots usando especiais | 1 | A escrever |
+| 3 | Bombas elementais | Fogo (padrão), gelo, água e vento (GDD §5) como item e dados, interação com os terrenos | — | A escrever |
+| 4 | Inimigos da campanha | Capangas com IA simples por regras (sapos encantados, morcegos, corujas-sombra), dados em JSON | — | A escrever |
+| 5 | Estrutura da campanha | Modo Campanha no menu, mundos e fases, objetivo da fase, progresso salvo, cartas de bônus entre fases | 4 | A escrever |
+| 6 | Mundo Pantanal | 6 fases, gimmick dos jacarés que surgem da água | 5 | A escrever |
+| 7 | Mundo Tundra | 6 fases, neve, gimmick das bombas congeladas | 5 | A escrever |
+| 8 | Chefes | 1 chefe por mundo, padrões de ataque legíveis no celular | 6, 7 | A escrever |
+| 9 | Arte final e tema visual | Sprites de personagens, montarias, bombas, itens e inimigos pelo manifest do tema; fonte da arte a decidir | 1–8 | A escrever |
+| 10 | Desempenho no celular | Pools, medição de fps em Android intermediário, orçamento por frame (portão) | 9 | A escrever |
+
 Specs planejadas podem mudar: revise a spec antes de começar cada passo e marque como feita no commit da feature.

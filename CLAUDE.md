@@ -157,6 +157,6 @@ Dart or C# API attributed to DiceBear is invented rather than outdated.
 
 ## Fase atual
 
-**Fase 1 — MVP: Batalha** (ver GDD §9): os 10 passos estão feitos (partida e rodadas, bots, itens e power-ups, chute/remota/botão de ação, terrenos, mapas, montarias, morte súbita, fantasma vingador, menus e HUD); falta cumprir o portão: 1 jogador vs 3 bots, melhor de 3, morte súbita; 8 power-ups, 2 montarias; terrenos água, mato, gelo, lama; 3 mapas; fantasma vingador; menus e HUD. Ordem dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md).
-Portão para a Fase 2: amigos jogam 10 partidas seguidas sem bug grave.
-Fase 0 (Fundação) concluída em 2026-10-17: testada num celular real e publicada na Coolify. Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md).
+**Fase 2 — Arte e conteúdo** (ver GDD §9): personagens com passiva, carga de energia e especiais, bombas elementais; campanha com 2 biomas (Pantanal e Tundra) de 6 fases e 1 chefe cada; sprites finais, tema visual e avatares DiceBear. Ordem proposta dos 10 passos em [`docs/specs/README.md`](docs/specs/README.md), com perguntas em aberto em [`docs/STATUS.md`](docs/STATUS.md); nenhuma spec escrita ainda.
+Portão para a Fase 3: 60 fps num Android intermediário.
+Fase 0 (Fundação) concluída em 2026-10-17 (tag `fase-0`); Fase 1 (MVP: Batalha) concluída em 2026-10-18 (tag `fase-1`): amigos jogaram 10 partidas seguidas sem bug grave. Progresso detalhado em [`docs/STATUS.md`](docs/STATUS.md).
