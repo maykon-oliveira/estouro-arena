@@ -19,4 +19,10 @@ Geradas com [DiceBear](https://www.dicebear.com) 10 (`@dicebear/core` + `@dicebe
 
 Gerados com [DiceBear](https://www.dicebear.com) 10 por `bun run avatars`, a partir de `avatars.dicebear.json`: estilo **pixel-art**, **CC0 1.0**, um por personagem (`saci`, `boitata`, `iara`, `curupira`, `boto`, `mula_sem_cabeca`).
 
+As fichas da arena (`avatars/<id>_token.svg`) são os mesmos avatares em círculo (`borderRadius` 50), também CC0.
+
+## Sprites originais
+
+`sprites/` — montarias (capivara, sapo-saltador), ícones dos power-ups, ovos e bomba: desenhados para o Estouro Arena, sem base em jogos ou adaptações existentes (`source: "original"` no manifest).
+
 CC0 não exige atribuição; este arquivo existe para deixar a origem clara.

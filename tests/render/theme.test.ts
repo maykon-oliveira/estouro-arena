@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { terrains } from '../../src/data';
+import { characters, items, mounts, terrains } from '../../src/data';
 import { ThemeManifestSchema } from '../../src/data/schemas';
 import { tileVariant } from '../../src/render/theme';
 
@@ -16,6 +16,30 @@ describe('manifest do tema padrão', () => {
       const entry = manifest[`tile.${id}`];
       expect(entry, id).toBeDefined();
       for (const file of entry?.files ?? []) expect(existsSync(join(THEME, file)), file).toBe(true);
+    }
+  });
+
+  it('todo personagem tem ficha; toda montaria, item e a bomba têm sprite (arquivos existem)', () => {
+    const names = [
+      ...[...characters.keys()].map((id) => `player.${id}`),
+      ...[...characters.keys()].map((id) => `avatar.${id}`),
+      ...[...mounts.keys()].map((id) => `mount.${id}`),
+      ...[...items.keys()].map((id) => `item.${id}`),
+      'bomb.default',
+    ];
+    for (const name of names) {
+      const entry = manifest[name];
+      expect(entry, name).toBeDefined();
+      for (const file of entry?.files ?? []) expect(existsSync(join(THEME, file)), file).toBe(true);
+    }
+  });
+
+  it('sprites são originais ou de estilos DiceBear CC0', () => {
+    for (const [name, entry] of Object.entries(manifest)) {
+      expect(
+        ['original', 'dicebear:pixel-art'].includes(entry.source ?? '') || name.startsWith('tile.'),
+        name,
+      ).toBe(true);
     }
   });
 

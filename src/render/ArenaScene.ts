@@ -23,6 +23,7 @@ import { debugInfo } from '../ui/debugInfo';
 import { MatchHud } from '../ui/MatchHud';
 import { buttonsView } from '../ui/controlsModel';
 import { DebugOverlay } from './DebugOverlay';
+import { SpritePool } from './SpritePool';
 import { themeTextures, tileVariant } from './theme';
 
 // Cor de reserva para terreno sem textura no tema (as texturas vêm do manifest).
@@ -61,11 +62,11 @@ const EGG_COLORS: Readonly<Record<string, { bg: number; fg: number }>> = {
   ovo_capivara: { bg: 0xefebe9, fg: 0x8d6e63 },
   ovo_sapo_saltador: { bg: 0xf1f8e9, fg: 0x7cb342 },
 };
-/** Montaria: elipse sob o jogador (placeholder). */
-const MOUNT_COLORS: Readonly<Record<string, number>> = {
-  capivara: 0x8d6e63,
-  sapo_saltador: 0x7cb342,
-};
+/** Tamanho das fichas (fração do tile) e das montarias (px do SVG, 40 × 32). */
+const TOKEN_SCALE = 0.84;
+const MOUNT_SIZE = { width: 40, height: 32 } as const;
+/** Ordem de desenho (de baixo para cima). */
+const DEPTH = { items: 3, bombs: 4, mounts: 5, decoys: 6, players: 7, rings: 8 } as const;
 
 const TILE = gameConfig.render.tileSize;
 
@@ -103,8 +104,14 @@ export class ArenaScene extends Phaser.Scene {
   private readonly tileKeys = new Map<string, string[]>();
   private gridLayer!: Phaser.GameObjects.Graphics;
   private dynamicLayer!: Phaser.GameObjects.Graphics;
-  private playerSprites: Phaser.GameObjects.Arc[] = [];
-  private mountSprites: Phaser.GameObjects.Ellipse[] = [];
+  /** Ficha de cada jogador (avatar em círculo) e a montaria por baixo. */
+  private playerSprites: Phaser.GameObjects.Image[] = [];
+  private mountSprites: Phaser.GameObjects.Image[] = [];
+  /** Anéis na cor do lugar, com o entalhe para onde o jogador está virado. */
+  private ringLayer!: Phaser.GameObjects.Graphics;
+  private itemPool!: SpritePool;
+  private bombPool!: SpritePool;
+  private decoyPool!: SpritePool;
   /** Posição de cada jogador no quadro anterior (x, y intercalados), para saber quem se mexeu. */
   private lastPositions: number[] = [];
   private origin = { x: 0, y: 0 };
@@ -151,8 +158,19 @@ export class ArenaScene extends Phaser.Scene {
     return this.paused;
   }
 
-  /** Carrega as texturas de terreno do tema (uma vez por chave). */
+  /** Carrega as texturas do tema: terreno, fichas, montarias, itens e bomba (uma vez por chave). */
   preload(): void {
+    const load = (name: string, width: number, height = width): void => {
+      for (const tex of themeTextures(name)) {
+        if (!this.textures.exists(tex.key)) this.load.svg(tex.key, tex.url, { width, height });
+      }
+    };
+    // SVGs em 2× para ficarem nítidos quando o FIT aumenta a tela.
+    for (const id of characters.keys()) load(`player.${id}`, TILE * 2);
+    for (const id of mounts.keys())
+      load(`mount.${id}`, MOUNT_SIZE.width * 2, MOUNT_SIZE.height * 2);
+    for (const id of items.keys()) load(`item.${id}`, TILE * 2);
+    load('bomb.default', TILE * 2);
     for (const id of terrains.keys()) {
       const textures = themeTextures(`tile.${id}`);
       this.tileKeys.set(
@@ -233,20 +251,22 @@ export class ArenaScene extends Phaser.Scene {
     this.terrainLayer = this.add.renderTexture(0, 0, width, height).setOrigin(0, 0);
     this.gridLayer = this.add.graphics();
     this.dynamicLayer = this.add.graphics();
+    this.itemPool = new SpritePool(this, DEPTH.items);
+    this.bombPool = new SpritePool(this, DEPTH.bombs);
+    this.decoyPool = new SpritePool(this, DEPTH.decoys);
+    this.ringLayer = this.add.graphics().setDepth(DEPTH.rings);
     this.debugOverlay = this.debug
       ? new DebugOverlay(this.add.graphics(), this.origin, TILE)
       : null;
     this.drawGrid();
     this.mountSprites = this.world.players.map(() =>
-      this.add
-        .ellipse(0, 0, TILE * 1.05, TILE * 0.62, 0xffffff)
-        .setStrokeStyle(2, 0x000000, 0.6)
-        .setVisible(false),
+      this.add.image(0, 0, '__WHITE').setDepth(DEPTH.mounts).setVisible(false),
     );
     this.playerSprites = this.world.players.map((p) =>
       this.add
-        .circle(0, 0, TILE * 0.4, PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR)
-        .setStrokeStyle(2, 0xffffff),
+        .image(0, 0, this.tokenKey(p.id))
+        .setDepth(DEPTH.players)
+        .setDisplaySize(TILE * TOKEN_SCALE, TILE * TOKEN_SCALE),
     );
     this.handleEvents();
     this.syncPlayers();
@@ -321,18 +341,65 @@ export class ArenaScene extends Phaser.Scene {
     return { x: this.origin.x + (x + 0.5) * TILE, y: this.origin.y + (y + 0.5) * TILE };
   }
 
+  /** Textura da ficha do jogador (avatar do personagem) ou um círculo na cor do lugar. */
+  private tokenKey(playerId: number): string {
+    const character = this.playerCharacters[playerId];
+    const key = character ? themeTextures(`player.${character}`)[0]?.key : undefined;
+    if (key && this.textures.exists(key)) return key;
+    const fallback = `fallback.player.${playerId}`;
+    if (!this.textures.exists(fallback)) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      g.fillStyle(PLAYER_COLORS[playerId] ?? UNKNOWN_COLOR).fillCircle(TILE, TILE, TILE);
+      g.generateTexture(fallback, TILE * 2, TILE * 2);
+      g.destroy();
+    }
+    return fallback;
+  }
+
+  /** Chave carregada de um nome lógico do tema (1ª variação), ou undefined. */
+  private themeKey(name: string): string | undefined {
+    const key = themeTextures(name)[0]?.key;
+    return key !== undefined && this.textures.exists(key) ? key : undefined;
+  }
+
+  /** Anel na cor do lugar em volta da ficha, com um entalhe apontando para `facing`. */
+  private drawRing(
+    playerId: number,
+    x: number,
+    y: number,
+    radius: number,
+    facing: keyof typeof DIRECTION_VECTORS,
+    alpha: number,
+  ): void {
+    if (alpha <= 0) return;
+    const color = PLAYER_COLORS[playerId] ?? UNKNOWN_COLOR;
+    const g = this.ringLayer;
+    g.lineStyle(3, color, alpha);
+    g.strokeCircle(x, y, radius);
+    const { dx, dy } = DIRECTION_VECTORS[facing];
+    const tipX = x + dx * (radius + 5);
+    const tipY = y + dy * (radius + 5);
+    const baseX = x + dx * (radius - 1);
+    const baseY = y + dy * (radius - 1);
+    g.fillStyle(color, alpha);
+    g.fillTriangle(tipX, tipY, baseX - dy * 4, baseY - dx * 4, baseX + dy * 4, baseY + dx * 4);
+  }
+
   private syncPlayers(): void {
+    this.ringLayer.clear();
+    const radius = (TILE * TOKEN_SCALE) / 2 + 1;
     this.world.players.forEach((p, i) => {
       const sprite = this.playerSprites[i];
       if (!sprite) return;
+      const mountSprite = this.mountSprites[i];
       if (p.ghost) {
         // Fantasma: pequeno e translúcido, sobre o anel da borda.
         const at = ringPoint(this.world.grid, p.ghost.s);
         const gp = this.toScreen(at.x, at.y);
-        sprite.setPosition(gp.x, gp.y).setScale(0.7);
-        sprite.setFillStyle(PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR, 0.45);
-        sprite.setStrokeStyle(2, 0xffffff, p.ghost.thrown ? 0.3 : 0.9);
-        this.mountSprites[i]?.setVisible(false);
+        const size = TILE * TOKEN_SCALE * 0.7;
+        sprite.setPosition(gp.x, gp.y).setDisplaySize(size, size).setAlpha(0.45);
+        this.drawRing(p.id, gp.x, gp.y, size / 2 + 1, p.facing, p.ghost.thrown ? 0.3 : 0.9);
+        mountSprite?.setVisible(false);
         return;
       }
       const pos = this.toScreen(p.x, p.y);
@@ -340,14 +407,14 @@ export class ArenaScene extends Phaser.Scene {
       this.lastPositions[i * 2] = p.x;
       this.lastPositions[i * 2 + 1] = p.y;
 
-      // Mato alto: o jogador local se vê meio transparente; os outros, só o contorno ao se mexer.
+      // Mato alto: o jogador local se vê meio transparente; os outros, só o anel ao se mexer.
       const id = this.world.grid.tiles[Math.round(p.y) * this.world.grid.cols + Math.round(p.x)];
       const hidden = p.alive && id !== undefined && this.world.terrains.get(id)?.hides === true;
       let fill = p.alive ? 1 : 0.3;
       let stroke = fill;
       if (hidden && p.id === 0) fill = stroke = 0.5;
       else if (hidden) {
-        // Curupira (passiva `hiddenWhileMoving`) não mostra nem o contorno andando.
+        // Curupira (passiva `hiddenWhileMoving`) não mostra nem o anel andando.
         const vanishes =
           p.character !== null && characters.get(p.character)?.passive.hiddenWhileMoving === true;
         fill = 0;
@@ -358,21 +425,25 @@ export class ArenaScene extends Phaser.Scene {
       const arc = jump ? Math.sin(Math.PI * (1 - jump.ticksLeft / jump.totalTicks)) : 0;
       if (p.invulnerableTicks > 0 && Math.floor(this.world.tick / 4) % 2 === 0)
         fill = stroke = 0.25;
-      sprite
-        .setPosition(pos.x, pos.y - arc * TILE * 0.4)
-        .setAlpha(1)
-        .setScale(1 + arc * 0.35);
-      const mountSprite = this.mountSprites[i];
+      const scale = 1 + arc * 0.35;
+      const y = pos.y - arc * TILE * 0.4;
+      const size = TILE * TOKEN_SCALE * scale;
+      sprite.setPosition(pos.x, y).setDisplaySize(size, size).setAlpha(fill);
+      this.drawRing(p.id, pos.x, y, radius * scale, p.facing, stroke);
+
       if (mountSprite) {
-        const color = p.mount === null ? undefined : MOUNT_COLORS[p.mount];
-        mountSprite
-          .setVisible(p.alive && color !== undefined && !(hidden && p.id !== 0))
-          .setFillStyle(color ?? 0xffffff, hidden ? 0.5 : 1)
-          .setPosition(pos.x, pos.y + TILE * 0.32 - arc * TILE * 0.4)
-          .setScale(1 + arc * 0.35);
+        const key = p.mount === null ? undefined : this.themeKey(`mount.${p.mount}`);
+        const show = p.alive && key !== undefined && !(hidden && p.id !== 0);
+        mountSprite.setVisible(show);
+        if (show && key !== undefined) {
+          if (mountSprite.texture.key !== key) mountSprite.setTexture(key);
+          mountSprite
+            .setDisplaySize(TILE * 1.45 * scale, TILE * 1.15 * scale)
+            .setFlipX(p.facing === 'left')
+            .setAlpha(hidden ? 0.5 : 1)
+            .setPosition(pos.x, pos.y + TILE * 0.3 - arc * TILE * 0.4);
+        }
       }
-      sprite.setFillStyle(PLAYER_COLORS[p.id] ?? UNKNOWN_COLOR, fill);
-      sprite.setStrokeStyle(2, 0xffffff, stroke);
     });
   }
 
@@ -455,8 +526,20 @@ export class ArenaScene extends Phaser.Scene {
       }
     }
 
+    this.itemPool.begin();
     this.world.items.forEach((itemId, i) => {
       if (itemId === null) return;
+      const itemKey = this.themeKey(`item.${itemId}`);
+      if (itemKey) {
+        this.itemPool.place(
+          itemKey,
+          this.origin.x + (i % cols) * TILE + TILE / 2,
+          this.origin.y + Math.floor(i / cols) * TILE + TILE / 2,
+          TILE,
+        );
+        return;
+      }
+      // Sem ícone no tema: formas de reserva.
       const egg = EGG_COLORS[itemId];
       if (egg) {
         const cx = this.origin.x + (i % cols) * TILE + TILE / 2;
@@ -481,14 +564,23 @@ export class ArenaScene extends Phaser.Scene {
       g.fillCircle(x + TILE / 2, y + TILE / 2, TILE / 7);
     });
 
+    this.itemPool.end();
+
+    const bombKey = this.themeKey('bomb.default');
+    this.bombPool.begin();
     // Bombas de fantasma em voo: arco do anel até o pouso.
     for (const p of this.world.players) {
       const f = p.ghost?.flight;
       if (!f) continue;
       const t = 1 - f.ticksLeft / f.totalTicks;
       const at = this.toScreen(f.fromX + (f.toX - f.fromX) * t, f.fromY + (f.toY - f.fromY) * t);
-      g.fillStyle(BOMB_COLOR);
-      g.fillCircle(at.x, at.y - Math.sin(Math.PI * t) * TILE * 0.9, TILE * 0.3);
+      const ay = at.y - Math.sin(Math.PI * t) * TILE * 0.9;
+      if (bombKey) {
+        this.bombPool.place(bombKey, at.x, ay, TILE * 0.85);
+      } else {
+        g.fillStyle(BOMB_COLOR);
+        g.fillCircle(at.x, ay, TILE * 0.3);
+      }
     }
 
     for (const bomb of this.world.bombs) {
@@ -502,19 +594,25 @@ export class ArenaScene extends Phaser.Scene {
       // Pulsa mais rápido perto de explodir.
       const urgency = 1 - bomb.fuse / fuseTicks;
       const pulse = 1 + 0.08 * Math.sin(this.world.tick * (0.2 + urgency * 0.6));
+      if (bombKey) {
+        this.bombPool.place(bombKey, pos.x, pos.y, TILE * pulse);
+        continue;
+      }
       g.fillStyle(BOMB_COLOR);
       g.fillCircle(pos.x, pos.y, TILE * 0.36 * pulse);
       g.fillStyle(BOMB_FUSE_COLOR);
       g.fillCircle(pos.x + TILE * 0.2, pos.y - TILE * 0.24, TILE * 0.08);
     }
+    this.bombPool.end();
 
     // Pegada falsa: o clone é desenhado igual ao Curupira (é para enganar).
+    this.decoyPool.begin();
+    const size = TILE * TOKEN_SCALE;
     for (const d of this.world.decoys) {
       const pos = this.toScreen(d.body.x, d.body.y);
-      g.fillStyle(PLAYER_COLORS[d.ownerId] ?? UNKNOWN_COLOR);
-      g.fillCircle(pos.x, pos.y, TILE * 0.4);
-      g.lineStyle(2, 0xffffff);
-      g.strokeCircle(pos.x, pos.y, TILE * 0.4);
+      this.decoyPool.place(this.tokenKey(d.ownerId), pos.x, pos.y, size);
+      this.drawRing(d.ownerId, pos.x, pos.y, size / 2 + 1, d.body.facing, 1);
     }
+    this.decoyPool.end();
   }
 }

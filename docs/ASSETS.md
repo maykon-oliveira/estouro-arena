@@ -36,6 +36,13 @@ Um retrato por personagem, **DiceBear 10** estilo `pixel-art` (**CC0**), usado n
 - Gerar: `bun run avatars` → `assets/themes/default/avatars/<personagem>.svg` e as entradas `avatar.<personagem>` do `manifest.json`. Não edite à mão.
 - Os dois geradores dividem `scripts/dicebear.ts` (render do SVG sem `<metadata>`, checagem CC0, atualização do manifest).
 
+## Sprites da arena (SVG)
+
+Arte provisória da arena, até a arte final (Fase 2, passo 9) — ver [`docs/specs/sprites-svg.md`](specs/sprites-svg.md):
+
+- **Fichas dos jogadores** (`player.<personagem>`): o avatar DiceBear `pixel-art` em círculo (`avatars/<id>_token.svg`), gerado por `bun run avatars` (opções extras em `token` no `avatars.dicebear.json`). O render põe um anel na cor do lugar com um entalhe para onde o jogador está virado.
+- **Montarias, itens e bomba** (`mount.<id>`, `item.<id>`, `bomb.default`): SVGs **originais**, desenhados à mão em `sprites/` (montarias 40 × 32, viradas para a direita; o resto 32 × 32). Estes podem ser editados à mão; mantenha o tamanho e registre no `manifest.json` com `source: "original"`.
+
 Formato atual do manifest para tiles (o atlas do exemplo abaixo continua valendo para spritesheets futuros):
 
 ```json

@@ -110,7 +110,7 @@ Faça uma feature por vez. Não refatore áreas não relacionadas sem pedir.
 
 ## Arte e propriedade intelectual
 
-- Texturas de terreno: DiceBear 10, só estilos abstratos **CC0**, geradas no desenvolvimento (`bun run tiles`) e versionadas como SVG — ver [`docs/specs/tema-dicebear.md`](docs/specs/tema-dicebear.md). Avatares dos personagens: DiceBear `pixel-art` (CC0, `bun run avatars`). Personagens na arena, itens e bombas: formas coloridas por enquanto. PixelLab (pixel art 32 × 32) é pago e ficou adiado.
+- Texturas de terreno: DiceBear 10, só estilos abstratos **CC0**, geradas no desenvolvimento (`bun run tiles`) e versionadas como SVG — ver [`docs/specs/tema-dicebear.md`](docs/specs/tema-dicebear.md). Avatares e fichas dos personagens: DiceBear `pixel-art` (CC0, `bun run avatars`). Montarias, itens e bomba: SVGs originais em `assets/themes/default/sprites/` — ver [`docs/specs/sprites-svg.md`](docs/specs/sprites-svg.md). PixelLab (pixel art 32 × 32) é pago e ficou adiado.
 - **Nunca** usar o nome "Bomberman", personagens/sprites dos jogos da Hudson/Konami, nem visuais de adaptações recentes do folclore (novelas, séries). Nunca usar nome ou imagem de pessoas reais.
 
 ## DiceBear

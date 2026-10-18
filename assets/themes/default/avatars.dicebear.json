@@ -1,8 +1,11 @@
 {
-  "$comment": "Fonte dos avatares dos personagens (DiceBear 10, estilo pixel-art, CC0). Gere com: bun run avatars",
+  "$comment": "Fonte dos avatares (retrato) e das fichas da arena (retrato em círculo) dos personagens (DiceBear 10, estilo pixel-art, CC0). Gere com: bun run avatars",
   "size": 64,
   "cc0Styles": ["pixel-art"],
   "style": "pixel-art",
+  "token": {
+    "borderRadius": 50
+  },
   "avatars": {
     "saci": {
       "backgroundColor": ["#e53935"],

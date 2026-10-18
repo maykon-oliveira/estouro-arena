@@ -18,6 +18,7 @@ Formato: status · regras · casos de borda · eventos · dados/config · testes
 | Spec | Status |
 | --- | --- |
 | [Texturas de terreno com DiceBear](tema-dicebear.md) | Feita |
+| [Sprites em SVG: fichas, montarias, itens e bomba](sprites-svg.md) | Feita |
 
 ## Fase 1 — MVP: Batalha (ordem de implementação)
 

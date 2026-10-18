@@ -35,6 +35,120 @@
     ],
     "source": "dicebear:pixel-art"
   },
+  "bomb.default": {
+    "files": [
+      "sprites/bomb_default.svg"
+    ],
+    "source": "original"
+  },
+  "item.atravessa_bloco": {
+    "files": [
+      "sprites/item_atravessa_bloco.svg"
+    ],
+    "source": "original"
+  },
+  "item.bomba": {
+    "files": [
+      "sprites/item_bomba.svg"
+    ],
+    "source": "original"
+  },
+  "item.chute": {
+    "files": [
+      "sprites/item_chute.svg"
+    ],
+    "source": "original"
+  },
+  "item.fogo": {
+    "files": [
+      "sprites/item_fogo.svg"
+    ],
+    "source": "original"
+  },
+  "item.fogo_max": {
+    "files": [
+      "sprites/item_fogo_max.svg"
+    ],
+    "source": "original"
+  },
+  "item.ovo_capivara": {
+    "files": [
+      "sprites/item_ovo_capivara.svg"
+    ],
+    "source": "original"
+  },
+  "item.ovo_sapo_saltador": {
+    "files": [
+      "sprites/item_ovo_sapo_saltador.svg"
+    ],
+    "source": "original"
+  },
+  "item.patins": {
+    "files": [
+      "sprites/item_patins.svg"
+    ],
+    "source": "original"
+  },
+  "item.perfurante": {
+    "files": [
+      "sprites/item_perfurante.svg"
+    ],
+    "source": "original"
+  },
+  "item.remota": {
+    "files": [
+      "sprites/item_remota.svg"
+    ],
+    "source": "original"
+  },
+  "mount.capivara": {
+    "files": [
+      "sprites/mount_capivara.svg"
+    ],
+    "source": "original"
+  },
+  "mount.sapo_saltador": {
+    "files": [
+      "sprites/mount_sapo_saltador.svg"
+    ],
+    "source": "original"
+  },
+  "player.boitata": {
+    "files": [
+      "avatars/boitata_token.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "player.boto": {
+    "files": [
+      "avatars/boto_token.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "player.curupira": {
+    "files": [
+      "avatars/curupira_token.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "player.iara": {
+    "files": [
+      "avatars/iara_token.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "player.mula_sem_cabeca": {
+    "files": [
+      "avatars/mula_sem_cabeca_token.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
+  "player.saci": {
+    "files": [
+      "avatars/saci_token.svg"
+    ],
+    "source": "dicebear:pixel-art"
+  },
   "tile.agua_funda": {
     "files": [
       "tiles/agua_funda_0.svg",
