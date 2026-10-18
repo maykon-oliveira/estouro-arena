@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.14.0...v0.15.0) (2026-10-18)
+
+### Funcionalidades
+
+* **sprites-svg:** Adiciona fichas, montarias, itens e bomba em SVG na arena ([4c5a894](https://github.com/maykon-oliveira/estouro-arena/commit/4c5a894a871ec01f2ad512ca5962e8b5b6bb5531))
+
 ## [0.14.0](https://github.com/maykon-oliveira/estouro-arena/compare/v0.13.0...v0.14.0) (2026-10-18)
 
 ### Funcionalidades
